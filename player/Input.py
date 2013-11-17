@@ -29,3 +29,7 @@ class Input_handler(object):
     def process_keys(self):
         if self.keys[key.A]:
             print self.keys
+
+    def register(self, listener, events=None):
+        self.listeners[listener] = events
+        # asdf
