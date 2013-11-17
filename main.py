@@ -1,6 +1,6 @@
 import pyglet
 from graphics import Primitives, Camera
-from player import Input
+from player import Input, Movement
 
 # set up window
 window = pyglet.window.Window(800, 450, vsync=True)
@@ -12,6 +12,9 @@ fps = pyglet.clock.ClockDisplay()
 camera = Camera.Camera(window)
 pyglet.clock.set_fps_limit(120)
 rect = Primitives.Rect(0, 0, window.width / 40, window.height / 10, (0, .8, 1))
+move = Movement.Move()
+# register movement with input
+input_handler.register(move.receive_message, events='get_input')
 
 
 def update(dt):

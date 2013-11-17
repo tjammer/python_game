@@ -29,10 +29,13 @@ class Input_handler(object):
     def process_keys(self):
         if self.keys[key.A]:
             print self.keys
+        if self.keys[key.SPACE]:
+            self.send_message('get_input', self.keys)
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
 
     def send_message(self, event, msg):
-        for listener, events in self.listeners:
-            listener(event, msg)
+        for listener, events in self.listeners.items():
+            if event in events:
+                listener(event, msg)
