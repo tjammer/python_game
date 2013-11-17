@@ -32,4 +32,7 @@ class Input_handler(object):
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
-        # commit test
+
+    def send_message(self, event, msg):
+        for listener, events in self.listeners:
+            listener(event, msg)
