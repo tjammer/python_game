@@ -23,8 +23,7 @@ def update(dt):
     if not Move.walk(dt):
         Move.vel[0] = 0
     Move.step(dt)
-    Rect.x = Move.pos[0]
-    Rect.update()
+    Rect.update(Move.pos[0], Move.pos[1])
 pyglet.clock.schedule(update)
 
 
