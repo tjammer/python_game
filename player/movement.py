@@ -1,4 +1,3 @@
-from pyglet.window import key
 
 
 class Move(object):
@@ -12,8 +11,8 @@ class Move(object):
         self.boost_accel = 20.
         self.turn_multplier = 2.
 
-        def step(self, dt):
-            self.vel[1] += self.gravity
+    def step(self, dt):
+            self.vel[1] -= self.gravity
             for i, j in enumerate(self.pos):
                 self.pos[i] += self.vel[i] * dt
 
