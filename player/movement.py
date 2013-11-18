@@ -6,7 +6,7 @@ class Move(object):
         super(Move, self).__init__()
         self.pos = [10, 0]
         self.vel = [0, 0]
-        self.gravity = 10.
+        self.gravity = 2.
         self.normal_accel = 10.
         self.boost_accel = 20.
         self.turn_multplier = 2.
@@ -19,7 +19,7 @@ class Move(object):
         self.step(dt)
 
     def step(self, dt):
-            # self.vel[1] -= self.gravity
+            self.vel[1] -= self.gravity
             for i, j in enumerate(self.pos):
                 self.pos[i] += self.vel[i] * dt
 
