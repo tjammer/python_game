@@ -10,6 +10,8 @@ class Move(object):
         self.normal_accel = 10.
         self.boost_accel = 20.
         self.turn_multplier = 2.
+        self.jump_vel = 10.
+
         self.input = {}
 
     def step(self, dt):
@@ -31,6 +33,20 @@ class Move(object):
             v *= self.turn_multplier
         self.vel[0] += v * sign * dt
         return True
+
+    def air_control(self, dt):
+        if self.input['up'] and self.vel[1] > 0:
+            self.vel[1] = 0
+
+        self.walk(dt)
+
+    def ground_control(self, dt):
+        if self.input['up']:
+            self.vel[1] = self.jump_vel
+            return
+
+        if not self.walk(dt):
+            self.vel[1] = 0
 
     def sign_of(self, num):
         if num > 0:
