@@ -12,6 +12,7 @@ class Input_handler(object):
         self.mouse_offset = 1337
         self.window = window
         self.mousepos = [0, 0]
+        self.ingame_input = {}
         self.listeners = {}
 
         @self.window.event

@@ -1,5 +1,5 @@
 import pyglet
-from graphics import Primitives, Camera
+from graphics import primitives, camera
 from player import Input, Movement
 
 # set up window
@@ -9,17 +9,17 @@ input_handler = Input.Input_handler(window)
 window.push_handlers(input_handler.keys)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
-camera = Camera.Camera(window)
+Camera = camera.Camera(window)
 pyglet.clock.set_fps_limit(120)
-rect = Primitives.Rect(0, 0, window.width / 40, window.height / 10, (0, .8, 1))
-move = Movement.Move()
+Rect = primitives.Rect(0, 0, window.width / 40, window.height / 10, (0, .8, 1))
+Move = Movement.Move()
 # register movement with input
-input_handler.register(move.receive_message, events='get_input')
+input_handler.register(Move.receive_message, events='get_input')
 
 
 def update(dt):
     input_handler.process_keys()
-    camera.get_mouse_pos(input_handler.mousepos)
+    Camera.get_mouse_pos(input_handler.mousepos)
 pyglet.clock.schedule(update)
 
 
@@ -28,11 +28,11 @@ pyglet.clock.schedule(update)
 def on_draw():
     window.clear()
     pyglet.gl.glClearColor(1, .9, .4, 1)
-    camera.set_camera()
+    Camera.set_camera()
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
-    # draw rect
-    rect.draw()
-    camera.set_static()
+    # draw Rect
+    Rect.draw()
+    Camera.set_static()
     fps.draw()
 
 pyglet.app.run()

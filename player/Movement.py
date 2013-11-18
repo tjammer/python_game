@@ -1,3 +1,6 @@
+from pyglet.window import key
+
+
 class Move(object):
     """docstring for Move"""
     def __init__(self):
