@@ -14,6 +14,10 @@ class Move(object):
 
         self.input = {}
 
+    def update(self, dt):
+        self.ground_control(dt)
+        self.step(dt)
+
     def step(self, dt):
             # self.vel[1] -= self.gravity
             for i, j in enumerate(self.pos):
@@ -46,7 +50,7 @@ class Move(object):
             return
 
         if not self.walk(dt):
-            self.vel[1] = 0
+            self.vel[0] = 0
 
     def sign_of(self, num):
         if num > 0:

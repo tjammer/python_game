@@ -20,9 +20,7 @@ input_handler.register(Move.receive_message, events='get_input')
 def update(dt):
     input_handler.process_keys()
     Camera.get_mouse_pos(input_handler.mousepos)
-    if not Move.walk(dt):
-        Move.vel[0] = 0
-    Move.step(dt)
+    Move.update(dt)
     Rect.update(Move.pos[0], Move.pos[1])
 pyglet.clock.schedule(update)
 
