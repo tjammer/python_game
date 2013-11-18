@@ -10,14 +10,19 @@ class Move(object):
         self.normal_accel = 10.
         self.boost_accel = 20.
         self.turn_multplier = 2.
+        self.input = {}
 
     def step(self, dt):
-            self.vel[1] -= self.gravity
+            # self.vel[1] -= self.gravity
             for i, j in enumerate(self.pos):
                 self.pos[i] += self.vel[i] * dt
 
-    def walk(self, sign, dt):
-        if sign == 0:
+    def walk(self, dt):
+        if self.input['right'] and not self.input['left']:
+            sign = 1
+        elif self.input['left'] and not self.input['right']:
+            sign = -1
+        else:
             return False
 
         curr_sign = self.sign_of(self.vel[0])
@@ -25,6 +30,7 @@ class Move(object):
         if curr_sign != 0 and curr_sign != sign:
             v *= self.turn_multplier
         self.vel[0] += v * sign * dt
+        return True
 
     def sign_of(self, num):
         if num > 0:
@@ -35,4 +41,4 @@ class Move(object):
             return 0
 
     def receive_message(self, event, msg):
-        pass
+        self.input = msg

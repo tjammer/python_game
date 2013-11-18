@@ -28,8 +28,6 @@ class Input_handler(object):
             self.keys[button + self.mouse_offset] = False
 
     def process_keys(self):
-        if self.keys[key.A]:
-            print self.keys
        # register pressed keys for movement
         self.movement_input['up'] = self.keys[key.SPACE]
         self.movement_input['left'] = self.keys[key.A]
