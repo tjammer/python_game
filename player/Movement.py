@@ -36,4 +36,4 @@ class Move(object):
             return 0
 
     def receive_message(self, event, msg):
-        print msg
+        pass

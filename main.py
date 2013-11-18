@@ -1,18 +1,18 @@
 import pyglet
 from graphics import primitives, camera
-from player import Input, Movement
+from player import controls, movement
 
 # set up window
 window = pyglet.window.Window(800, 450, vsync=True)
 window.set_mouse_visible(False)
-input_handler = Input.Input_handler(window)
+input_handler = controls.Input_handler(window)
 window.push_handlers(input_handler.keys)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
 Camera = camera.Camera(window)
 pyglet.clock.set_fps_limit(120)
 Rect = primitives.Rect(0, 0, window.width / 40, window.height / 10, (0, .8, 1))
-Move = Movement.Move()
+Move = movement.Move()
 # register movement with input
 input_handler.register(Move.receive_message, events='get_input')
 
