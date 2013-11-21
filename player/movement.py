@@ -6,17 +6,25 @@ class Move(object):
         super(Move, self).__init__()
         self.pos = [10, 0]
         self.vel = [0, 0]
-        self.gravity = 2.
-        self.normal_accel = 10.
+        self.gravity = 40.
+        self.normal_accel = 500.
         self.boost_accel = 20.
-        self.turn_multplier = 2.
-        self.jump_vel = 10.
+        self.turn_multplier = 4.
+        self.jump_vel = 1500.
+        self.can_jump = True
 
         self.input = {}
 
     def update(self, dt):
-        self.ground_control(dt)
+        if self.vel[1] == 0:
+            self.ground_control(dt)
+        else:
+            self.air_control(dt)
         self.step(dt)
+        if self.pos[1] < 0:
+            self.pos[1] = 0
+            self.vel[1] = 0
+            self.can_jump = True
 
     def step(self, dt):
             self.vel[1] -= self.gravity
@@ -39,14 +47,15 @@ class Move(object):
         return True
 
     def air_control(self, dt):
-        if self.input['up'] and self.vel[1] > 0:
+        if not self.input['up'] and self.vel[1] > 0:
             self.vel[1] = 0
 
         self.walk(dt)
 
     def ground_control(self, dt):
-        if self.input['up']:
+        if self.input['up'] and self.can_jump:
             self.vel[1] = self.jump_vel
+            self.can_jump = False
             return
 
         if not self.walk(dt):
