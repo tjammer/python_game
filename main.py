@@ -1,5 +1,5 @@
 import pyglet
-from graphics import primitives, camera
+from graphics import primitives, Camera
 from player import controls, movement
 
 # set up window
@@ -9,7 +9,7 @@ InputHandler = controls.Input_handler(window)
 window.push_handlers(InputHandler.keys)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
-Camera = camera.Camera(window)
+Camera = Camera.Camera(window)
 pyglet.clock.set_fps_limit(120)
 Rect = primitives.Rect(0, 0, window.width / 40, window.height / 10, (0, .8, 1))
 Move = movement.Move()
