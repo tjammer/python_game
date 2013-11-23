@@ -1,4 +1,5 @@
 from pyglet.window import key
+from graphics.primitives import Cross
 
 
 class Input_handler(object):
@@ -14,6 +15,7 @@ class Input_handler(object):
         self.mousepos = [0, 0]
         self.movement_input = {}
         self.listeners = {}
+        self.crosshair = Cross([0, 0], 8)
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
@@ -41,3 +43,7 @@ class Input_handler(object):
         for listener, events in self.listeners.items():
             if event in events:
                 listener(event, msg)
+
+    def draw_mouse(self):
+        self.crosshair.update(*self.mousepos)
+        self.crosshair.draw()

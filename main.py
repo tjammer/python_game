@@ -28,13 +28,14 @@ pyglet.clock.schedule(update)
 #draw
 def on_draw():
     window.clear()
-    pyglet.gl.glClearColor(1, .9, .4, 1)
+    pyglet.gl.glClearColor(.5, .7, .4, 1)
     Camera.set_camera()
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
     pyglet.clock.tick()
     # draw Player
     Player.draw()
     Camera.set_static()
+    InputHandler.draw_mouse()
     fps.draw()
 
 pyglet.app.run()

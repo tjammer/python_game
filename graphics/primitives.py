@@ -32,3 +32,21 @@ class Rect(object):
         self.y2 = y + self.height
         self.ver_list.vertices = [self.x, self.y, self.x, self.y2,
                                   self.x2, self.y2, self.x2, self.y]
+
+
+class Cross(object):
+    """docstring for Cross"""
+    def __init__(self, pos, size):
+        super(Cross, self).__init__()
+        self.size = size
+        self.pos = pos
+        self.h_line = Rect(pos[0] - size / 2., pos[1], size, 2, (1, 1, 1))
+        self.v_line = Rect(pos[0], pos[1] + size / 2, 2, size, (1, 1, 1))
+
+    def draw(self):
+        self.h_line.draw()
+        self.v_line.draw()
+
+    def update(self, x, y):
+        self.h_line.update(x - self.size / 2, y - 1)
+        self.v_line.update(x - 1, y - self.size / 2)

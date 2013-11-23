@@ -17,7 +17,7 @@ class Camera(object):
     def get_mouse_pos(self, xy_arr, dt):
         # self.x = xy_arr[0]
         # self.y = xy_arr[1]
-        self.target_x = xy_arr[0] + self.p_pos + self.p_vel * .6
+        self.target_x = xy_arr[0] + self.p_pos + self.p_vel
         self.x -= (self.x - self.target_x) * self.mul_easing * dt * 30
         self.y = xy_arr[1]
 
