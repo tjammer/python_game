@@ -1,5 +1,5 @@
 import pyglet
-from graphics import Camera
+from graphics import camera
 from player import controls, player
 
 # set up window
@@ -9,7 +9,7 @@ InputHandler = controls.Input_handler(window)
 window.push_handlers(InputHandler.keys)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
-Camera = Camera.Camera(window)
+Camera = camera.Camera(window)
 pyglet.clock.set_fps_limit(120)
 Player = player.player()
 # register movement with input, camera with playerpos
