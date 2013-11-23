@@ -4,7 +4,7 @@ class Move(object):
     """docstring for Move"""
     def __init__(self):
         super(Move, self).__init__()
-        self.pos = [10, 0]
+        self.pos = [0, 0]
         self.vel = [0, 0]
         self.gravity = 4000.
         self.normal_accel = 500.
@@ -12,6 +12,7 @@ class Move(object):
         self.turn_multplier = 4.
         self.jump_vel = 1500.
         self.can_jump = True
+        self.curr_sign = 0
 
         self.input = {}
 
@@ -40,9 +41,9 @@ class Move(object):
         else:
             return False
 
-        curr_sign = self.sign_of(self.vel[0])
+        self.curr_sign = self.sign_of(self.vel[0])
         v = self.normal_accel
-        if curr_sign != 0 and curr_sign != sign:
+        if self.curr_sign != 0 and self.curr_sign != sign:
             v *= self.turn_multplier
         self.vel[0] += v * sign * dt
         return True
