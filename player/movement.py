@@ -25,6 +25,7 @@ class Move(object):
             self.pos[1] = 0
             self.vel[1] = 0
             self.can_jump = True
+        return self.vel, self.pos
 
     def step(self, dt):
             self.vel[1] -= self.gravity
