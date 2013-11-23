@@ -3,7 +3,7 @@ from graphics import Camera
 from player import controls, player
 
 # set up window
-window = pyglet.window.Window(1280, 720, vsync=True)
+window = pyglet.window.Window(1280, 720, vsync=False)
 window.set_mouse_visible(False)
 InputHandler = controls.Input_handler(window)
 window.push_handlers(InputHandler.keys)
@@ -19,8 +19,6 @@ InputHandler.register(Player.Move.receive_message, events='get_input')
 def update(dt):
     InputHandler.process_keys()
     Camera.get_mouse_pos(InputHandler.mousepos)
-    # Player.Move.update(dt)
-    # Player.Rect.update(Player.Move.pos[0], Player.Move.pos[1])
     Player.update(dt)
 pyglet.clock.schedule(update)
 
@@ -32,6 +30,7 @@ def on_draw():
     pyglet.gl.glClearColor(1, .9, .4, 1)
     Camera.set_camera()
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
+    pyglet.clock.tick()
     # draw Player
     Player.draw()
     Camera.set_static()
