@@ -17,7 +17,7 @@ class player(object):
     def update(self, dt):
         self.vel, self.pos = self.Move.update(dt)
         self.Rect.update(*self.pos)
-        self.send_messsage('changed_pos', self.pos)
+        self.send_messsage('changed_pos', [self.pos[0], self.Move.vel[0]])
 
     def draw(self):
         self.Rect.draw()

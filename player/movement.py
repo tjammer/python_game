@@ -12,7 +12,6 @@ class Move(object):
         self.turn_multplier = 4.
         self.jump_vel = 1500.
         self.can_jump = True
-        self.curr_sign = 0
 
         self.input = {}
 

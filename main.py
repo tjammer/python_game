@@ -19,8 +19,8 @@ Player.register(Camera.receive_player_pos, events='changed_pos')
 
 def update(dt):
     InputHandler.process_keys()
-    Camera.get_mouse_pos(InputHandler.mousepos)
     Player.update(dt)
+    Camera.get_mouse_pos(InputHandler.mousepos, dt)
 pyglet.clock.schedule(update)
 
 
