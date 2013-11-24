@@ -50,3 +50,26 @@ class Cross(object):
     def update(self, x, y):
         self.h_line.update(x - self.size / 2, y - 1)
         self.v_line.update(x - 1, y - self.size / 2)
+
+
+class Box(object):
+    """docstring for Box"""
+    def __init__(self, pos, size, f_size):
+        super(Box, self).__init__()
+        self.pos = pos
+        self.size = size
+        self.f_size = f_size
+        self.outer_box = Rect(pos[0], pos[1], size[0], size[1], (0, 1, 0))
+        self.inner_box = Rect(pos[0] + f_size, pos[1] + f_size,
+                              size[0] - 2 * f_size, size[1] - 2 * f_size,
+                              (1, 1, 1))
+
+    def draw(self):
+        self.outer_box.draw()
+        self.inner_box.draw()
+
+    def highlight(self):
+        self.outer_box.ver_list.colors = [1, 0, 0]
+
+    def restore(self):
+        self.outer_box.ver_list.colors = [0, 1, 0]

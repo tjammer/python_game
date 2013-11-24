@@ -2,10 +2,10 @@ from pyglet.window import key
 from graphics.primitives import Cross
 
 
-class Input_handler(object):
-    """docstring for Input_handler"""
+class InputHandler(object):
+    """docstring for InputHandler"""
     def __init__(self, window):
-        super(Input_handler, self).__init__()
+        super(InputHandler, self).__init__()
         # list of pressed keys
         self.keys = key.KeyStateHandler()
         #keys are recognized as ints, this is an arbitrary offset to have

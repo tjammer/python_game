@@ -5,7 +5,7 @@ from player import controls, player
 # set up window
 window = pyglet.window.Window(1280, 720, vsync=False)
 window.set_mouse_visible(False)
-InputHandler = controls.Input_handler(window)
+InputHandler = controls.InputHandler(window)
 window.push_handlers(InputHandler.keys)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
