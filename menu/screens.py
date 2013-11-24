@@ -15,3 +15,4 @@ class GameScreen(object):
 
     def update(self, dt):
         self.Player.update(dt)
+        self.Camera.update(dt)
