@@ -1,6 +1,7 @@
 import pyglet
 from graphics import camera
 from player import controls, player
+from menu.elements import TextBoxFramed
 
 # set up window
 window = pyglet.window.Window(1280, 720, vsync=False)
@@ -16,6 +17,7 @@ Player = player.player()
 InputHandler.register(Player.Move.receive_message, events='get_input')
 InputHandler.register(Camera.receive_mouse_pos, events='changed_mouse')
 Player.register(Camera.receive_player_pos, events='changed_pos')
+box = TextBoxFramed([500, 500], [300, 100], 3, 'start game')
 
 
 def update(dt):
@@ -29,13 +31,14 @@ pyglet.clock.schedule(update)
 #draw
 def on_draw():
     window.clear()
-    pyglet.gl.glClearColor(.5, .7, .4, 1)
+    pyglet.gl.glClearColor(.2, .2, .2, 1)
     Camera.set_camera()
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
     pyglet.clock.tick()
     # draw Player
     Player.draw()
     Camera.set_static()
+    box.draw()
     InputHandler.draw_mouse()
     fps.draw()
 
