@@ -21,7 +21,8 @@ class Camera(object):
         # self.y = xy_arr[1]
         self.target_x = self.m_x + self.p_pos + self.p_vel
         self.x -= (self.x - self.target_x) * self.mul_easing * dt * 30
-        self.y = xy_arr[1]
+        self.target_y = self.m_y
+        self.y -= (self.y - self.target_y) * self.mul_easing * dt * 30
 
     def set_camera(self):
         glMatrixMode(GL_MODELVIEW)
