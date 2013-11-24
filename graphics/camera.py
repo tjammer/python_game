@@ -13,11 +13,13 @@ class Camera(object):
         self.w = window.width / 2
         self.p_pos = 0
         self.mul_easing = .3
+        self.m_x = 0
+        self.m_y = 0
 
-    def get_mouse_pos(self, xy_arr, dt):
+    def update(self, dt):
         # self.x = xy_arr[0]
         # self.y = xy_arr[1]
-        self.target_x = xy_arr[0] + self.p_pos + self.p_vel
+        self.target_x = self.m_x + self.p_pos + self.p_vel
         self.x -= (self.x - self.target_x) * self.mul_easing * dt * 30
         self.y = xy_arr[1]
 
@@ -34,3 +36,7 @@ class Camera(object):
     def receive_player_pos(self, event, msg):
         self.p_pos = msg[0]
         self.p_vel = msg[1]
+
+    def receive_mouse_pos(self, event, msg):
+        self.m_x = msg[0]
+        self.m_y = msg[1]

@@ -14,13 +14,14 @@ pyglet.clock.set_fps_limit(120)
 Player = player.player()
 # register movement with input, camera with playerpos
 InputHandler.register(Player.Move.receive_message, events='get_input')
+InputHandler.register(Camera.receive_mouse_pos, events='changed_mouse')
 Player.register(Camera.receive_player_pos, events='changed_pos')
 
 
 def update(dt):
     InputHandler.process_keys()
     Player.update(dt)
-    Camera.get_mouse_pos(InputHandler.mousepos, dt)
+    Camera.update(dt)
 pyglet.clock.schedule(update)
 
 
