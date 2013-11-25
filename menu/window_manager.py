@@ -1,5 +1,5 @@
 from screens import GameScreen, MainMenu
-from controls import InputHandler
+from player.controls import InputHandler
 
 
 class WindowManager(object):
@@ -12,9 +12,12 @@ class WindowManager(object):
         self.window.push_handlers(self.InputHandler.keys)
         # get mouse position to menu
         self.InputHandler.register(self.current_screen.receive_mouse_pos,
-                                   events='changed mouse')
+                                   events='changed_mouse')
         # dont forget to unregister while changing menus
 
     def update(self, dt):
         self.InputHandler.process_keys()
         self.current_screen.update(dt)
+
+    def draw(self):
+        self.current_screen.draw()

@@ -69,7 +69,7 @@ class Box(object):
         self.inner_box.draw()
 
     def highlight(self):
-        self.outer_box.ver_list.colors = [1, 0, 0]
+        self.outer_box.ver_list.colors[:3] = [1, 0, 0]
 
     def restore(self):
-        self.outer_box.ver_list.colors = [0, 1, 0]
+        self.outer_box.ver_list.colors[:3] = [0, 1, 0]

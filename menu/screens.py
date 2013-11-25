@@ -1,5 +1,5 @@
 # file for all the screens in the game
-from graphics import Camera
+from graphics.camera import Camera
 from player import player
 from elements import TextBoxFramed
 
@@ -29,11 +29,16 @@ class MainMenu(object):
         self.m_pos = [0, 0]
 
     def update(self, dt):
-        for button in self.buttons:
+        for key, button in self.buttons.items():
             if button.in_box(self.m_pos):
                 button.Box.highlight()
             else:
                 button.Box.restore()
+        print self.m_pos
+
+    def draw(self):
+        for key, button in self.buttons.items():
+            button.draw()
 
     def receive_mouse_pos(self, event, m_pos):
         self.m_pos = m_pos
