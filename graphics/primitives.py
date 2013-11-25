@@ -59,7 +59,7 @@ class Box(object):
         self.pos = pos
         self.size = size
         self.f_size = f_size
-        self.outer_box = Rect(pos[0], pos[1], size[0], size[1], (.1, .8, 0))
+        self.outer_box = Rect(pos[0], pos[1], size[0], size[1], (.0, 1, .8))
         self.inner_box = Rect(pos[0] + f_size, pos[1] + f_size,
                               size[0] - 2 * f_size, size[1] - 2 * f_size,
                               (0, 0, 0))

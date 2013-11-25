@@ -11,7 +11,7 @@ class TextBoxFramed(object):
         self.f_size = f_size
         # code for text here
         self.Label = pyglet.text.Label(text, font_name='Helvetica',
-                                       font_size=36,
+                                       font_size=36, bold=False,
                                        x=self.pos[0] + self.size[0] / 2,
                                        y=self.pos[1] + self.size[1] / 2,
                                        anchor_x='center', anchor_y='center')

@@ -16,3 +16,10 @@ class GameScreen(object):
     def update(self, dt):
         self.Player.update(dt)
         self.Camera.update(dt)
+
+
+class MainManu(object):
+    """docstring for MainManu"""
+    def __init__(self):
+        super(MainManu, self).__init__()
+        self.buttons = []
