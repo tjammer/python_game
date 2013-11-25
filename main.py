@@ -1,6 +1,5 @@
 import pyglet
 from graphics import camera
-from player import controls, player
 from menu.window_manager import WindowManager
 
 # set up window
@@ -11,8 +10,7 @@ WindowManager = WindowManager(window)
 fps = pyglet.clock.ClockDisplay()
 Camera = camera.Camera(window)
 pyglet.clock.set_fps_limit(120)
-Player = player.player()
-Player.register(Camera.receive_player_pos, events='changed_pos')
+# Player.register(Camera.receive_player_pos, events='changed_pos')
 
 
 def update(dt):
