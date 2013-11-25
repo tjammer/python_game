@@ -1,6 +1,7 @@
 # file for all the screens in the game
 from graphics import Camera
 from player import player
+from elements import TextBoxFramed
 
 
 class GameScreen(object):
@@ -18,8 +19,21 @@ class GameScreen(object):
         self.Camera.update(dt)
 
 
-class MainManu(object):
-    """docstring for MainManu"""
+class MainMenu(object):
+    """docstring for MainMenu"""
     def __init__(self):
-        super(MainManu, self).__init__()
-        self.buttons = []
+        super(MainMenu, self).__init__()
+        self.buttons = {}
+        self.buttons['start'] = TextBoxFramed([500, 400], 'start game')
+        self.buttons['quit'] = TextBoxFramed([500, 200], 'quit game')
+        self.m_pos = [0, 0]
+
+    def update(self, dt):
+        for button in self.buttons:
+            if button.in_box(self.m_pos):
+                button.Box.highlight()
+            else:
+                button.Box.restore()
+
+    def receive_mouse_pos(self, event, m_pos):
+        self.m_pos = m_pos

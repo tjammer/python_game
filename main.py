@@ -17,7 +17,7 @@ Player = player.player()
 InputHandler.register(Player.Move.receive_message, events='get_input')
 InputHandler.register(Camera.receive_mouse_pos, events='changed_mouse')
 Player.register(Camera.receive_player_pos, events='changed_pos')
-box = TextBoxFramed([500, 400], [300, 100], 2, 'start game')
+box = TextBoxFramed([500, 400], 'start game')
 
 
 def update(dt):

@@ -43,7 +43,13 @@ class InputHandler(object):
     def send_message(self, event, msg):
         for listener, events in self.listeners.items():
             if event in events:
-                listener(event, msg)
+                try:
+                    listener(event, msg)
+                except (Exception, ):
+                    self.unregister(listener)
+
+    def unregister(self, listener):
+        del self.listeners[listener]
 
     def draw_mouse(self):
         self.crosshair.update(*self.mousepos)

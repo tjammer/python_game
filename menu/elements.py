@@ -4,7 +4,7 @@ from graphics.primitives import Box
 
 class TextBoxFramed(object):
     """docstring for Textbox_framed"""
-    def __init__(self, pos, size, f_size, text):
+    def __init__(self, pos, text, size=[300, 100], f_size=2):
         super(TextBoxFramed, self).__init__()
         self.pos = pos
         self.size = size
