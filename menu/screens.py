@@ -34,7 +34,6 @@ class MainMenu(object):
                 button.Box.highlight()
             else:
                 button.Box.restore()
-        print self.m_pos
 
     def draw(self):
         for key, button in self.buttons.items():

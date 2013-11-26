@@ -54,12 +54,14 @@ class Cross(object):
 
 class Box(object):
     """docstring for Box"""
-    def __init__(self, pos, size, f_size):
+    def __init__(self, pos, size, f_size, color=(0, 1, 8), hcolor=(1, 1, 0)):
         super(Box, self).__init__()
         self.pos = pos
         self.size = size
         self.f_size = f_size
-        self.outer_box = Rect(pos[0], pos[1], size[0], size[1], (.0, 1, .8))
+        self.color = color
+        self.h_color = hcolor
+        self.outer_box = Rect(pos[0], pos[1], size[0], size[1], self.color)
         self.inner_box = Rect(pos[0] + f_size, pos[1] + f_size,
                               size[0] - 2 * f_size, size[1] - 2 * f_size,
                               (0, 0, 0))
@@ -69,7 +71,7 @@ class Box(object):
         self.inner_box.draw()
 
     def highlight(self):
-        self.outer_box.ver_list.colors[:3] = [1, 0, 0]
+        self.outer_box.ver_list.colors = list(self.h_color) * 4
 
     def restore(self):
-        self.outer_box.ver_list.colors[:3] = [0, 1, 0]
+        self.outer_box.ver_list.colors = list(self.color) * 4
