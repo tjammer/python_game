@@ -38,6 +38,6 @@ class Camera(object):
         self.p_pos = msg[0]
         self.p_vel = msg[1]
 
-    def receive_mouse_pos(self, event, msg):
+    def receive_m_pos(self, event, msg):
         self.m_x = msg[0]
         self.m_y = msg[1]

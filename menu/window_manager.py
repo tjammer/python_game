@@ -11,12 +11,12 @@ class WindowManager(object):
         self.current_screen = MainMenu()
         self.InputHandler = InputHandler(self.window)
         self.window.push_handlers(self.InputHandler.keys)
-        # get mouse position to menu
-        self.InputHandler.register(self.current_screen.receive_mouse_pos,
-                                   events='changed_mouse')
+        # get mouse position and clicks to menu
+        self.InputHandler.register(self.current_screen.receive_event,
+                                   events=('changed_mouse', 'all_input'))
+        # receive all events from currentscreen
+        self.current_screen.register(self.receive_events)
         # dont forget to unregister while changing menus
-        # self.window.set_mouse_cursor(self.InputHandler.crosshair)
-        # self.window.set_mouse_cursor(Cross())
         self.cursor = Cross()
 
     def update(self, dt):
@@ -27,3 +27,18 @@ class WindowManager(object):
         self.current_screen.draw()
         # draw cursor
         self.cursor.draw(*self.InputHandler.mousepos)
+
+    # receive events, a lot of transitions will happen here
+    def receive_events(self, event, msg):
+        if event == 'kill_self':
+            import pyglet
+            pyglet.app.exit()
+        if event == 'start_game':
+            pass
+            # self.start_game()
+
+    # methods for behaviour for transitions
+    def start_game(self):
+        self.current_screen = GameScreen(self.window)
+        self.InputHandler.register(self.current_screen.Camera.receive_m_pos,
+                                   'changed_mouse')

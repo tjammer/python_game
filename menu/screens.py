@@ -18,6 +18,11 @@ class GameScreen(object):
         self.Player.update(dt)
         self.Camera.update(dt)
 
+    def draw(self):
+        self.Camera.set_camera()
+        self.Player.draw()
+        self.Camera.set_static()
+
 
 class MainMenu(object):
     """docstring for MainMenu"""
@@ -27,11 +32,19 @@ class MainMenu(object):
         self.buttons['start'] = TextBoxFramed([500, 400], 'start game')
         self.buttons['quit'] = TextBoxFramed([500, 200], 'quit game')
         self.m_pos = [0, 0]
+        self.keys = {}
+
+        self.listeners = {}
 
     def update(self, dt):
         for key, button in self.buttons.items():
             if button.in_box(self.m_pos):
                 button.Box.highlight()
+                try:
+                    if self.keys[1338]:
+                        self.handle_clicks(key)
+                except KeyError:
+                    continue
             else:
                 button.Box.restore()
 
@@ -39,5 +52,30 @@ class MainMenu(object):
         for key, button in self.buttons.items():
             button.draw()
 
-    def receive_mouse_pos(self, event, m_pos):
-        self.m_pos = m_pos
+    def handle_clicks(self, key):
+        if key == 'quit':
+            self.send_message('kill_self')
+        if key == 'start':
+            self.send_message('start_game')
+
+    # receive events
+    def receive_event(self, event, msg):
+        if event == 'changed_mouse':
+            self.m_pos = msg
+        if event == 'all_input':
+            self.keys = msg
+
+    # send events
+    def register(self, listener, events=None):
+        self.listeners[listener] = events
+
+    def send_message(self, event, msg=None):
+        for listener, events in self.listeners.items():
+            try:
+                listener(event, msg)
+            except (Exception, ):
+                self.unregister(listener)
+
+    def unregister(self, listener):
+        print '%s deleted' % listener
+        del self.listeners[listener]

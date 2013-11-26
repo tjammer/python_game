@@ -70,5 +70,5 @@ class Move(object):
         else:
             return 0
 
-    def receive_message(self, event, msg):
+    def receive_keys(self, event, msg):
         self.input = msg

@@ -1,5 +1,4 @@
 from pyglet.window import key
-from graphics.primitives import Cross
 
 
 class InputHandler(object):
@@ -36,7 +35,8 @@ class InputHandler(object):
         self.movement_input['up'] = self.keys[key.SPACE]
         self.movement_input['left'] = self.keys[key.A]
         self.movement_input['right'] = self.keys[key.D]
-        self.send_message('get_input', self.movement_input)
+        self.send_message('movement_input', self.movement_input)
+        self.send_message('all_input', self.keys)
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
@@ -50,4 +50,5 @@ class InputHandler(object):
                     self.unregister(listener)
 
     def unregister(self, listener):
+        print '%s deleted' % listener
         del self.listeners[listener]
