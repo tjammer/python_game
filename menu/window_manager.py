@@ -1,5 +1,6 @@
 from screens import GameScreen, MainMenu
 from player.controls import InputHandler
+from graphics.primitives import Cross
 
 
 class WindowManager(object):
@@ -14,6 +15,8 @@ class WindowManager(object):
         self.InputHandler.register(self.current_screen.receive_mouse_pos,
                                    events='changed_mouse')
         # dont forget to unregister while changing menus
+        # self.window.set_mouse_cursor(self.InputHandler.crosshair)
+        self.window.set_mouse_cursor(Cross())
 
     def update(self, dt):
         self.InputHandler.process_keys()

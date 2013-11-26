@@ -12,10 +12,9 @@ class InputHandler(object):
         # mouse clicks in the same dict
         self.mouse_offset = 1337
         self.window = window
-        self.mousepos = [0, 0]
+        self.mousepos = [1280 / 2, 720 / 2]
         self.movement_input = {}
         self.listeners = {}
-        self.crosshair = Cross([0, 0], 8)
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
@@ -50,7 +49,3 @@ class InputHandler(object):
 
     def unregister(self, listener):
         del self.listeners[listener]
-
-    def draw_mouse(self):
-        self.crosshair.update(*self.mousepos)
-        self.crosshair.draw()

@@ -1,5 +1,6 @@
 from pyglet import graphics
 from pyglet import gl
+from pyglet.window import MouseCursor
 
 
 class Rect(object):
@@ -15,8 +16,8 @@ class Rect(object):
         self.height = height
         self.color = color
         self.ver_list = graphics.vertex_list(4,
-                    ('v2f', (self.x, self.y, self.x, self.y2,
-                             self.x2, self.y2, self.x2, self.y)),
+                    ('v2f/stream', (self.x, self.y, self.x, self.y2,
+                                    self.x2, self.y2, self.x2, self.y)),
                     ('c3f', (self.color[0], self.color[1], self.color[2],
                      self.color[0], self.color[1], self.color[2],
                      self.color[0], self.color[1], self.color[2],
@@ -34,22 +35,21 @@ class Rect(object):
                                   self.x2, self.y2, self.x2, self.y]
 
 
-class Cross(object):
+class Cross(MouseCursor):
     """docstring for Cross"""
-    def __init__(self, pos, size):
+    def __init__(self, pos=[0, 0], size=8):
         super(Cross, self).__init__()
         self.size = size
         self.pos = pos
         self.h_line = Rect(pos[0] - size / 2., pos[1], size, 2, (1, 1, 1))
         self.v_line = Rect(pos[0], pos[1] + size / 2, 2, size, (1, 1, 1))
+        self.drawable = True
 
-    def draw(self):
-        self.h_line.draw()
-        self.v_line.draw()
-
-    def update(self, x, y):
+    def draw(self, x, y):
         self.h_line.update(x - self.size / 2, y - 1)
         self.v_line.update(x - 1, y - self.size / 2)
+        self.h_line.draw()
+        self.v_line.draw()
 
 
 class Box(object):
