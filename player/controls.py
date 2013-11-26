@@ -18,7 +18,9 @@ class InputHandler(object):
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
-            self.mousepos = [x, y]
+            # self.mousepos = [x, y]
+            self.mousepos[0] += dx
+            self.mousepos[1] += dy
             self.send_message('changed_mouse', self.mousepos)
 
         @self.window.event

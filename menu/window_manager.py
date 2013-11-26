@@ -16,7 +16,8 @@ class WindowManager(object):
                                    events='changed_mouse')
         # dont forget to unregister while changing menus
         # self.window.set_mouse_cursor(self.InputHandler.crosshair)
-        self.window.set_mouse_cursor(Cross())
+        # self.window.set_mouse_cursor(Cross())
+        self.cursor = Cross()
 
     def update(self, dt):
         self.InputHandler.process_keys()
@@ -24,3 +25,5 @@ class WindowManager(object):
 
     def draw(self):
         self.current_screen.draw()
+        # draw cursor
+        self.cursor.draw(*self.InputHandler.mousepos)

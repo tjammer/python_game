@@ -4,6 +4,7 @@ from menu.window_manager import WindowManager
 # set up window
 window = pyglet.window.Window(1280, 720, vsync=False)
 # window.set_mouse_visible(False)
+window.set_exclusive_mouse(True)
 WindowManager = WindowManager(window)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
