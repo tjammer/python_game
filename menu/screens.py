@@ -24,16 +24,15 @@ class GameScreen(object):
         self.Camera.set_static()
 
 
-class MainMenu(object):
-    """docstring for MainMenu"""
+class MenuClass(object):
+    """docstring for MenuClass
+    base class for other menus to inherit from"""
     def __init__(self):
-        super(MainMenu, self).__init__()
+        super(MenuClass, self).__init__()
         self.buttons = {}
-        self.buttons['start'] = TextBoxFramed([500, 400], 'start game')
-        self.buttons['quit'] = TextBoxFramed([500, 200], 'quit game')
+        self.text_boxes = {}
         self.m_pos = [0, 0]
         self.keys = {}
-
         self.listeners = {}
 
     def update(self, dt):
@@ -51,12 +50,11 @@ class MainMenu(object):
     def draw(self):
         for key, button in self.buttons.items():
             button.draw()
+        for key, box in self.text_boxes.items():
+            box.draw()
 
     def handle_clicks(self, key):
-        if key == 'quit':
-            self.send_message('kill_self')
-        if key == 'start':
-            self.send_message('start_game')
+        pass
 
     # receive events
     def receive_event(self, event, msg):
@@ -79,3 +77,17 @@ class MainMenu(object):
     def unregister(self, listener):
         print '%s deleted' % listener
         del self.listeners[listener]
+
+
+class MainMenu(MenuClass):
+    """docstring for MainMenu"""
+    def __init__(self):
+        super(MainMenu, self).__init__()
+        self.buttons['start'] = TextBoxFramed([500, 400], 'start game')
+        self.buttons['quit'] = TextBoxFramed([500, 200], 'quit game')
+
+    def handle_clicks(self, key):
+        if key == 'quit':
+            self.send_message('kill_self')
+        if key == 'start':
+            self.send_message('start_game')
