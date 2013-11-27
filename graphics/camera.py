@@ -15,13 +15,15 @@ class Camera(object):
         self.mul_easing = .3
         self.m_x = 0
         self.m_y = 0
+        # y offset to have player in the lower half of the screen
+        self.y_offset = -120
 
     def update(self, dt):
         # self.x = xy_arr[0]
         # self.y = xy_arr[1]
         self.target_x = self.m_x + self.p_pos + self.p_vel
         self.x -= (self.x - self.target_x) * self.mul_easing * dt * 30
-        self.target_y = self.m_y
+        self.target_y = self.m_y + self.y_offset
         self.y -= (self.y - self.target_y) * self.mul_easing * dt * 30
 
     def set_camera(self):
