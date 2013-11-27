@@ -12,7 +12,7 @@ class InputHandler(object):
         self.mouse_offset = 1337
         self.window = window
         self.mousepos = [1280 / 2, 720 / 2]
-        self.movement_input = {}
+        self.direct_input = {}
         self.listeners = {}
 
         @self.window.event
@@ -32,10 +32,10 @@ class InputHandler(object):
 
     def process_keys(self):
        # register pressed keys for movement
-        self.movement_input['up'] = self.keys[key.SPACE]
-        self.movement_input['left'] = self.keys[key.A]
-        self.movement_input['right'] = self.keys[key.D]
-        self.send_message('movement_input', self.movement_input)
+        self.direct_input['up'] = self.keys[key.SPACE]
+        self.direct_input['left'] = self.keys[key.A]
+        self.direct_input['right'] = self.keys[key.D]
+        self.send_message('movement_input', self.direct_input)
         self.send_message('all_input', self.keys)
 
     def register(self, listener, events=None):

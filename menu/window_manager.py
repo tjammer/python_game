@@ -34,11 +34,12 @@ class WindowManager(object):
             import pyglet
             pyglet.app.exit()
         if event == 'start_game':
-            pass
-            # self.start_game()
+            # pass
+            self.start_game()
 
     # methods for behaviour for transitions
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.InputHandler.register(self.current_screen.Camera.receive_m_pos,
                                    'changed_mouse')
+        self.current_screen.Player.Move.input = self.InputHandler.direct_input
