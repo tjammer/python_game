@@ -103,8 +103,11 @@ class GameMenu(MenuClass):
     def __init__(self):
         super(GameMenu, self).__init__()
         self.buttons['resume'] = TextBoxFramed([500, 400], 'resume game')
-        self.buttons['to_main'] = TextBoxFramed([500, 200], 'to main menu')
+        self.buttons['to_main'] = TextBoxFramed([500, 200], 'main menu')
 
     def handle_clicks(self, key):
         if key == 'resume':
-            self.send_message('resume')
+            self.send_message('menu_transition_-')
+
+        if key == 'to_main':
+            self.send_message('to_main')

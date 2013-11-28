@@ -31,14 +31,25 @@ class WindowManager(object):
         if event == 'kill_self':
             import pyglet
             pyglet.app.exit()
+
         if event == 'start_game':
             # pass
             self.start_game()
+
+        if event == 'to_main':
+            self.stack = []
+            self.current_screen = MainMenu()
+            self.register_screen()
+
         if event == 'menu_transition_+':
             self.stack.append(self.current_screen)
             self.current_screen = msg()
             self.register_screen()
             print self.current_screen
+
+        if event == 'menu_transition_-':
+            self.current_screen = self.stack[-1]
+            self.register_screen()
 
     # methods for behaviour for transitions
     def start_game(self):
