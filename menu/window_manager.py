@@ -8,18 +8,14 @@ class WindowManager(object):
     def __init__(self, window):
         super(WindowManager, self).__init__()
         self.window = window
-        self.current_screen = MainMenu()
         self.InputHandler = InputHandler(self.window)
         self.window.push_handlers(self.InputHandler.keys)
-        # when ingame keeps track of the number of menus open
         self.stack = []
-        # get mouse position and clicks to menu
-        self.InputHandler.register(self.current_screen.receive_event,
-                                   events=('changed_mouse', 'all_input'))
-        # receive all events from current_screen
-        self.current_screen.register(self.receive_events)
-        # dont forget to unregister while changing menus
         self.cursor = Cross()
+
+        # set up main menu as starting screen
+        self.current_screen = MainMenu()
+        self.register_screen()
 
     def update(self, dt):
         self.InputHandler.process_keys()
