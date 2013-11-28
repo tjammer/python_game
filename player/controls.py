@@ -1,4 +1,5 @@
 from pyglet.window import key
+from pyglet.event import EVENT_HANDLED
 
 
 class InputHandler(object):
@@ -12,8 +13,10 @@ class InputHandler(object):
         self.mouse_offset = 1337
         self.window = window
         self.mousepos = [1280 / 2, 720 / 2]
-        self.direct_input = {}
+        self.directns = {}
         self.listeners = {}
+        # such keys as escape, ^
+        self.controls = {}
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
@@ -30,12 +33,19 @@ class InputHandler(object):
         def on_mouse_release(x, y, button, modifiers):
             self.keys[button + self.mouse_offset] = False
 
+        @self.window.event
+        def on_key_press(symbol, modifiers):
+            if symbol == key.ESCAPE:
+                return EVENT_HANDLED
+
     def process_keys(self):
        # register pressed keys for movement
-        self.direct_input['up'] = self.keys[key.SPACE]
-        self.direct_input['left'] = self.keys[key.A]
-        self.direct_input['right'] = self.keys[key.D]
-        self.send_message('movement_input', self.direct_input)
+        self.directns['up'] = self.keys[key.SPACE]
+        self.directns['left'] = self.keys[key.A]
+        self.directns['right'] = self.keys[key.D]
+        self.controls['esc'] = self.keys[key.ESCAPE]
+        self.controls['f10'] = self.keys[key.F10]
+
         self.send_message('all_input', self.keys)
 
     def register(self, listener, events=None):
