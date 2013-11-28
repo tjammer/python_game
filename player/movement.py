@@ -14,9 +14,6 @@ class Move(object):
         self.can_jump = True
 
         self.input = {}
-        self.input['up'] = False
-        self.input['left'] = False
-        self.input['right'] = False
 
     def update(self, dt):
         if self.vel[1] == 0:
@@ -73,5 +70,7 @@ class Move(object):
         else:
             return 0
 
-    def receive_keys(self, event, msg):
-        self.input = msg
+    # inputhandler.movement_input gets passed by ref in window manager, no need
+    # for this
+    # def receive_keys(self, event, msg):
+    #     self.input = msg
