@@ -22,8 +22,9 @@ class WindowManager(object):
         self.current_screen.update(dt)
 
     def draw(self):
+        # stack[0] is gamescreen
+        self.stack[0].draw()
         self.current_screen.draw()
-        # draw cursor
         self.cursor.draw(*self.InputHandler.mousepos)
 
     # receive events, a lot of transitions will happen here
@@ -33,7 +34,7 @@ class WindowManager(object):
             pyglet.app.exit()
 
         if event == 'start_game':
-            # pass
+            self.stack = []
             self.start_game()
 
         if event == 'to_main':
@@ -42,16 +43,15 @@ class WindowManager(object):
             self.register_screen()
 
         if event == 'menu_transition_+':
-            self.stack.append(self.current_screen)
+            # self.stack.append(self.current_screen)
             self.current_screen = msg()
             self.register_screen()
-            print self.current_screen
 
         if event == 'menu_transition_-':
+            self.stack.pop()
             self.current_screen = self.stack[-1]
             self.register_screen()
 
-    # methods for behaviour for transitions
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.register_screen()
@@ -69,3 +69,4 @@ class WindowManager(object):
             self.current_screen.Player.Move.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
         self.current_screen.register(self.receive_events)
+        self.stack.append(self.current_screen)
