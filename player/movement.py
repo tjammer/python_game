@@ -12,6 +12,7 @@ class Move(object):
         self.turn_multplier = 4.
         self.jump_vel = 1500.
         self.can_jump = True
+        self.max_vel = 500
 
         self.input = {}
 
@@ -45,6 +46,8 @@ class Move(object):
         if self.curr_sign != 0 and self.curr_sign != sign:
             v *= self.turn_multplier
         self.vel[0] += v * sign * dt
+        if abs(self.vel[0]) > self.max_vel:
+            self.vel[0] = self.max_vel * self.curr_sign
         return True
 
     def air_control(self, dt):
