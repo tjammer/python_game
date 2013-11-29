@@ -35,6 +35,35 @@ class Rect(object):
                                   self.x2, self.y2, self.x2, self.y]
 
 
+class CrossHair(object):
+    """docstring for CrossHair"""
+    def __init__(self, pos=[0, 0], size=10):
+        super(CrossHair, self).__init__()
+        self.pos = pos
+        self.x = pos[0]
+        self.y = pos[1]
+        self.size = size
+        self.cross = graphics.vertex_list(4,
+                                         ('v2i', (self.x - self.size, self.y,
+                                          self.x + self.size, self.y,
+                                          self.x, self.y - self.size,
+                                          self.x, self.y + self.size)))
+
+    def update(self, x, y):
+        self.x = x
+        self.y = y
+        self.cross = graphics.vertex_list(4,
+                                         ('v2i', (self.x - self.size, self.y,
+                                          self.x + self.size, self.y,
+                                          self.x, self.y - self.size,
+                                          self.x, self.y + self.size)))
+
+    def draw(self, x, y):
+        self.update(x, y)
+        gl.glColor3d(1, 1, 1)
+        self.cross.draw(gl.GL_LINES)
+
+
 class Cross(MouseCursor):
     """docstring for Cross"""
     def __init__(self, pos=[0, 0], size=8):

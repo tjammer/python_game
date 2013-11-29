@@ -1,6 +1,6 @@
 from screens import GameScreen, MainMenu
 from player.controls import InputHandler
-from graphics.primitives import Cross
+from graphics.primitives import CrossHair
 
 
 class WindowManager(object):
@@ -11,7 +11,7 @@ class WindowManager(object):
         self.InputHandler = InputHandler(self.window)
         self.window.push_handlers(self.InputHandler.keys)
         self.stack = []
-        self.cursor = Cross()
+        self.cross = CrossHair()
 
         # set up main menu as starting screen
         self.current_screen = MainMenu()
@@ -25,7 +25,7 @@ class WindowManager(object):
         # stack[0] is gamescreen
         self.stack[0].draw()
         self.current_screen.draw()
-        self.cursor.draw(*self.InputHandler.mousepos)
+        self.cross.draw(*self.InputHandler.mousepos)
 
     # receive events, a lot of transitions will happen here
     def receive_events(self, event, msg):
