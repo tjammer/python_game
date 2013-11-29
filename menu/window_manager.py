@@ -43,7 +43,6 @@ class WindowManager(object):
             self.register_screen()
 
         if event == 'menu_transition_+':
-            print self.stack
             self.current_screen = msg()
             self.register_screen()
 
