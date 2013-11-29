@@ -84,5 +84,5 @@ class MenuClass(object):
     # animation
     def animate(self, dt):
         for key, panel in self.buttons.items() + self.text_boxes.items():
-            panel.pos[0] -= (panel.pos[0] - panel.target_pos[0])*dt * 0.1*30
+            panel.pos[0] -= (panel.pos[0] - panel.target_pos[0])*dt * 0.15*30
             panel.update()

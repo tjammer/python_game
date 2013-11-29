@@ -1,8 +1,10 @@
 # file for all the screens in the game
 from graphics.camera import Camera
 from player import player
-from elements import TextBoxFramed
+from elements import TextBoxFramed as btn
 from menu_events import Events, MenuClass
+from pyglet.text import Label
+from graphics.primitives import Box
 
 
 class GameScreen(Events):
@@ -32,14 +34,41 @@ class MainMenu(MenuClass):
     """docstring for MainMenu"""
     def __init__(self):
         super(MainMenu, self).__init__()
-        self.buttons['start'] = TextBoxFramed([500, 400], 'start game')
-        self.buttons['quit'] = TextBoxFramed([500, 200], 'quit game')
+        self.buttons['start'] = btn([500, 400], 'start game')
+        self.buttons['quit'] = btn([500, 200], 'quit game')
+
+    def handle_clicks(self, key):
+        if key == 'quit':
+            self.send_message('menu_transition_+', QuitScreen)
+        if key == 'start':
+            self.send_message('start_game')
+
+
+class QuitScreen(MenuClass):
+    """docstring for QuitScreen"""
+    def __init__(self):
+        super(QuitScreen, self).__init__()
+        self.buttons['quit'] = btn([300, 300], 'yes')
+        self.buttons['dont_quit'] = btn([680, 300], 'no')
+        self.text = 'do you really want to quit?'
+        self.Label = Label(self.text, font_name='Helvetica',
+                           font_size=36, bold=False,
+                           x=640,
+                           y=500,
+                           anchor_x='center', anchor_y='center')
+        self.Box = Box([340, 200], [600, 400], 2)
 
     def handle_clicks(self, key):
         if key == 'quit':
             self.send_message('kill_self')
-        if key == 'start':
-            self.send_message('start_game')
+        if key == 'dont_quit':
+            self.send_message('menu_transition_-')
+
+    def draw(self):
+        self.Box.draw()
+        for key, panel in self.buttons.items():
+            panel.draw()
+        self.Label.draw()
 
 
 class GameMenu(MenuClass):
@@ -47,8 +76,8 @@ class GameMenu(MenuClass):
     main menu ingame"""
     def __init__(self):
         super(GameMenu, self).__init__()
-        self.buttons['resume'] = TextBoxFramed([500, 400], 'resume game')
-        self.buttons['to_main'] = TextBoxFramed([500, 200], 'main menu')
+        self.buttons['resume'] = btn([500, 400], 'resume game')
+        self.buttons['to_main'] = btn([500, 200], 'main menu')
 
     def handle_clicks(self, key):
         if key == 'resume':
