@@ -43,7 +43,6 @@ class WindowManager(object):
             self.register_screen()
 
         if event == 'menu_transition_+':
-            # self.stack.append(self.current_screen)
             self.current_screen = msg()
             self.register_screen()
 
@@ -68,5 +67,6 @@ class WindowManager(object):
             # pass by ref bullshit
             self.current_screen.Player.Move.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
+
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)

@@ -50,12 +50,11 @@ class MenuClass(object):
                     continue
             else:
                 button.Box.restore()
+        self.animate(dt)
 
     def draw(self):
-        for key, button in self.buttons.items():
-            button.draw()
-        for key, box in self.text_boxes.items():
-            box.draw()
+        for key, panel in self.buttons.items() + self.text_boxes.items():
+            panel.draw()
 
     def handle_clicks(self, key):
         pass
@@ -81,3 +80,9 @@ class MenuClass(object):
     def unregister(self, listener):
         print '%s deleted' % listener
         del self.listeners[listener]
+
+    # animation
+    def animate(self, dt):
+        for key, panel in self.buttons.items() + self.text_boxes.items():
+            panel.pos[0] -= (panel.pos[0] - panel.target_pos[0])*dt * 0.1*30
+            panel.update()

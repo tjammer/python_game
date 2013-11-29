@@ -75,3 +75,8 @@ class Box(object):
 
     def restore(self):
         self.outer_box.ver_list.colors = list(self.color) * 4
+
+    def update(self):
+        self.outer_box.update(*self.pos)
+        self.inner_box.update(self.pos[0] + self.f_size,
+                              self.pos[1] + self.f_size)

@@ -6,7 +6,8 @@ class TextBoxFramed(object):
     """docstring for Textbox_framed"""
     def __init__(self, pos, text, size=[300, 100], f_size=2):
         super(TextBoxFramed, self).__init__()
-        self.pos = pos
+        self.target_pos = pos
+        self.pos = [0, pos[1]]
         self.size = size
         self.f_size = f_size
         # code for text here
@@ -15,7 +16,7 @@ class TextBoxFramed(object):
                                        x=self.pos[0] + self.size[0] / 2,
                                        y=self.pos[1] + self.size[1] / 2,
                                        anchor_x='center', anchor_y='center')
-        self.Box = Box(pos, size, f_size)
+        self.Box = Box(self.pos, size, f_size)
 
     def in_box(self, m_pos):
         m_x = m_pos[0]
@@ -28,3 +29,8 @@ class TextBoxFramed(object):
     def draw(self):
         self.Box.draw()
         self.Label.draw()
+
+    def update(self):
+        self.Box.update()
+        self.Label.x = self.pos[0] + self.size[0] / 2
+        self.Label.y = self.pos[1] + self.size[1] / 2
