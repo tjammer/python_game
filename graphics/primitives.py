@@ -1,23 +1,24 @@
 from pyglet import graphics
 from pyglet import gl
 from pyglet.window import MouseCursor
+from collision.rectangle import Rectangle
 
 
-class Rect(object):
+class Rect(Rectangle):
     """Rectangle Class"""
-    def __init__(self, x, y, width, height, color):
-        super(Rect, self).__init__()
+    def __init__(self, x, y, width, height, color, angle=0):
+        super(Rect, self).__init__(x, y, width, height, color, angle)
         # Position of Rect, x,y from lower left
-        self.x = x
-        self.y = y
-        self.x2 = x + width
-        self.y2 = y + height
-        self.width = width
-        self.height = height
-        self.color = color
+        # self.x = x
+        # self.y = y
+        # self.x2 = x + width
+        # self.y2 = y + height
+        # self.width = width
+        # self.height = height
+        # self.color = color
         self.ver_list = graphics.vertex_list(4,
-                    ('v2f/stream', (self.x, self.y, self.x, self.y2,
-                                    self.x2, self.y2, self.x2, self.y)),
+                    ('v2f/stream', (self.x1, self.y1, self.x2, self.y2,
+                                    self.x3, self.y3, self.x4, self.y4)),
                     ('c3f', (self.color[0], self.color[1], self.color[2],
                      self.color[0], self.color[1], self.color[2],
                      self.color[0], self.color[1], self.color[2],
@@ -27,12 +28,16 @@ class Rect(object):
         self.ver_list.draw(gl.GL_POLYGON)
 
     def update(self, x, y):
-        self.x = x
-        self.y = y
-        self.x2 = x + self.width
-        self.y2 = y + self.height
-        self.ver_list.vertices = [self.x, self.y, self.x, self.y2,
-                                  self.x2, self.y2, self.x2, self.y]
+        # self.x = x
+        # self.y = y
+        # self.x2 = x + self.width
+        # self.y2 = y + self.height
+        self.x1, self.y1 = x, y
+        self.x2, self.y2 = self.rotated_coord(0, self.height)
+        self.x3, self.y3 = self.rotated_coord(self.width, self.height)
+        self.x4, self.y4 = self.rotated_coord(self.width, 0)
+        self.ver_list.vertices = [self.x1, self.y1, self.x2, self.y2,
+                                  self.x3, self.y3, self.x4, self.y4]
 
 
 class CrossHair(object):
@@ -83,7 +88,7 @@ class Cross(MouseCursor):
 
 class Box(object):
     """docstring for Box"""
-    def __init__(self, pos, size, f_size, color=(0, 1, 8), hcolor=(1, 1, 0)):
+    def __init__(self, pos, size, f_size=2, color=(0, 1, 8), hcolor=(1, 1, 0)):
         super(Box, self).__init__()
         self.pos = pos
         self.size = size
