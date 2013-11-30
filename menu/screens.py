@@ -5,6 +5,7 @@ from elements import TextBoxFramed as btn
 from menu_events import Events, MenuClass
 from pyglet.text import Label
 from graphics.primitives import Box
+from graphics.primitives import Rect
 
 
 class GameScreen(Events):
@@ -17,15 +18,18 @@ class GameScreen(Events):
         self.Player.register(self.Camera.receive_player_pos,
                              events='changed_pos')
         self.controls = {}
+        self.testrect = Rect(100, 100, 100, 100, (1, 1, 1))
 
     def update(self, dt):
         self.Player.update(dt)
         self.Camera.update(dt)
         if self.controls['esc']:
             self.send_message('menu_transition_+', GameMenu)
+        self.Player.Rect.collides(self.testrect)
 
     def draw(self):
         self.Camera.set_camera()
+        self.testrect.draw()
         self.Player.draw()
         self.Camera.set_static()
 

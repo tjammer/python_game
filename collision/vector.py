@@ -15,7 +15,7 @@ def dot_product(x1, y1, x2, y2):
 def min_max(points, axis):
     mx = max(dot_product(point[0], point[1], axis[0],
                          axis[1]) for point in points)
-    mn = max(dot_product(point[0], point[1], axis[0],
+    mn = min(dot_product(point[0], point[1], axis[0],
                          axis[1]) for point in points)
     return mn, mx
 
@@ -23,6 +23,8 @@ def min_max(points, axis):
 def overlap(a_min, a_max, b_min, b_max):
     if not (a_max < b_min or b_max < a_min):
         return True, min(a_max - b_min, b_max - a_min)
+    else:
+        return False, 0
 
 
 def collides(rect1, rect2):
@@ -40,25 +42,27 @@ def collides(rect1, rect2):
     r_axis2 = [rect2.axis2x, rect2.axis2y]
 
     # first check
-    s_min, s_max = min_max(s_points, [s_axis1])
-    r_min, r_max = min_max(r_points, [s_axis1])
+    s_min, s_max = min_max(s_points, s_axis1)
+    r_min, r_max = min_max(r_points, s_axis1)
     ovr1 = overlap(s_min, s_max, r_min, s_max) + (s_axis1,)
+
     if ovr1[0]:
         # second check
-        s_min, s_max = min_max(s_points, [s_axis2])
-        r_min, r_max = min_max(r_points, [s_axis2])
+        s_min, s_max = min_max(s_points, s_axis2)
+        r_min, r_max = min_max(r_points, s_axis2)
         ovr2 = overlap(s_min, s_max, r_min, s_max) + (s_axis2,)
         if ovr2[0]:
-            s_min, s_max = min_max(s_points, [r_axis1])
-            r_min, r_max = min_max(r_points, [r_axis1])
+            s_min, s_max = min_max(s_points, r_axis1)
+            r_min, r_max = min_max(r_points, r_axis1)
             ovr3 = overlap(s_min, s_max, r_min, s_max) + (r_axis1,)
             if ovr3[0]:
-                s_min, s_max = min_max(s_points, [r_axis2])
-                r_min, r_max = min_max(r_points, [r_axis2])
+                s_min, s_max = min_max(s_points, r_axis2)
+                r_min, r_max = min_max(r_points, r_axis2)
                 ovr4 = overlap(s_min, s_max, r_min, s_max) + (r_axis2,)
                 if ovr4[0]:
                     ovr_list = [ovr1, ovr2, ovr3, ovr4]
                     ovrlap = min(i[1] for i in ovr_list)
                     min_axis = [i[2] for i in ovr_list if ovrlap in i][0]
+                    print 'collision'
 
                     return ovrlap, min_axis
