@@ -39,6 +39,9 @@ class Rect(Rectangle):
         self.ver_list.vertices = [self.x1, self.y1, self.x2, self.y2,
                                   self.x3, self.y3, self.x4, self.y4]
 
+    def update_color(self, color):
+        self.ver_list.colors = list(color) * 4
+
 
 class CrossHair(object):
     """docstring for CrossHair"""

@@ -25,7 +25,10 @@ class GameScreen(Events):
         self.Camera.update(dt)
         if self.controls['esc']:
             self.send_message('menu_transition_+', GameMenu)
-        self.Player.Rect.collides(self.testrect)
+        if self.Player.Rect.collides(self.testrect):
+            self.testrect.update_color((1, 0, 0))
+        else:
+            self.testrect.update_color((1, 1, 1))
 
     def draw(self):
         self.Camera.set_camera()
