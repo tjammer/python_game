@@ -44,21 +44,21 @@ def collides(rect1, rect2):
     # first check
     s_min, s_max = min_max(s_points, s_axis1)
     r_min, r_max = min_max(r_points, s_axis1)
-    ovr1 = overlap(s_min, s_max, r_min, s_max) + (s_axis1,)
+    ovr1 = overlap(s_min, s_max, r_min, r_max) + (s_axis1,)
 
     if ovr1[0]:
         # second check
         s_min, s_max = min_max(s_points, s_axis2)
         r_min, r_max = min_max(r_points, s_axis2)
-        ovr2 = overlap(s_min, s_max, r_min, s_max) + (s_axis2,)
+        ovr2 = overlap(s_min, s_max, r_min, r_max) + (s_axis2,)
         if ovr2[0]:
             s_min, s_max = min_max(s_points, r_axis1)
             r_min, r_max = min_max(r_points, r_axis1)
-            ovr3 = overlap(s_min, s_max, r_min, s_max) + (r_axis1,)
+            ovr3 = overlap(s_min, s_max, r_min, r_max) + (r_axis1,)
             if ovr3[0]:
                 s_min, s_max = min_max(s_points, r_axis2)
                 r_min, r_max = min_max(r_points, r_axis2)
-                ovr4 = overlap(s_min, s_max, r_min, s_max) + (r_axis2,)
+                ovr4 = overlap(s_min, s_max, r_min, r_max) + (r_axis2,)
                 if ovr4[0]:
                     ovr_list = [ovr1, ovr2, ovr3, ovr4]
                     ovrlap = min(i[1] for i in ovr_list)
