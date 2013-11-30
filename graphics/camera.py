@@ -17,11 +17,13 @@ class Camera(object):
         self.m_y = 0
         # y offset to have player in the lower half of the screen
         self.y_offset = -120
+        self.eas_vel = 0
 
     def update(self, dt):
-        # self.x = xy_arr[0]
-        # self.y = xy_arr[1]
-        self.target_x = self.m_x + self.p_pos + self.p_vel
+        # velocity easing
+        if self.p_vel != 0:
+            self.eas_vel -= (self.eas_vel - self.p_vel) * dt * 4.5
+        self.target_x = self.m_x + self.p_pos + self.eas_vel * 0.5
         self.x -= (self.x - self.target_x) * self.mul_easing * dt * 30
         self.target_y = self.m_y + self.y_offset
         self.y -= (self.y - self.target_y) * self.mul_easing * dt * 30
