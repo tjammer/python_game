@@ -12,6 +12,7 @@ class WindowManager(object):
         self.window.push_handlers(self.InputHandler.keys)
         self.stack = []
         self.cross = CrossHair()
+        self.saved_mouse = (1280 / 2, 720 / 2)
 
         # set up main menu as starting screen
         self.current_screen = MainMenu()
@@ -43,6 +44,8 @@ class WindowManager(object):
             self.register_screen()
 
         if event == 'menu_transition_+':
+            if isinstance(self.current_screen, GameScreen):
+                self.saved_mouse = tuple(self.InputHandler.mousepos)
             self.current_screen = msg()
             self.register_screen()
 
@@ -62,8 +65,15 @@ class WindowManager(object):
                                        events=('changed_mouse', 'all_input'))
         # game screen
         else:
+            for i, j in enumerate(self.saved_mouse):
+                self.InputHandler.mousepos[i] = j
+
             self.InputHandler.register(self.current_screen.Camera.
                                        receive_m_pos, 'changed_mouse')
+
+            # set mouse on same position as it was before opening menu
+            self.InputHandler.send_message('changed_mouse',
+                                           self.InputHandler.mousepos)
             # pass by ref bullshit
             self.current_screen.Player.Move.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
