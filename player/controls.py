@@ -29,6 +29,13 @@ class InputHandler(object):
             self.keys[button + self.mouse_offset] = True
 
         @self.window.event
+        def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+            self.keys[buttons + self.mouse_offset] = True
+            self.mousepos[0] += dx
+            self.mousepos[1] += dy
+            self.send_message('changed_mouse', self.mousepos)
+
+        @self.window.event
         def on_mouse_release(x, y, button, modifiers):
             self.keys[button + self.mouse_offset] = False
 
