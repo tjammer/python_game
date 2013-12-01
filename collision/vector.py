@@ -64,6 +64,5 @@ def collides(rect1, rect2):
                     ovrlap = min(i[1] for i in ovr_list)
                     min_axis = [i[2] for i in ovr_list if ovrlap in i][0]
 
-                    # return ovrlap, min_axis
-                    return True
+                    return ovrlap, min_axis
     return False

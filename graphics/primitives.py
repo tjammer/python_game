@@ -28,10 +28,6 @@ class Rect(Rectangle):
         self.ver_list.draw(gl.GL_POLYGON)
 
     def update(self, x, y):
-        # self.x = x
-        # self.y = y
-        # self.x2 = x + self.width
-        # self.y2 = y + self.height
         self.x1, self.y1 = x, y
         self.x2, self.y2 = self.rotated_coord(0, self.height)
         self.x3, self.y3 = self.rotated_coord(self.width, self.height)
