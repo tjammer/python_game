@@ -13,8 +13,8 @@ class Camera(object):
         self.w = window.width / 2
         self.p_pos = 0
         self.mul_easing = .3
-        self.m_x = 0
-        self.m_y = 0
+        self.m_x = 1280 / 2
+        self.m_y = 720 / 2
         # y offset to have player in the lower half of the screen
         self.y_offset = -120
         self.eas_vel = 0
