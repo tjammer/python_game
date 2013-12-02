@@ -26,7 +26,11 @@ class GameScreen(Events):
         if self.controls['esc']:
             self.send_message('menu_transition_+', GameMenu)
         if self.Player.Rect.collides(self.testrect):
+            ovr, ax = self.Player.Rect.collides(self.testrect)
             self.testrect.update_color((1, 0, 0))
+            self.Player.Rect.update(self.Player.Rect.x1,
+                                    self.Player.Rect.y1 - ovr * ax[1])
+        # except TypeError:
         else:
             self.testrect.update_color((1, 1, 1))
 

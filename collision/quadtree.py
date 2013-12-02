@@ -3,7 +3,8 @@ from rectangle import Rectangle
 
 class QuadTree(object):
     """Heavily inspired from
-    http://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374"""
+    http://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374
+    """
     def __init__(self, level, rect):
         super(QuadTree, self).__init__()
         self.maxobjects = 10
@@ -93,9 +94,10 @@ class QuadTree(object):
                 self.objects.remove(obj)
 
     def retrieve(self, rect):
-        index = self.get_index(rect)
-        if index != -1 and self.nodes[0] is not None:
-            self.nodes[index].retrieve(rect)
+        if self.nodes[0] is not None:
+            index = self.get_index(rect)
+            if index != -1:
+                self.nodes[index].retrieve(rect)
 
-            return_object = tuple(self.objects)
-            return return_object
+        return_object = tuple(self.objects)
+        return return_object
