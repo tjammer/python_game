@@ -18,19 +18,18 @@ class GameScreen(Events):
         self.Player.register(self.Camera.receive_player_pos,
                              events='changed_pos')
         self.controls = {}
-        self.testrect = Rect(100, 100, 100, 100, (1, 1, 1))
+        self.testrect = Rect(100, 100, 500, 100, (1, 1, 1))
 
     def update(self, dt):
         self.Player.update(dt)
         self.Camera.update(dt)
         if self.controls['esc']:
             self.send_message('menu_transition_+', GameMenu)
-        if self.Player.Rect.collides(self.testrect):
-            ovr, ax = self.Player.Rect.collides(self.testrect)
+        coll = self.Player.Rect.collides(self.testrect)
+        if coll:
+            ovr, axis = coll
             self.testrect.update_color((1, 0, 0))
-            self.Player.Rect.update(self.Player.Rect.x1,
-                                    self.Player.Rect.y1 - ovr * ax[1])
-        # except TypeError:
+            self.Player.resolve_collision(ovr, axis)
         else:
             self.testrect.update_color((1, 1, 1))
 

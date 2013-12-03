@@ -21,11 +21,12 @@ class Move(object):
             self.ground_control(dt)
         else:
             self.air_control(dt)
+        if self.vel[1] == 0:
+            self.can_jump = True
         self.step(dt)
         if self.pos[1] < 0:
             self.pos[1] = 0
             self.vel[1] = 0
-            self.can_jump = True
         return self.vel, self.pos
 
     def step(self, dt):
@@ -73,7 +74,6 @@ class Move(object):
         else:
             return 0
 
-    # inputhandler.movement_input gets passed by ref in window manager, no need
-    # for this
-    # def receive_keys(self, event, msg):
-    #     self.input = msg
+    def resolve_coll(self, pos, vel):
+        self.pos = pos
+        self.vel = vel

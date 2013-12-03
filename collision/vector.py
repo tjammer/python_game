@@ -22,7 +22,13 @@ def min_max(points, axis):
 
 def overlap(a_min, a_max, b_min, b_max):
     if not (a_max < b_min or b_max < a_min):
-        return True, min(a_max - b_min, b_max - a_min)
+        # return True, min(a_max - b_min, b_max - a_min)
+        upwards_col = a_max - b_min
+        downwards_col = b_max - a_min
+        if upwards_col < downwards_col:
+            return True, upwards_col
+        else:
+            return True, -downwards_col
     else:
         return False, 0
 
@@ -61,8 +67,8 @@ def collides(rect1, rect2):
                 ovr4 = overlap(s_min, s_max, r_min, r_max) + (r_axis2,)
                 if ovr4[0]:
                     ovr_list = [ovr1, ovr2, ovr3, ovr4]
-                    ovrlap = min(i[1] for i in ovr_list)
-                    min_axis = [i[2] for i in ovr_list if ovrlap in i][0]
+                    abs_list = [abs(ovr[1]) for ovr in ovr_list]
+                    ovr_index = abs_list.index(min(abs_list))
 
-                    return ovrlap, min_axis
+                    return ovr_list[ovr_index][1], ovr_list[ovr_index][2]
     return False
