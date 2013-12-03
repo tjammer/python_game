@@ -28,10 +28,7 @@ class GameScreen(Events):
         coll = self.Player.Rect.collides(self.testrect)
         if coll:
             ovr, axis = coll
-            self.testrect.update_color((1, 0, 0))
             self.Player.resolve_collision(ovr, axis)
-        else:
-            self.testrect.update_color((1, 1, 1))
 
     def draw(self):
         self.Camera.set_camera()
