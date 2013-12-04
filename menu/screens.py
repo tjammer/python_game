@@ -18,7 +18,8 @@ class GameScreen(Events):
         self.Player.register(self.Camera.receive_player_pos,
                              events='changed_pos')
         self.controls = {}
-        self.testrect = Rect(100, 100, 500, 100, (1, 1, 1))
+        self.testrect = [Rect(100, 100, 500, 100, (1, 1, 1), angle=-30),
+                         Rect(-1000, 0, 2000, 10, (1, 1, 1))]
         self.controls_old = {}
 
     def update(self, dt):
@@ -26,17 +27,19 @@ class GameScreen(Events):
         self.Camera.update(dt)
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
-        coll = self.Player.Rect.collides(self.testrect)
-        if coll:
-            ovr, axis = coll
-            self.Player.resolve_collision(ovr, axis)
+        for rect in self.testrect:
+            coll = self.Player.Rect.collides(rect)
+            if coll:
+                ovr, axis = coll
+                self.Player.resolve_collision(ovr, axis, rect.angle)
 
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
 
     def draw(self):
         self.Camera.set_camera()
-        self.testrect.draw()
+        for rect in self.testrect:
+            rect.draw()
         self.Player.draw()
         self.Camera.set_static()
 

@@ -1,3 +1,4 @@
+import math
 
 
 class Move(object):
@@ -13,26 +14,33 @@ class Move(object):
         self.jump_vel = 1500.
         self.can_jump = True
         self.max_vel = 500
+        self.on_ground = False
+        self.angle = 0
 
         self.input = {}
 
     def update(self, dt):
-        if self.vel[1] == 0:
+        if self.on_ground:
+        # if self.vel[1] == 0:
             self.ground_control(dt)
         else:
             self.air_control(dt)
-        if self.vel[1] == 0:
+        # if self.vel[1] == 0:
+        if self.on_ground:
             self.can_jump = True
         self.step(dt)
-        if self.pos[1] < 0:
-            self.pos[1] = 0
-            self.vel[1] = 0
+        # if self.pos[1] < 0:
+        #     self.pos[1] = 0
+        #     self.vel[1] = 0
+        self.on_ground = False
+        self.angle = 0
         return self.vel, self.pos
 
     def step(self, dt):
+        if not self.on_ground:
             self.vel[1] -= self.gravity * dt
-            for i, j in enumerate(self.pos):
-                self.pos[i] += self.vel[i] * dt
+        for i, j in enumerate(self.pos):
+            self.pos[i] += self.vel[i] * dt
 
     def walk(self, dt):
         if self.input['right'] and not self.input['left']:
@@ -47,6 +55,7 @@ class Move(object):
         if self.curr_sign != 0 and self.curr_sign != sign:
             v *= self.turn_multplier
         self.vel[0] += v * sign * dt
+        self.vel[1] += v * math.tan(self.angle) * sign * dt
         if abs(self.vel[0]) > self.max_vel:
             self.vel[0] = self.max_vel * self.curr_sign
         return True

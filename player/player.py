@@ -22,13 +22,16 @@ class player(object):
     def draw(self):
         self.Rect.draw()
 
-    def resolve_collision(self, ovrlap, axis):
+    def resolve_collision(self, ovrlap, axis, angle):
         self.pos[0] = self.Rect.x1 - ovrlap * axis[0]
         self.pos[1] = self.Rect.y1 - ovrlap * axis[1]
-        self.vel[0] *= axis[1]
-        self.vel[1] *= axis[0]
+        self.vel[0] *= axis[1] > 0
+        self.vel[1] *= axis[0] > 0
         self.Rect.update(*self.pos)
         self.Move.resolve_coll(self.pos, self.vel)
+        if axis[1] > 0 and ovrlap < 0:
+            self.Move.on_ground = True
+            self.Move.angle = angle
 
     def register(self, listener, events):
         self.listeners[listener] = events
