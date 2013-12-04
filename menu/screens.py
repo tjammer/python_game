@@ -4,8 +4,8 @@ from player import player
 from elements import TextBoxFramed as btn
 from menu_events import Events, MenuClass
 from pyglet.text import Label
-from graphics.primitives import Box
-from graphics.primitives import Rect
+from graphics.primitives import Box, Rect
+from pyglet.window import key
 
 
 class GameScreen(Events):
@@ -19,16 +19,20 @@ class GameScreen(Events):
                              events='changed_pos')
         self.controls = {}
         self.testrect = Rect(100, 100, 500, 100, (1, 1, 1))
+        self.controls_old = {}
 
     def update(self, dt):
         self.Player.update(dt)
         self.Camera.update(dt)
-        if self.controls['esc']:
+        if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
         coll = self.Player.Rect.collides(self.testrect)
         if coll:
             ovr, axis = coll
             self.Player.resolve_collision(ovr, axis)
+
+        for key_, value in self.controls.items():
+            self.controls_old[key_] = value
 
     def draw(self):
         self.Camera.set_camera()
@@ -92,3 +96,10 @@ class GameMenu(MenuClass):
 
         if key == 'to_main':
             self.send_message('to_main')
+
+    def add_update(self):
+        try:
+            if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+                self.send_message('menu_transition_-')
+        except:
+            pass

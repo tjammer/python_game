@@ -37,6 +37,7 @@ class MenuClass(object):
         self.text_boxes = {}
         self.m_pos = [0, 0]
         self.keys = {}
+        self.keys_old = {}
         self.listeners = {}
 
     def update(self, dt):
@@ -51,12 +52,19 @@ class MenuClass(object):
             else:
                 button.Box.restore()
         self.animate(dt)
+        self.add_update()
+
+        for key, value in self.keys.items():
+            self.keys_old[key] = value
 
     def draw(self):
         for key, panel in self.buttons.items() + self.text_boxes.items():
             panel.draw()
 
     def handle_clicks(self, key):
+        pass
+
+    def add_update(self):
         pass
 
     # receive events
