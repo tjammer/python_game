@@ -80,7 +80,7 @@ class QuitScreen(MenuClass):
 
     def draw(self):
         self.Box.draw()
-        for key, panel in self.buttons.items():
+        for key_, panel in self.buttons.iteritems():
             panel.draw()
         self.Label.draw()
 
