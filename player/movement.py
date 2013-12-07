@@ -21,17 +21,12 @@ class Move(object):
 
     def update(self, dt):
         if self.on_ground:
-        # if self.vel[1] == 0:
             self.ground_control(dt)
         else:
             self.air_control(dt)
-        # if self.vel[1] == 0:
         if self.on_ground:
             self.can_jump = True
         self.step(dt)
-        # if self.pos[1] < 0:
-        #     self.pos[1] = 0
-        #     self.vel[1] = 0
         self.on_ground = False
         self.angle = 0
         return self.vel, self.pos
@@ -84,5 +79,4 @@ class Move(object):
             return 0
 
     def resolve_coll(self, pos, vel):
-        self.pos = pos
-        self.vel = vel
+        self.pos, self.vel = pos, vel
