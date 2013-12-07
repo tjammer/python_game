@@ -39,9 +39,7 @@ class Camera(object):
         glLoadIdentity()
 
     def receive_player_pos(self, event, msg):
-        self.p_pos = msg[0]
-        self.p_vel = msg[1]
+        self.p_pos, self.p_vel = msg[0], msg[1]
 
     def receive_m_pos(self, event, msg):
-        self.m_x = msg[0]
-        self.m_y = msg[1]
+        self.m_x, self.m_y = msg[0], msg[1]
