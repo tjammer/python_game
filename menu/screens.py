@@ -6,6 +6,7 @@ from menu_events import Events, MenuClass
 from pyglet.text import Label
 from graphics.primitives import Box
 from pyglet.window import key
+from maps.map import Map
 
 
 class GameScreen(Events):
@@ -19,6 +20,7 @@ class GameScreen(Events):
                              events='changed_pos')
         self.controls = {}
         self.controls_old = {}
+        self.Map = Map('testmap')
 
     def update(self, dt):
         self.Player.update(dt)
@@ -26,12 +28,19 @@ class GameScreen(Events):
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
 
+        for rect in self.Map.rects:
+            coll = self.Player.Rect.collides(rect)
+            if coll:
+                ovr, axis = coll
+                self.Player.resolve_collision(ovr, axis, rect.angle)
+
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
 
     def draw(self):
         self.Camera.set_camera()
         self.Player.draw()
+        self.Map.draw()
         self.Camera.set_static()
 
 
