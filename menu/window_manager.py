@@ -24,7 +24,8 @@ class WindowManager(object):
 
     def draw(self):
         # stack[0] is gamescreen
-        self.stack[0].draw()
+        if self.stack[0] != self.current_screen:
+            self.stack[0].draw()
         self.current_screen.draw()
         self.cross.draw(*self.InputHandler.mousepos)
 
