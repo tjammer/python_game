@@ -6,8 +6,8 @@ class player(object):
     """docstring for player"""
     def __init__(self):
         super(player, self).__init__()
-        self.Move = Move()
-        self.pos = []
+        self.pos = [50, 50]
+        self.Move = Move(*self.pos)
         self.vel = []
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         self.Rect = Rect(0, 0, 32, 72, (0, .8, 1.))

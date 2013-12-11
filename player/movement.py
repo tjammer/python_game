@@ -3,9 +3,9 @@ import math
 
 class Move(object):
     """docstring for Move"""
-    def __init__(self):
+    def __init__(self, x, y):
         super(Move, self).__init__()
-        self.pos = [0, 0]
+        self.pos = [x, y]
         self.vel = [0, 0]
         self.gravity = 4000.
         self.normal_accel = 500.
