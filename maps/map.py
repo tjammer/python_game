@@ -21,7 +21,7 @@ class Map(object):
             height = int(atr['height'])
             color = (1, 1, 1)
             print y
-            self.rects.append(Rect(x, y, width, height, color))
+            self.rects.append(Rect(x, y + height, width, height, color))
 
     def draw(self):
         for rect in self.rects:

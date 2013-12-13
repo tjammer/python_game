@@ -10,12 +10,12 @@
    </cc:Work>
   </rdf:RDF>
  </metadata>
- <g id="layer1" stroke-linejoin="miter" fill-rule="evenodd" stroke="#000" stroke-linecap="butt" stroke-miterlimit="4" stroke-width="0" fill="#969696">
-  <rect id="rect2985" height="50" width="500" y="2" x="0"/>
-  <rect id="rect3766" height="50" width="500" y="2" x="500"/>
-  <rect id="rect3774" height="50" width="500" y="2" x="1000"/>
-  <rect id="rect3776" height="50" width="500" y="2" x="1500"/>
-  <rect id="rect3780" height="500" width="50" y="-448" x="0"/>
-  <rect id="rect3782" height="500" width="50" y="-448" x="1950"/>
+ <g id="layer1" fill-rule="evenodd" transform="translate(0,1000)" stroke-miterlimit="4" stroke-width="0" fill="#969696">
+  <rect id="rect2985" y="2" width="500" x="0" height="50"/>
+  <rect id="rect3766" y="2" width="500" x="500" height="50"/>
+  <rect id="rect3774" y="2" width="500" x="1000" height="50"/>
+  <rect id="rect3776" y="2" width="500" x="1500" height="50"/>
+  <rect id="rect3780" y="-448" width="50" x="0" height="500"/>
+  <rect id="rect3782" y="-448" width="50" x="1950" height="500"/>
  </g>
 </svg>
