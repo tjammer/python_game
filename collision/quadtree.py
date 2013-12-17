@@ -1,4 +1,4 @@
-from rectangle import Rectangle
+from graphics.primitives import Rect
 
 
 class QuadTree(object):
@@ -7,7 +7,7 @@ class QuadTree(object):
     """
     def __init__(self, level, rect):
         super(QuadTree, self).__init__()
-        self.maxobjects = 10
+        self.maxobjects = 5
         self.maxlevel = 5
 
         self.level = level
@@ -29,17 +29,17 @@ class QuadTree(object):
         y = self.bounds.y1
 
         self.nodes[0] = QuadTree(self.level+1,
-                                 Rectangle(x + sub_width, y,
-                                           sub_width, sub_height))
+                                 Rect(x + sub_width, y,
+                                      sub_width, sub_height))
         self.nodes[1] = QuadTree(self.level+1,
-                                 Rectangle(x, y,
-                                           sub_width, sub_height))
+                                 Rect(x, y,
+                                      sub_width, sub_height))
         self.nodes[2] = QuadTree(self.level+1,
-                                 Rectangle(x, y + sub_height,
-                                           sub_width, sub_height))
+                                 Rect(x, y + sub_height,
+                                      sub_width, sub_height))
         self.nodes[3] = QuadTree(self.level+1,
-                                 Rectangle(x + sub_width, y + sub_height,
-                                           sub_width, sub_height))
+                                 Rect(x + sub_width, y + sub_height,
+                                      sub_width, sub_height))
 
     def get_index(self, rect):
         """the assumption is that no object is that no object is bigger
@@ -93,11 +93,12 @@ class QuadTree(object):
             for obj in temp_list:
                 self.objects.remove(obj)
 
-    def retrieve(self, rect):
+    def retrieve(self, lst, rect):
         if self.nodes[0] is not None:
             index = self.get_index(rect)
             if index != -1:
-                self.nodes[index].retrieve(rect)
+                self.nodes[index].retrieve(lst, rect)
 
-        return_object = tuple(self.objects)
-        return return_object
+        for rect in self.objects:
+            lst.append(rect)
+        return lst

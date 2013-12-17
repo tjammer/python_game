@@ -21,6 +21,7 @@ class GameScreen(Events):
         self.controls = {}
         self.controls_old = {}
         self.Map = Map('testmap')
+        self.Player.spawn(100, 100)
 
     def update(self, dt):
         self.Player.update(dt)
@@ -29,7 +30,7 @@ class GameScreen(Events):
             self.send_message('menu_transition_+', GameMenu)
 
         # for rect in self.Map.rects:
-        for rect in self.Map.quad_tree.retrieve(self.Player.Rect):
+        for rect in self.Map.quad_tree.retrieve([], self.Player.Rect):
             coll = self.Player.Rect.collides(rect)
             if coll:
                 ovr, axis = coll

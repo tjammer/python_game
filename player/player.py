@@ -33,6 +33,10 @@ class player(object):
             self.Move.on_ground = True
             self.Move.angle = angle
 
+    def spawn(self, x, y):
+        self.pos = [x, y]
+        self.vel = [0, 0]
+
     def register(self, listener, events):
         self.listeners[listener] = events
 
