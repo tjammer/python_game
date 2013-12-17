@@ -28,7 +28,8 @@ class GameScreen(Events):
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
 
-        for rect in self.Map.rects:
+        # for rect in self.Map.rects:
+        for rect in self.Map.quad_tree.retrieve(self.Player.Rect):
             coll = self.Player.Rect.collides(rect)
             if coll:
                 ovr, axis = coll
