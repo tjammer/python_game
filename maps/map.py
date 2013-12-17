@@ -1,5 +1,6 @@
 from xml.etree import ElementTree as ET
 from graphics.primitives import Rect
+from collision.quadtree import QuadTree
 
 
 class Map(object):
@@ -7,11 +8,13 @@ class Map(object):
     def __init__(self, mapname):
         super(Map, self).__init__()
         self.rects = []
+        self.quad_tree = None
         self.load(''.join(('maps/', mapname, '.svg')))
 
     def load(self, mapname):
         tree = ET.parse(mapname)
         root = tree.getroot()
+        rects = []
 
         for rect in root.getchildren()[-1]:
             atr = rect.attrib
@@ -20,8 +23,16 @@ class Map(object):
             width = int(atr['width'])
             height = int(atr['height'])
             color = (1, 1, 1)
-            print y
-            self.rects.append(Rect(x, y + height, width, height, color))
+            rects.append(Rect(x, y + height, width, height, color))
+
+        max_x = max(rect.x1 + rect.width for rect in rects)
+        max_y = max(rect.y1 + rect.height for rect in rects)
+
+        self.quad_tree = QuadTree(0, Rect(0, 0, max_x, max_y))
+        self.rects = rects
+        self.quad_tree.clear()
+        for rect in rects:
+            self.quad_tree.insert(rect)
 
     def draw(self):
         for rect in self.rects:
