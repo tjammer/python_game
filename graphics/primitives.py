@@ -6,7 +6,7 @@ from collision.rectangle import Rectangle
 
 class Rect(Rectangle):
     """Rectangle Class"""
-    def __init__(self, x, y, width, height, color, angle=0):
+    def __init__(self, x, y, width, height, color=(1., 1., 1.), angle=0):
         super(Rect, self).__init__(x, y, width, height, color, angle)
         # Position of Rect, x,y from lower left
         # self.x = x
