@@ -17,7 +17,7 @@ class player(object):
     def update(self, dt):
         self.vel, self.pos = self.Move.update(dt)
         self.Rect.update(*self.pos)
-        self.send_messsage('changed_pos', [self.pos[0], self.Move.vel[0]])
+        self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
 
     def draw(self):
         self.Rect.draw()
@@ -34,8 +34,8 @@ class player(object):
             self.Move.angle = angle
 
     def spawn(self, x, y):
-        self.pos = [x, y]
-        self.vel = [0, 0]
+        self.Move.pos = [x, y]
+        self.Move.vel = [0, 0]
 
     def register(self, listener, events):
         self.listeners[listener] = events

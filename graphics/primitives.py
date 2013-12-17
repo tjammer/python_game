@@ -8,14 +8,6 @@ class Rect(Rectangle):
     """Rectangle Class"""
     def __init__(self, x, y, width, height, color=(1., 1., 1.), angle=0):
         super(Rect, self).__init__(x, y, width, height, color, angle)
-        # Position of Rect, x,y from lower left
-        # self.x = x
-        # self.y = y
-        # self.x2 = x + width
-        # self.y2 = y + height
-        # self.width = width
-        # self.height = height
-        # self.color = color
         self.ver_list = graphics.vertex_list(4,
                     ('v2f/stream', (self.x1, self.y1, self.x2, self.y2,
                                     self.x3, self.y3, self.x4, self.y4)),
