@@ -19,23 +19,23 @@ class Move(object):
 
         self.input = {}
 
-    def update(self, dt):
+    def update(self, dt, pos):
         if self.on_ground:
             self.ground_control(dt)
         else:
             self.air_control(dt)
         if self.on_ground:
             self.can_jump = True
-        self.step(dt)
+        self.step(dt, pos)
         self.on_ground = False
         self.angle = 0
         return self.vel, self.pos
 
-    def step(self, dt):
+    def step(self, dt, pos):
         if not self.on_ground:
             self.vel[1] -= self.gravity * dt
         for i, j in enumerate(self.pos):
-            self.pos[i] += self.vel[i] * dt
+            self.pos[i] = pos[i] + self.vel[i] * dt
 
     def walk(self, dt):
         if self.input['right'] and not self.input['left']:
