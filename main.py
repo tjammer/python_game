@@ -1,7 +1,4 @@
 import pyglet
-import pygletreactor
-pygletreactor.install()
-from twisted.internet import reactor
 from menu.window_manager import WindowManager
 
 # set up window
@@ -29,4 +26,4 @@ def on_draw():
     WindowManager.draw()
     fps.draw()
 
-reactor.run()
+pyglet.app.run()
