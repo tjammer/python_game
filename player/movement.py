@@ -1,4 +1,5 @@
 import math
+from network_utils import protocol_pb2 as proto
 
 
 class Move(object):
@@ -17,7 +18,7 @@ class Move(object):
         self.on_ground = False
         self.angle = 0
 
-        self.input = {}
+        self.input = proto.input()
 
     def update(self, dt, pos):
         if self.on_ground:
@@ -38,9 +39,9 @@ class Move(object):
             self.pos[i] = pos[i] + self.vel[i] * dt
 
     def walk(self, dt):
-        if self.input['right'] and not self.input['left']:
+        if self.input.right and not self.input.left:
             sign = 1
-        elif self.input['left'] and not self.input['right']:
+        elif self.input.left and not self.input.right:
             sign = -1
         else:
             return False
@@ -56,13 +57,13 @@ class Move(object):
         return True
 
     def air_control(self, dt):
-        if not self.input['up'] and self.vel[1] > 0:
+        if not self.input.up and self.vel[1] > 0:
             self.vel[1] = 0
 
         self.walk(dt)
 
     def ground_control(self, dt):
-        if self.input['up'] and self.can_jump:
+        if self.input.up and self.can_jump:
             self.vel[1] = self.jump_vel
             self.can_jump = False
             return

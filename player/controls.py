@@ -1,5 +1,6 @@
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
+from network_utils import protocol_pb2 as proto
 
 
 class InputHandler(object):
@@ -13,7 +14,7 @@ class InputHandler(object):
         self.mouse_offset = 1337
         self.window = window
         self.mousepos = [1280 / 2, 720 / 2]
-        self.directns = {}
+        self.directns = proto.input()
         self.listeners = {}
         # such keys as escape, ^
         self.controls = {}
@@ -46,13 +47,14 @@ class InputHandler(object):
 
     def process_keys(self):
        # register pressed keys for movement
-        self.directns['up'] = self.keys[key.SPACE]
-        self.directns['left'] = self.keys[key.A]
-        self.directns['right'] = self.keys[key.D]
+        self.directns.up = self.keys[key.SPACE]
+        self.directns.left = self.keys[key.A]
+        self.directns.right = self.keys[key.D]
         self.controls['esc'] = self.keys[key.ESCAPE]
         self.controls['f10'] = self.keys[key.F10]
 
         self.send_message('all_input', self.keys)
+        self.send_message('directns', self.directns)
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
