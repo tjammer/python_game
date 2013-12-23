@@ -7,6 +7,7 @@ class Map(object):
     """docstring for Map"""
     def __init__(self, mapname):
         super(Map, self).__init__()
+        self.name = mapname
         self.rects = []
         self.quad_tree = None
         self.load(''.join(('maps/', mapname, '.svg')))
