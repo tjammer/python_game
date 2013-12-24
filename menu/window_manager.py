@@ -1,9 +1,10 @@
 from screens import GameScreen, MainMenu
 from player.controls import InputHandler
 from graphics.primitives import CrossHair
+from menu_events import Events
 
 
-class WindowManager(object):
+class WindowManager(Events):
     """docstring for WindowManager"""
     def __init__(self, window):
         super(WindowManager, self).__init__()
