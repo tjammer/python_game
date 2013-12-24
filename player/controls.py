@@ -45,7 +45,7 @@ class InputHandler(object):
             if symbol == key.ESCAPE:
                 return EVENT_HANDLED
 
-    def process_keys(self):
+    def process_keys(self, dt):
        # register pressed keys for movement
         self.directns.up = self.keys[key.SPACE]
         self.directns.left = self.keys[key.A]
@@ -54,7 +54,7 @@ class InputHandler(object):
         self.controls['f10'] = self.keys[key.F10]
 
         self.send_message('all_input', self.keys)
-        self.send_message('directns', self.directns)
+        self.send_message('input', (self.directns, dt))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

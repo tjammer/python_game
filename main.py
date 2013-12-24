@@ -1,7 +1,10 @@
 import pyglet
+import pygletreactor
+pygletreactor.install()
+from twisted.internet import reactor
 from menu.window_manager import WindowManager
+from network_utils.clientclass import Client
 
-# set up window
 window = pyglet.window.Window(1280, 720, vsync=False)
 # window.set_mouse_visible(True)
 window.set_exclusive_mouse(True)
@@ -9,6 +12,8 @@ WindowManager = WindowManager(window)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
 pyglet.clock.set_fps_limit(120)
+client = Client()
+WindowManager.InputHandler.register(client.get_input, 'input')
 
 
 def update(dt):
@@ -26,4 +31,6 @@ def on_draw():
     WindowManager.draw()
     fps.draw()
 
-pyglet.app.run()
+reactor.listenUDP(0, client)
+client.start_connection()
+reactor.run()
