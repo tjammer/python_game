@@ -1,10 +1,9 @@
 from screens import GameScreen, MainMenu
 from player.controls import InputHandler
 from graphics.primitives import CrossHair
-from menu_events import Events
 
 
-class WindowManager(Events):
+class WindowManager(object):
     """docstring for WindowManager"""
     def __init__(self, window):
         super(WindowManager, self).__init__()
@@ -20,7 +19,7 @@ class WindowManager(Events):
         self.register_screen()
 
     def update(self, dt):
-        self.InputHandler.process_keys()
+        self.InputHandler.process_keys(dt)
         self.current_screen.update(dt)
 
     def draw(self):
