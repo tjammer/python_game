@@ -14,7 +14,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='protocol.proto',
   package='mygame_protocol',
-  serialized_pb='\n\x0eprotocol.proto\x12\x0fmygame_protocol\"\xb6\x01\n\x06Player\x12\x32\n\x04type\x18\x01 \x02(\x0e\x32\x1c.mygame_protocol.MessageType:\x06update\x12\n\n\x02id\x18\x06 \x01(\x05\x12\x0c\n\x04posx\x18\x02 \x01(\x02\x12\x0c\n\x04posy\x18\x03 \x01(\x02\x12\x0c\n\x04velx\x18\x04 \x01(\x02\x12\x0c\n\x04vely\x18\x05 \x01(\x02\x12\x0b\n\x03msg\x18\x07 \x01(\t\x12\n\n\x02hp\x18\x08 \x01(\x05\x12\r\n\x05\x61rmor\x18\t \x01(\x05\x12\x0c\n\x04time\x18\n \x01(\x05\"j\n\x05input\x12*\n\x04type\x18\x05 \x02(\x0e\x32\x1c.mygame_protocol.MessageType\x12\x0c\n\x04time\x18\x01 \x02(\x05\x12\r\n\x05right\x18\x02 \x01(\x08\x12\x0c\n\x04left\x18\x03 \x01(\x08\x12\n\n\x02up\x18\x04 \x01(\x08*Q\n\x0bMessageType\x12\n\n\x06update\x10\x00\x12\r\n\tnewplayer\x10\x01\x12\x0e\n\ndisconnect\x10\x02\x12\x08\n\x04\x63hat\x10\x03\x12\r\n\tmapupdate\x10\x04')
+  serialized_pb='\n\x0eprotocol.proto\x12\x0fmygame_protocol\"\xb6\x01\n\x06Player\x12\x32\n\x04type\x18\x01 \x02(\x0e\x32\x1c.mygame_protocol.MessageType:\x06update\x12\n\n\x02id\x18\x06 \x01(\x05\x12\x0c\n\x04posx\x18\x02 \x01(\x02\x12\x0c\n\x04posy\x18\x03 \x01(\x02\x12\x0c\n\x04velx\x18\x04 \x01(\x02\x12\x0c\n\x04vely\x18\x05 \x01(\x02\x12\x0b\n\x03msg\x18\x07 \x01(\t\x12\n\n\x02hp\x18\x08 \x01(\x05\x12\r\n\x05\x61rmor\x18\t \x01(\x05\x12\x0c\n\x04time\x18\n \x01(\x05\"x\n\x05input\x12*\n\x04type\x18\x05 \x02(\x0e\x32\x1c.mygame_protocol.MessageType\x12\x0c\n\x04time\x18\x01 \x02(\x05\x12\r\n\x05right\x18\x02 \x01(\x08\x12\x0c\n\x04left\x18\x03 \x01(\x08\x12\n\n\x02up\x18\x04 \x01(\x08\x12\x0c\n\x04name\x18\x06 \x01(\t*Q\n\x0bMessageType\x12\n\n\x06update\x10\x00\x12\r\n\tnewplayer\x10\x01\x12\x0e\n\ndisconnect\x10\x02\x12\x08\n\x04\x63hat\x10\x03\x12\r\n\tmapupdate\x10\x04')
 
 _MESSAGETYPE = _descriptor.EnumDescriptor(
   name='MessageType',
@@ -45,8 +45,8 @@ _MESSAGETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=328,
-  serialized_end=409,
+  serialized_start=342,
+  serialized_end=423,
 )
 
 MessageType = enum_type_wrapper.EnumTypeWrapper(_MESSAGETYPE)
@@ -191,6 +191,13 @@ _INPUT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='mygame_protocol.input.name', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -201,7 +208,7 @@ _INPUT = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=220,
-  serialized_end=326,
+  serialized_end=340,
 )
 
 _PLAYER.fields_by_name['type'].enum_type = _MESSAGETYPE

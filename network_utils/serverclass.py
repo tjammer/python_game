@@ -15,16 +15,17 @@ class GameServer(DatagramProtocol):
     def datagramReceived(self, datagram, address):
         data = proto.input()
         data.ParseFromString(datagram)
-        if data.type == proto.MessageType.newplayer:
+        if data.type == proto.newplayer:
             pl_id = self.get_id()
             self.players[pl_id] = player()
             self.players[pl_id].address = address
-            self.players[pl_id].name = data.msg
+            self.players[pl_id].name = data.name
+            print 'new player ' + data.name
             self.players[pl_id].time = 0
             self.players[pl_id].spawn(100, 100)
-            self.players_pack = proto.Player()
+            self.players_pack[pl_id] = proto.Player()
             self.player_to_pack(pl_id)
-        if data.type == proto.MessageType.update:
+        if data.type == proto.update:
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
@@ -50,6 +51,8 @@ class GameServer(DatagramProtocol):
 
         self.players_pack[idx].velx = self.players[idx].vel[0]
         self.players_pack[idx].vely = self.players[idx].vel[1]
+
+        self.players_pack[idx].type = proto.update
 
     def get_input(self, data):
         self.players[data.id].Move.input.up = data.up
