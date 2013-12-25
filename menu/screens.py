@@ -26,8 +26,6 @@ class GameScreen(Events):
     def update(self, dt):
         self.Player.update(dt)
         self.Camera.update(dt)
-        if self.controls['esc'] and not self.controls_old['esc']:
-            self.send_message('menu_transition_+', GameMenu)
 
         # for rect in self.Map.rects:
         for rect in self.Map.quad_tree.retrieve([], self.Player.Rect):
@@ -35,6 +33,9 @@ class GameScreen(Events):
             if coll:
                 ovr, axis = coll
                 self.Player.resolve_collision(ovr, axis, rect.angle)
+
+        if self.controls['esc'] and not self.controls_old['esc']:
+            self.send_message('menu_transition_+', GameMenu)
 
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
