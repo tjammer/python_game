@@ -1,9 +1,10 @@
 from screens import GameScreen, MainMenu
 from player.controls import InputHandler
 from graphics.primitives import CrossHair
+from menu_events import Events
 
 
-class WindowManager(object):
+class WindowManager(Events):
     """docstring for WindowManager"""
     def __init__(self, window):
         super(WindowManager, self).__init__()
@@ -55,6 +56,15 @@ class WindowManager(object):
             self.current_screen = self.stack[-1]
             self.register_screen()
 
+        # input to client
+        if event == 'input':
+            self.send_message('input', msg)
+
+        # server plaerdata
+        if event == 'serverdata':
+            if isinstance(self.stack[0], GameScreen):
+                print msg
+
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.register_screen()
@@ -78,6 +88,11 @@ class WindowManager(object):
             # pass by ref bullshit
             self.current_screen.Player.Move.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
+            # sends player input to lient class
+            self.current_screen.Player.register(self.receive_events, 'input')
 
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)
+
+    def input_to_client(self):
+        pass

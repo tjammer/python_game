@@ -18,6 +18,7 @@ class player(object):
         self.vel, self.pos = self.Move.update(dt, self.pos)
         self.Rect.update(*self.pos)
         self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
+        self.send_messsage('input', (self.Move.input, dt))
 
     def draw(self):
         self.Rect.draw()
@@ -43,4 +44,11 @@ class player(object):
     def send_messsage(self, event, msg):
         for listener, events in self.listeners.items():
             if event in events:
-                listener(event, msg)
+                try:
+                    listener(event, msg)
+                except (Exception, ):
+                    self.unregister(listener)
+
+    def unregister(self, listener):
+        print '%s deleted' % listener
+        del self.listeners[listener]

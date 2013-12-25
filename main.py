@@ -13,7 +13,8 @@ WindowManager = WindowManager(window)
 fps = pyglet.clock.ClockDisplay()
 pyglet.clock.set_fps_limit(120)
 client = Client()
-WindowManager.InputHandler.register(client.get_input, 'input')
+WindowManager.register(client.get_input, 'input')
+client.register(WindowManager.receive_events, 'serverdata')
 
 
 def update(dt):

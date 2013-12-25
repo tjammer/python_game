@@ -1,5 +1,6 @@
 import protocol_pb2 as proto
 from twisted.internet.protocol import DatagramProtocol
+import time
 
 
 class Client(DatagramProtocol):
@@ -12,6 +13,8 @@ class Client(DatagramProtocol):
         self.con_timer = 0
         self.server_data = proto.Player()
         self.id = None
+
+        self.listeners = {}
 
     def start_connection(self):
         self.transport.connect(*self.host)
@@ -30,4 +33,18 @@ class Client(DatagramProtocol):
 
     def datagramReceived(self, datagram, address):
         self.server_data.ParseFromString(datagram)
-        print self.server_data
+        self.send_message('serverdata', self.server_data)
+
+    def register(self, listener, events=None):
+        self.listeners[listener] = events
+
+    def send_message(self, event, msg=None):
+        for listener, events in self.listeners.items():
+            try:
+                listener(event, msg)
+            except (Exception, ):
+                self.unregister(listener)
+
+    def unregister(self, listener):
+        print '%s deleted' % listener
+        del self.listeners[listener]
