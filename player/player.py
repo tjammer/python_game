@@ -20,6 +20,11 @@ class player(object):
         self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
         self.send_messsage('input', (self.Move.input, dt))
 
+    def update_local(self, dt):
+        self.Rect.update(*self.pos)
+        self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
+        self.send_messsage('input', (self.Move.input, dt))
+
     def draw(self):
         self.Rect.draw()
 

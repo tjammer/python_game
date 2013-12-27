@@ -33,8 +33,8 @@ class WindowManager(Events):
     # receive events, a lot of transitions will happen here
     def receive_events(self, event, msg):
         if event == 'kill_self':
-            import pyglet
-            pyglet.app.exit()
+            from twisted.internet import reactor
+            reactor.stop()
 
         if event == 'start_game':
             self.stack = []
@@ -63,7 +63,9 @@ class WindowManager(Events):
         # server plaerdata
         if event == 'serverdata':
             if isinstance(self.stack[0], GameScreen):
-                print msg
+                print msg.posy
+                self.stack[0].Player.pos = [msg.posx, msg.posy]
+                self.stack[0].Player.vel = [msg.velx, msg.vely]
 
     def start_game(self):
         self.current_screen = GameScreen(self.window)

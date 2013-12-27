@@ -33,6 +33,10 @@ class Client(DatagramProtocol):
 
     def datagramReceived(self, datagram, address):
         self.server_data.ParseFromString(datagram)
+        if self.server_data.type == proto.mapupdate:
+            self.connected = True
+            self.input.id = self.server_data.id
+            print 'connected'
         self.send_message('serverdata', self.server_data)
 
     def register(self, listener, events=None):
