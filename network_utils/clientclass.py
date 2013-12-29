@@ -1,6 +1,5 @@
 import protocol_pb2 as proto
 from twisted.internet.protocol import DatagramProtocol
-import time
 
 
 class Client(DatagramProtocol):

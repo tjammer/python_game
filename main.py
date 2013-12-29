@@ -11,7 +11,8 @@ window.set_exclusive_mouse(True)
 WindowManager = WindowManager(window)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
-pyglet.clock.set_fps_limit(120)
+fps_limit = 120.
+pyglet.clock.set_fps_limit(fps_limit)
 client = Client()
 WindowManager.register(client.get_input, 'input')
 client.register(WindowManager.receive_events, 'serverdata')
@@ -19,7 +20,7 @@ client.register(WindowManager.receive_events, 'serverdata')
 
 def update(dt):
     WindowManager.update(dt)
-pyglet.clock.schedule(update)
+pyglet.clock.schedule_interval(update, 1 / fps_limit)
 
 
 @window.event
@@ -32,6 +33,6 @@ def on_draw():
     WindowManager.draw()
     fps.draw()
 
-reactor.listenUDP(0, client)
+reactor.listenUDP(8001, client)
 client.start_connection()
-reactor.run()
+reactor.run(call_interval=1./120)
