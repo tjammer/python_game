@@ -17,11 +17,11 @@ class Client(DatagramProtocol):
         self.listeners = {}
 
     def start_connection(self):
-        self.transport.connect(*self.host)
+        # self.transport.connect(*self.host)
         self.input.type = proto.newplayer
         self.input.name = 'asdf'
         self.input.time = 0
-        self.transport.write(self.input.SerializeToString())
+        self.transport.write(self.input.SerializeToString(), self.host)
 
     def get_input(self, event, msg):
         self.input, dt = msg
@@ -37,7 +37,8 @@ class Client(DatagramProtocol):
             self.connected = True
             self.input.id = self.server_data.id
             print 'connected'
-        self.send_message('serverdata', self.server_data)
+        if self.server_data.type == proto.update:
+            self.send_message('serverdata', self.server_data)
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

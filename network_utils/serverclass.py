@@ -38,6 +38,7 @@ class GameServer(DatagramProtocol):
                 dt = dt / 10000.
             # update movement
                 self.players[data.id].update(dt)
+                self.players[data.id].Rect.update(*self.players[data.id].pos)
                 self.collide(data.id)
                 self.player_to_pack(data.id)
                 self.players[data.id].time = data.time

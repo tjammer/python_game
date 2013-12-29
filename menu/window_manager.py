@@ -63,7 +63,6 @@ class WindowManager(Events):
         # server plaerdata
         if event == 'serverdata':
             if isinstance(self.stack[0], GameScreen):
-                print msg.posy
                 self.stack[0].Player.pos = [msg.posx, msg.posy]
                 self.stack[0].Player.vel = [msg.velx, msg.vely]
 
