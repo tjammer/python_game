@@ -1,5 +1,7 @@
 from movement import Move
 from graphics.primitives import Rect
+from network_utils import protocol_pb2 as proto
+from collision.vector import magnitude
 
 
 class player(object):
@@ -24,6 +26,20 @@ class player(object):
         self.Rect.update(*self.pos)
         self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
         self.send_messsage('input', (self.Move.input, dt))
+
+    def client_update(self, data):
+        easing = .8
+        snapping_distance = 20
+
+        diff = [data.posx - self.pos[0], data.posy - self.pos[1]]
+        len_diff = magnitude(*diff)
+
+        if len_diff > snapping_distance:
+            self.pos = [data.posx, data.posy]
+        elif len_diff > .1:
+            self.pos[0] += diff[0] * easing
+            self.pos[1] += diff[1] * easing
+        self.vel = [data.velx, data.vely]
 
     def draw(self):
         self.Rect.draw()

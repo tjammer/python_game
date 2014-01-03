@@ -34,7 +34,7 @@ class Client(DatagramProtocol):
         self.server_data.ParseFromString(datagram)
         if self.server_data.type == proto.mapupdate:
             self.connected = True
-            self.input.id = self.server_data.id
+            self.id = self.server_data.id
             print 'connected'
         if self.server_data.type == proto.update:
             self.send_message('serverdata', self.server_data)

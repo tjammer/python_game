@@ -35,4 +35,4 @@ def on_draw():
 
 reactor.listenUDP(8001, client)
 client.start_connection()
-reactor.run(call_interval=1./120)
+reactor.run(call_interval=1./fps_limit)
