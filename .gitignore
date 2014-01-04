@@ -1,4 +1,3 @@
 *.pyc
-*.proto
 setup.py
 build/

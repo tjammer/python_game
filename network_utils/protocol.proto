@@ -1,0 +1,32 @@
+package mygame_protocol;
+
+enum MessageType {
+    update = 0;
+    newplayer = 1;
+    disconnect = 2;
+    chat = 3;
+    mapupdate = 4;
+}
+
+message Player {
+    required MessageType type = 1 [default = update];
+    optional int32 id = 6;
+    optional float posx = 2;
+    optional float posy = 3;
+    optional float velx = 4;
+    optional float vely = 5;
+    optional string msg = 7;
+    optional int32 hp = 8;
+    optional int32 armor = 9;
+    optional int32 time = 10;
+}
+
+message input {
+    required MessageType type = 5;
+    required int32 time = 1;
+    optional int32 id = 7;
+    optional bool right = 2;
+    optional bool left = 3;
+    optional bool up = 4;
+    optional string name = 6;
+}
