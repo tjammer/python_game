@@ -40,19 +40,17 @@ class CrossHair(object):
         self.y = pos[1]
         self.size = size
         self.cross = graphics.vertex_list(4,
-                                         ('v2i', (self.x - self.size, self.y,
-                                          self.x + self.size, self.y,
+                                         ('v2i/stream', (self.x - self.size,
+                                          self.y, self.x + self.size, self.y,
                                           self.x, self.y - self.size,
                                           self.x, self.y + self.size)))
 
     def update(self, x, y):
         self.x = x
         self.y = y
-        self.cross = graphics.vertex_list(4,
-                                         ('v2i', (self.x - self.size, self.y,
-                                          self.x + self.size, self.y,
-                                          self.x, self.y - self.size,
-                                          self.x, self.y + self.size)))
+        self.cross.vertices = (self.x - self.size, self.y, self.x + self.size,
+                               self.y, self.x, self.y - self.size, self.x,
+                               self.y + self.size)
 
     def draw(self, x, y):
         self.update(x, y)
