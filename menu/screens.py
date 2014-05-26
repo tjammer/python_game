@@ -24,7 +24,7 @@ class GameScreen(Events):
         self.Player.spawn(100, 100)
 
     def update(self, dt):
-        self.Player.update_local(dt)
+        self.Player.update(dt)
         self.Camera.update(dt)
 
         # for rect in self.Map.rects:

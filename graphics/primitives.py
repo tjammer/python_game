@@ -31,7 +31,7 @@ class Rect(Rectangle):
         self.ver_list.colors = list(color) * 4
 
 
-class CrossHair(object):
+class CrossHair(MouseCursor):
     """docstring for CrossHair"""
     def __init__(self, pos=[0, 0], size=10):
         super(CrossHair, self).__init__()
@@ -44,6 +44,7 @@ class CrossHair(object):
                                           self.y, self.x + self.size, self.y,
                                           self.x, self.y - self.size,
                                           self.x, self.y + self.size)))
+        self.drawable = True
 
     def update(self, x, y):
         self.x = x

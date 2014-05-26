@@ -1,4 +1,4 @@
-from movement import Move
+from movement import Movement
 from graphics.primitives import Rect
 from network_utils import protocol_pb2 as proto
 from collision.vector import magnitude
@@ -9,7 +9,7 @@ class player(object):
     def __init__(self):
         super(player, self).__init__()
         self.pos = [50, 50]
-        self.Move = Move(*self.pos)
+        self.Move = Movement(*self.pos)
         self.vel = []
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         self.Rect = Rect(0, 0, 32, 72, (0, .8, 1.))
@@ -20,7 +20,7 @@ class player(object):
         self.vel, self.pos = self.Move.update(dt, self.pos)
         self.Rect.update(*self.pos)
         self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
-        self.send_messsage('input', (self.Move.input, dt))
+        self.send_messsage('input', (self.Move.input, dt, self.pos, self.vel))
 
     def update_local(self, dt):
         self.Rect.update(*self.pos)
@@ -52,7 +52,7 @@ class player(object):
         self.Rect.update(*self.pos)
         self.Move.resolve_coll(self.pos, self.vel)
         if axis[1] > 0 and ovrlap < 0:
-            self.Move.on_ground = True
+            self.Move.conds['on_ground'] = True
             self.Move.angle = angle
 
     def spawn(self, x, y):
