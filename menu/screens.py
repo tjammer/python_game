@@ -18,10 +18,12 @@ class GameScreen(Events):
         # register camera with player for tracking playermovement
         self.Player.register(self.Camera.receive_player_pos,
                              events='changed_pos')
+        self.Player.register(self.receive_move, 'input')
         self.controls = {}
         self.controls_old = {}
         self.Map = Map('testmap')
         self.Player.spawn(100, 100)
+        self.time = 0
 
     def update(self, dt):
         self.Player.update(dt)
@@ -45,6 +47,15 @@ class GameScreen(Events):
         self.Player.draw()
         self.Map.draw()
         self.Camera.set_static()
+
+    def client_update(self, data):
+        time, pos, vel, input = data.time, (data.posx, data.posy),
+        (data.velx, data.vely), data.input
+        return time, pos, vel, input
+
+    def receive_move(self, event, msg):
+        input, dt, pos, vel = msg
+        self.time += int(dt * 10000)
 
 
 class MainMenu(MenuClass):

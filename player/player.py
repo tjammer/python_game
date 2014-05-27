@@ -1,6 +1,5 @@
 from movement import Movement
 from graphics.primitives import Rect
-from network_utils import protocol_pb2 as proto
 from collision.vector import magnitude
 
 
@@ -17,15 +16,14 @@ class player(object):
         self.listeners = {}
 
     def update(self, dt):
-        self.vel, self.pos = self.Move.update(dt, self.pos)
+        self.vel, self.pos = self.Move.update(dt, self.pos, self.vel)
         self.Rect.update(*self.pos)
         self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
         self.send_messsage('input', (self.Move.input, dt, self.pos, self.vel))
 
     def update_local(self, dt):
+        self.vel, self.pos = self.Move.update(dt, self.pos, self.vel)
         self.Rect.update(*self.pos)
-        self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
-        self.send_messsage('input', (self.Move.input, dt, self.pos, self.vel))
 
     def client_update(self, data):
         easing = .8
