@@ -2,15 +2,15 @@ from movement import Movement
 from graphics.primitives import Rect
 from collision.vector import magnitude
 from network_utils import protocol_pb2 as proto
+from state import vec2, state
 
 
 class player(object):
     """docstring for player"""
     def __init__(self):
         super(player, self).__init__()
-        self.pos = [50, 50]
-        self.Move = Movement(*self.pos)
-        self.vel = []
+        self.state = state(vec2(50, 50), vec2(0, 0), 100)
+        self.Move = Movement(*self.state.pos)
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         self.Rect = Rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
@@ -19,13 +19,15 @@ class player(object):
         self.listeners = {}
 
     def update(self, dt):
-        self.vel, self.pos = self.Move.update(dt, self.pos, self.vel,
-                                              self.input)
-        self.Rect.update(*self.pos)
+        self.state.vel, self.state.pos = self.Move.update(dt,
+                                                          self.state.pos,
+                                                          self.state.vel,
+                                                          self.input)
+        self.Rect.update(*self.state.pos)
 
-    def update_local(self, dt):
-        self.vel, self.pos = self.Move.update(dt, self.pos, self.vel)
-        self.Rect.update(*self.pos)
+    def update_state(self):
+        self.state.pos = self.pos
+        self.state.vel = self.vel
 
     def client_update(self, data):
         easing = .8
@@ -35,29 +37,29 @@ class player(object):
         len_diff = magnitude(*diff)
 
         if len_diff > snapping_distance:
-            self.pos = [data.posx, data.posy]
+            self.state.pos = [data.posx, data.posy]
         elif len_diff > .1:
-            self.pos[0] += diff[0] * easing
-            self.pos[1] += diff[1] * easing
-        self.vel = [data.velx, data.vely]
+            self.state.pos[0] += diff[0] * easing
+            self.state.pos[1] += diff[1] * easing
+        self.state.vel = [data.velx, data.vely]
 
     def draw(self):
         self.Rect.draw()
 
     def resolve_collision(self, ovrlap, axis, angle):
-        self.pos[0] = self.Rect.x1 - ovrlap * axis[0]
-        self.pos[1] = self.Rect.y1 - ovrlap * axis[1]
-        self.vel[0] *= axis[1] > 0
-        self.vel[1] *= axis[0] > 0
-        self.Rect.update(*self.pos)
-        self.Move.resolve_coll(self.pos, self.vel)
+        self.state.pos[0] = self.Rect.x1 - ovrlap * axis[0]
+        self.state.pos[1] = self.Rect.y1 - ovrlap * axis[1]
+        self.state.vel[0] *= axis[1] > 0
+        self.state.vel[1] *= axis[0] > 0
+        self.Rect.update(*self.state.pos)
+        self.Move.resolve_coll(self.state.pos, self.state.vel)
         if axis[1] > 0 and ovrlap < 0:
             self.Move.conds['on_ground'] = True
             self.Move.angle = angle
 
     def spawn(self, x, y):
-        self.pos = [x, y]
-        self.vel = [0, 0]
+        self.state.pos = vec2(x, y)
+        self.state.vel = vec2(0, 0)
 
     def register(self, listener, events):
         self.listeners[listener] = events

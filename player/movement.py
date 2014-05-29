@@ -1,12 +1,13 @@
 import math
+from state import vec2
 
 
 class Movement(object):
     """docstring for Movement"""
     def __init__(self, x, y):
         super(Movement, self).__init__()
-        self.pos = [x, y]
-        self.vel = [0, 0]
+        self.pos = vec2(x, y)
+        self.vel = vec2(0, 0)
         self.gravity = 4000.
         self.normal_accel = 500.
         self.boost_accel = 20.

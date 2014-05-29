@@ -25,7 +25,7 @@ class GameScreen(Events):
 
     def update(self, dt):
         self.update_physics(dt)
-        self.Camera.update(dt, self.Player.pos[0], self.Player.vel[0])
+        self.Camera.update(dt, self.Player.state)
         self.send_to_client(dt)
 
         if self.controls['esc'] and not self.controls_old['esc']:
