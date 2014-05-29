@@ -31,7 +31,7 @@ class GameServer(DatagramProtocol):
             spam.type = proto.mapupdate
             spam.id = pl_id
             self.transport.write(spam.SerializeToString(), address)
-        if data.type == proto.update:
+        if data.type == proto.update and data.id == self.find_id(address):
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
@@ -56,15 +56,23 @@ class GameServer(DatagramProtocol):
         self.send_all()
 
     def send_all(self):
-        for idx, player in self.players.iteritems():
+        for idx, player_ in self.players.iteritems():
             for idx_, pack in self.players_pack.iteritems():
-                self.transport.write(pack.SerializeToString(), player.address)
+                self.transport.write(pack.SerializeToString(), player_.address)
 
+    #find next available id
     def get_id(self):
         idx = 0
         while idx in self.players:
             idx += 1
         return idx
+
+    #find id of adress
+    def find_id(self, address):
+        for idx in self.players:
+            if address == self.players[idx].address:
+                return idx
+        return -1
 
     def player_to_pack(self, idx):
         self.players_pack[idx].posx = self.players[idx].pos[0]
@@ -76,9 +84,9 @@ class GameServer(DatagramProtocol):
         self.players_pack[idx].type = proto.update
 
     def get_input(self, data):
-        self.players[data.id].Move.input.up = data.up
-        self.players[data.id].Move.input.right = data.right
-        self.players[data.id].Move.input.left = data.left
+        self.players[data.id].input.up = data.up
+        self.players[data.id].input.right = data.right
+        self.players[data.id].input.left = data.left
 
     def collide(self, idx):
         for rect in self.map.quad_tree.retrieve([], self.players[idx].Rect):
