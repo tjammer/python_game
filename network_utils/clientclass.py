@@ -23,7 +23,7 @@ class Client(DatagramProtocol):
         self.transport.write(self.input.SerializeToString(), self.host)
 
     def get_input(self, event, msg):
-        self.input, dt, pos, vel = msg
+        self.input, dt = msg
         if self.connected:
             self.time += int(dt * 10000)
             self.input.time = self.time

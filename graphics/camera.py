@@ -19,7 +19,8 @@ class Camera(object):
         self.y_offset = -120
         self.eas_vel = 0
 
-    def update(self, dt):
+    def update(self, dt, pos, vel):
+        self.p_pos, self.p_vel = pos, vel
         # velocity easing
         if self.p_vel != 0:
             self.eas_vel -= (self.eas_vel - self.p_vel) * dt * 4.5

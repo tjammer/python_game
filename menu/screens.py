@@ -16,8 +16,6 @@ class GameScreen(Events):
         self.Camera = Camera(window)
         self.Player = player.player()
         # register camera with player for tracking playermovement
-        self.Player.register(self.Camera.receive_player_pos,
-                             events='changed_pos')
         self.Player.register(self.receive_move, 'input')
         self.controls = {}
         self.controls_old = {}
@@ -26,15 +24,9 @@ class GameScreen(Events):
         self.time = 0
 
     def update(self, dt):
-        self.Player.update(dt)
-        self.Camera.update(dt)
-
-        # for rect in self.Map.rects:
-        for rect in self.Map.quad_tree.retrieve([], self.Player.Rect):
-            coll = self.Player.Rect.collides(rect)
-            if coll:
-                ovr, axis = coll
-                self.Player.resolve_collision(ovr, axis, rect.angle)
+        self.update_physics(dt)
+        self.Camera.update(dt, self.Player.pos[0], self.Player.vel[0])
+        self.send_to_client(dt)
 
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
@@ -42,13 +34,25 @@ class GameScreen(Events):
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
 
+    def update_physics(self, dt):
+        self.Player.update(dt)
+        # for rect in self.Map.rects:
+        for rect in self.Map.quad_tree.retrieve([], self.Player.Rect):
+            coll = self.Player.Rect.collides(rect)
+            if coll:
+                ovr, axis = coll
+                self.Player.resolve_collision(ovr, axis, rect.angle)
+
+    def send_to_client(self, dt):
+        self.send_message('input', (self.Player.input, dt))
+
     def draw(self):
         self.Camera.set_camera()
         self.Player.draw()
         self.Map.draw()
         self.Camera.set_static()
 
-    def client_update(self, data):
+    def from_server(self, data):
         time, pos, vel, input = data.time, (data.posx, data.posy),
         (data.velx, data.vely), data.input
         return time, pos, vel, input

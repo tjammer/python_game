@@ -91,7 +91,7 @@ class WindowManager(Events):
             self.current_screen.Player.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
             # sends player input to lient class
-            self.current_screen.Player.register(self.receive_events, 'input')
+            self.current_screen.register(self.receive_events, 'input')
 
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)

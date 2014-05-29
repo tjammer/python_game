@@ -1,6 +1,7 @@
 from movement import Movement
 from graphics.primitives import Rect
 from collision.vector import magnitude
+from network_utils import protocol_pb2 as proto
 
 
 class player(object):
@@ -13,7 +14,7 @@ class player(object):
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         self.Rect = Rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
-        self.input = None
+        self.input = proto.input()
 
         self.listeners = {}
 
@@ -21,8 +22,6 @@ class player(object):
         self.vel, self.pos = self.Move.update(dt, self.pos, self.vel,
                                               self.input)
         self.Rect.update(*self.pos)
-        self.send_messsage('changed_pos', [self.pos[0], self.vel[0]])
-        self.send_messsage('input', (self.Move.input, dt, self.pos, self.vel))
 
     def update_local(self, dt):
         self.vel, self.pos = self.Move.update(dt, self.pos, self.vel)
