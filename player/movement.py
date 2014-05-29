@@ -1,5 +1,4 @@
 import math
-from network_utils import protocol_pb2 as proto
 
 
 class Movement(object):
@@ -16,8 +15,6 @@ class Movement(object):
         self.max_vel = 500
         self.angle = 0
         self.conds = {'can_jump': False, 'on_ground': False}
-
-        self.input = proto.input()
 
     def update(self, dt, pos, vel, input):
         self.calc_vel(dt, pos, vel, input)
