@@ -19,9 +19,7 @@ class Movement(object):
 
         self.input = proto.input()
 
-    def update(self, dt, pos, vel, input=None):
-        if input is None:
-            input = self.input
+    def update(self, dt, pos, vel, input):
         self.calc_vel(dt, pos, vel, input)
         self.step(dt, pos, vel)
         self.set_conds()

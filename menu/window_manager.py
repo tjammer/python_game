@@ -88,7 +88,7 @@ class WindowManager(Events):
             self.InputHandler.send_message('changed_mouse',
                                            self.InputHandler.mousepos)
             # pass by ref bullshit
-            self.current_screen.Player.Move.input = self.InputHandler.directns
+            self.current_screen.Player.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
             # sends player input to lient class
             self.current_screen.Player.register(self.receive_events, 'input')
