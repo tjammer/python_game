@@ -24,7 +24,7 @@ class vec2(object):
             raise IndexError
 
     def __repr__(self):
-        return '(' + ', '.join((str(self.x), str(self.y))) + ')'
+        return ', '.join((str(self.x), str(self.y)))
 
 
 class state(object):

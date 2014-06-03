@@ -52,3 +52,32 @@ class Client(DatagramProtocol):
     def unregister(self, listener):
         print '%s deleted' % listener
         del self.listeners[listener]
+
+
+class move(object):
+    """docstring for move"""
+    def __init__(self, time, input, state):
+        super(move, self).__init__()
+        self.time = time
+        self.input = input
+        self.state = state
+
+
+class moves(object):
+    """docstring for moves"""
+    def __init__(self, maximum):
+        super(moves, self).__init__()
+        self.maximum = maximum
+        self.moves = []
+
+    def advance(self, index):
+        index[0] += 1
+        if index[0] >= self.maximum:
+            index[0] -= self.maximum
+
+
+def correct_client(update_physics, state):
+    """update_physics is a function which updates physics and has dt, state
+    as an argument. state is the state sent from server as in
+    player.state.state"""
+    pass
