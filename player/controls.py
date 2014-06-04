@@ -54,7 +54,6 @@ class InputHandler(object):
         self.controls['f10'] = self.keys[key.F10]
 
         self.send_message('all_input', self.keys)
-        self.send_message('input', (self.directns, dt))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

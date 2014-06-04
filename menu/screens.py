@@ -15,8 +15,6 @@ class GameScreen(Events):
         super(GameScreen, self).__init__()
         self.Camera = Camera(window)
         self.Player = player.player()
-        # register camera with player for tracking playermovement
-        self.Player.register(self.receive_move, 'input')
         self.controls = {}
         self.controls_old = {}
         self.Map = Map('testmap')

@@ -3,9 +3,10 @@ from graphics.primitives import Rect
 from collision.vector import magnitude
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
+from menu.menu_events import Events
 
 
-class player(object):
+class player(Events):
     """docstring for player"""
     def __init__(self):
         super(player, self).__init__()
@@ -18,11 +19,14 @@ class player(object):
 
         self.listeners = {}
 
-    def update(self, dt):
+    def update(self, dt, state=False, input=False):
+        if not state:
+            state = self.state
+        if not input:
+            input = self.input
         self.state.vel, self.state.pos = self.Move.update(dt,
-                                                          self.state.pos,
-                                                          self.state.vel,
-                                                          self.input)
+                                                          state.pos, state.vel,
+                                                          input)
         self.Rect.update(*self.state.pos)
 
     def update_state(self):
@@ -60,18 +64,3 @@ class player(object):
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)
-
-    def register(self, listener, events):
-        self.listeners[listener] = events
-
-    def send_messsage(self, event, msg):
-        for listener, events in self.listeners.items():
-            if event in events:
-                try:
-                    listener(event, msg)
-                except (Exception, ):
-                    self.unregister(listener)
-
-    def unregister(self, listener):
-        print '%s deleted' % listener
-        del self.listeners[listener]
