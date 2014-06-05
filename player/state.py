@@ -1,3 +1,6 @@
+from math import sqrt
+
+
 class vec2(object):
     """docstring for vec2"""
     def __init__(self, x, y):
@@ -25,6 +28,22 @@ class vec2(object):
 
     def __repr__(self):
         return ', '.join((str(self.x), str(self.y)))
+
+    def __sub__(self, vec):
+        if isinstance(vec, vec2):
+            return vec2(self.x - vec.x, self.y - vec.y)
+        else:
+            raise TypeError
+
+    def __add__(self, vec):
+        if isinstance(vec, vec2):
+            return vec2(self.x + vec.x, self.y + vec.y)
+        else:
+            raise TypeError
+
+    def mag(self):
+        """magnitude of the vector"""
+        return sqrt(self.x**2 + self.y**2)
 
 
 class state(object):
