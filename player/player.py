@@ -37,7 +37,7 @@ class player(Events):
         easing = .8
         snapping_distance = 20
 
-        diff = [data.posx - self.pos[0], data.posy - self.pos[1]]
+        diff = [data.posx - self.state.pos[0], data.posy - self.state.pos[1]]
         len_diff = magnitude(*diff)
 
         if len_diff > snapping_distance:

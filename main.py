@@ -5,7 +5,7 @@ from twisted.internet import reactor
 from menu.window_manager import WindowManager
 from network_utils.clientclass import Client
 
-window = pyglet.window.Window(1280, 720, vsync=False)
+window = pyglet.window.Window(1280, 720, vsync=True)
 #window.set_mouse_visible(True)
 window.set_exclusive_mouse(True)
 WindowManager = WindowManager(window)
@@ -26,7 +26,6 @@ pyglet.clock.schedule(update)
 @window.event
 #draw
 def on_draw():
-    #pyglet.clock.tick()
     window.clear()
     pyglet.gl.glClearColor(0, .0, 0, 1)
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)

@@ -7,6 +7,7 @@ from pyglet.text import Label
 from graphics.primitives import Box
 from pyglet.window import key
 from maps.map import Map
+from network_utils.clientclass import move, moves, correct_client
 
 
 class GameScreen(Events):
@@ -20,6 +21,8 @@ class GameScreen(Events):
         self.Map = Map('testmap')
         self.Player.spawn(100, 100)
         self.time = 0
+        self.Moves = moves(1024)
+        self.index = [0]
 
     def update(self, dt):
         self.update_physics(dt)
@@ -32,28 +35,37 @@ class GameScreen(Events):
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
 
-    def update_physics(self, dt):
-        self.Player.update(dt)
+    def from_server(self, data):
+        this, time, s_state = data
+        smove = move(time, None, s_state)
+        if this and len(self.Moves) > 0:
+            correct_client(self.update_physics, smove, self.Moves)
+
+    def update_physics(self, dt, state=False, input=False):
+        self.Player.update(dt, state, input)
         # for rect in self.Map.rects:
         for rect in self.Map.quad_tree.retrieve([], self.Player.Rect):
             coll = self.Player.Rect.collides(rect)
             if coll:
                 ovr, axis = coll
                 self.Player.resolve_collision(ovr, axis, rect.angle)
+        return self.Player.state
 
     def send_to_client(self, dt):
-        self.send_message('input', (self.Player.input, dt))
+        self.time += int(dt * 10000)
+        c_move = move(self.time, self.Player.state, self.Player.input)
+        try:
+            self.Moves[self.index[0]] = c_move
+        except IndexError:
+            self.Moves.append(c_move)
+        self.Moves.advance(self.index)
+        self.send_message('input', (self.Player.input, self.time))
 
     def draw(self):
         self.Camera.set_camera()
         self.Player.draw()
         self.Map.draw()
         self.Camera.set_static()
-
-    def from_server(self, data):
-        time, pos, vel, input = data.time, (data.posx, data.posy),
-        (data.velx, data.vely), data.input
-        return time, pos, vel, input
 
     def receive_move(self, event, msg):
         input, dt, pos, vel = msg

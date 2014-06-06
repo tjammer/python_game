@@ -25,6 +25,7 @@ class GameServer(DatagramProtocol):
             self.players[pl_id].time = 0
             self.players[pl_id].spawn(100, 300)
             self.players_pack[pl_id] = proto.Player()
+            self.players_pack[pl_id].id = pl_id
             self.player_to_pack(pl_id)
             self.timers[pl_id] = 0
             spam = proto.Player()
@@ -38,10 +39,9 @@ class GameServer(DatagramProtocol):
                 dt = dt / 10000.
             # update movement
                 self.players[data.id].update(dt)
-                self.players[data.id].Rect.update(*self.players[data.id].pos)
                 self.collide(data.id)
-                self.player_to_pack(data.id)
                 self.players[data.id].time = data.time
+                self.player_to_pack(data.id)
                 self.timers[data.id] = 0
 
     def update(self, dt):
@@ -75,11 +75,12 @@ class GameServer(DatagramProtocol):
         return -1
 
     def player_to_pack(self, idx):
-        self.players_pack[idx].posx = self.players[idx].pos[0]
-        self.players_pack[idx].posy = self.players[idx].pos[1]
-
-        self.players_pack[idx].velx = self.players[idx].vel[0]
-        self.players_pack[idx].vely = self.players[idx].vel[1]
+        self.players_pack[idx].posx = self.players[idx].state.pos[0]
+        self.players_pack[idx].posy = self.players[idx].state.pos[1]
+        self.players_pack[idx].velx = self.players[idx].state.vel[0]
+        self.players_pack[idx].vely = self.players[idx].state.vel[1]
+        self.players_pack[idx].hp = self.players[idx].state.hp
+        self.players_pack[idx].time = self.players[idx].time
 
         self.players_pack[idx].type = proto.update
 

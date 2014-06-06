@@ -63,9 +63,7 @@ class WindowManager(Events):
         # server plaerdata
         if event == 'serverdata':
             if isinstance(self.stack[0], GameScreen):
-                # self.stack[0].Player.pos = [msg.posx, msg.posy]
-                # self.stack[0].Player.vel = [msg.velx, msg.vely]
-                self.stack[0].Player.client_update(msg)
+                self.stack[0].from_server(msg)
 
     def start_game(self):
         self.current_screen = GameScreen(self.window)

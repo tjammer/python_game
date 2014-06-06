@@ -1,5 +1,6 @@
 import protocol_pb2 as proto
 from twisted.internet.protocol import DatagramProtocol
+from player.state import state, vec2
 
 
 class Client(DatagramProtocol):
@@ -23,9 +24,10 @@ class Client(DatagramProtocol):
         self.transport.write(self.input.SerializeToString(), self.host)
 
     def get_input(self, event, msg):
-        self.input, dt = msg
+        #self.input, dt = msg
+        self.input, self.time = msg
         if self.connected:
-            self.time += int(dt * 10000)
+            #self.time += int(dt * 10000)
             self.input.time = self.time
             self.input.type = proto.update
             self.transport.write(self.input.SerializeToString(), self.host)
@@ -37,17 +39,22 @@ class Client(DatagramProtocol):
             self.id = self.server_data.id
             print 'connected'
         if self.server_data.type == proto.update:
-            self.send_message('serverdata', self.server_data)
+            ind = self.server_data.id == self.id
+            pos = vec2(self.server_data.posx, self.server_data.posy)
+            vel = vec2(self.server_data.velx, self.server_data.vely)
+            State = state(pos, vel, self.server_data.hp)
+            time = self.server_data.time
+            self.send_message('serverdata', (ind, time, State))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
 
     def send_message(self, event, msg=None):
         for listener, events in self.listeners.items():
-            try:
-                listener(event, msg)
-            except (Exception, ):
-                self.unregister(listener)
+#            try:
+            listener(event, msg)
+#            except (Exception, ):
+#                self.unregister(listener)
 
     def unregister(self, listener):
         print '%s deleted' % listener
@@ -63,12 +70,11 @@ class move(object):
         self.state = state
 
 
-class moves(object):
+class moves(list):
     """docstring for moves"""
     def __init__(self, maximum):
         super(moves, self).__init__()
         self.maximum = maximum
-        self.moves = []
 
     def advance(self, index):
         index[0] += 1
@@ -76,8 +82,36 @@ class moves(object):
             index[0] -= self.maximum
 
 
-def correct_client(update_physics, state):
+def correct_client(update_physics, s_move, moves):
     """update_physics is a function which updates physics and has dt, state
-    as an argument. state is the state sent from server as in
+    and input as an argument. state is the state sent from server as in
     player.state.state"""
-    pass
+    head = [0]
+    tail = len(moves)
+    threshold = .2
+
+    while s_move.time > moves[head[0]].time and head[0] != tail:
+        moves.advance(head)
+
+    if head[0] != tail and s_move.time == moves[head[0]].time:
+        if (moves[head[0]].state.pos - s_move.state.pos).mag() > threshold:
+            c_time = s_move.time
+            c_state = s_move.state
+            c_input = moves[head[0]].input
+
+            moves.advance(head)
+            index = [head[0]]
+            print 'correct'
+            while index != tail:
+                dt = moves[index[0]].time - c_time
+                c_state = update_physics(dt, c_state, c_input)
+
+                c_time = moves[index[0]].time
+                c_input = moves[index[0]].input
+                moves[index[0]].state = c_state
+
+                moves.advance(index)
+        else:
+            print 'ok'
+    else:
+        print s_move.time, moves[head[0]].time, head
