@@ -23,8 +23,10 @@ class GameScreen(Events):
         self.time = 0
         self.Moves = moves(1024)
         self.index = [0]
+        self.head = [0]
 
     def update(self, dt):
+        dt = int(dt * 10000) / 10000.
         self.update_physics(dt)
         self.Camera.update(dt, self.Player.state)
         self.send_to_client(dt)
@@ -39,7 +41,8 @@ class GameScreen(Events):
         this, time, s_state = data
         smove = move(time, None, s_state)
         if this and len(self.Moves) > 0:
-            correct_client(self.update_physics, smove, self.Moves)
+            correct_client(self.update_physics, smove, self.Moves,
+                           self.head, self.index[0])
 
     def update_physics(self, dt, state=False, input=False):
         self.Player.update(dt, state, input)
@@ -53,7 +56,7 @@ class GameScreen(Events):
 
     def send_to_client(self, dt):
         self.time += int(dt * 10000)
-        c_move = move(self.time, self.Player.state, self.Player.input)
+        c_move = move(self.time, self.Player.input, self.Player.state)
         try:
             self.Moves[self.index[0]] = c_move
         except IndexError:

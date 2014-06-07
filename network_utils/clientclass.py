@@ -29,6 +29,7 @@ class Client(DatagramProtocol):
         if self.connected:
             #self.time += int(dt * 10000)
             self.input.time = self.time
+            #print self.input.time
             self.input.type = proto.update
             self.transport.write(self.input.SerializeToString(), self.host)
 
@@ -82,13 +83,11 @@ class moves(list):
             index[0] -= self.maximum
 
 
-def correct_client(update_physics, s_move, moves):
+def correct_client(update_physics, s_move, moves, head, tail):
     """update_physics is a function which updates physics and has dt, state
     and input as an argument. state is the state sent from server as in
     player.state.state"""
-    head = [0]
-    tail = len(moves)
-    threshold = .2
+    threshold = 1
 
     while s_move.time > moves[head[0]].time and head[0] != tail:
         moves.advance(head)
@@ -101,9 +100,8 @@ def correct_client(update_physics, s_move, moves):
 
             moves.advance(head)
             index = [head[0]]
-            print 'correct'
-            while index != tail:
-                dt = moves[index[0]].time - c_time
+            while index[0] != tail:
+                dt = (moves[index[0]].time - c_time) / 10000.
                 c_state = update_physics(dt, c_state, c_input)
 
                 c_time = moves[index[0]].time
@@ -111,7 +109,3 @@ def correct_client(update_physics, s_move, moves):
                 moves[index[0]].state = c_state
 
                 moves.advance(index)
-        else:
-            print 'ok'
-    else:
-        print s_move.time, moves[head[0]].time, head
