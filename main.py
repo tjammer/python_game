@@ -14,6 +14,7 @@ fps = pyglet.clock.ClockDisplay()
 fps_limit = 120.
 #pyglet.clock.set_fps_limit(fps_limit)
 client = Client()
+WindowManager.connect = client.start_connection
 WindowManager.register(client.get_input, 'input')
 client.register(WindowManager.receive_events, 'serverdata')
 
@@ -33,5 +34,4 @@ def on_draw():
     fps.draw()
 
 reactor.listenUDP(8001, client)
-client.start_connection()
 reactor.run(call_interval=1./fps_limit)
