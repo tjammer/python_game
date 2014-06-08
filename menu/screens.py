@@ -49,8 +49,10 @@ class GameScreen(Events):
                 correct_client(self.update_physics, smove, self.Moves,
                                self.head, self.index[0])
             else:
+                print 'hehe'
                 self.players[ind].client_update(s_state)
         elif typ == proto.newplayer:
+            print 'new player'
             ind, time, s_state = data
             self.players[ind] = player.player()
             self.players[ind].state = s_state
@@ -77,6 +79,8 @@ class GameScreen(Events):
 
     def draw(self):
         self.Camera.set_camera()
+        #for plr in self.players.itervalues():
+        #    plr.draw()
         self.Player.draw()
         self.Map.draw()
         self.Camera.set_static()
