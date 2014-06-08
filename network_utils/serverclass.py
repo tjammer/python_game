@@ -24,6 +24,7 @@ class GameServer(DatagramProtocol):
             spam.type = proto.mapupdate
             spam.id = pl_id
             self.transport.write(spam.SerializeToString(), address)
+            #other players to new one
             others = self.players_pack[pl_id]
             others.type = proto.newplayer
             for idx, p in self.players.iteritems():

@@ -8,6 +8,7 @@ from graphics.primitives import Box
 from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
+from network_utils import protocol_pb2 as proto
 
 
 class GameScreen(Events):
@@ -24,6 +25,8 @@ class GameScreen(Events):
         self.Moves = moves(1024)
         self.index = [0]
         self.head = [0]
+        #other players
+        self.players = {}
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
@@ -38,11 +41,19 @@ class GameScreen(Events):
             self.controls_old[key_] = value
 
     def from_server(self, data):
-        this, time, s_state = data
-        smove = move(time, None, s_state)
-        if this and len(self.Moves) > 0:
-            correct_client(self.update_physics, smove, self.Moves,
-                           self.head, self.index[0])
+        typ, data = data
+        if typ == proto.update:
+            ind, time, s_state = data
+            smove = move(time, None, s_state)
+            if ind == self.id:
+                correct_client(self.update_physics, smove, self.Moves,
+                               self.head, self.index[0])
+            else:
+                self.players[ind].client_update(s_state)
+        elif typ == proto.newplayer:
+            ind, time, s_state = data
+            self.players[ind] = player.player()
+            self.players[ind].state = s_state
 
     def update_physics(self, dt, state=False, input=False):
         self.Player.update(dt, state, input)
@@ -70,9 +81,9 @@ class GameScreen(Events):
         self.Map.draw()
         self.Camera.set_static()
 
-    def receive_move(self, event, msg):
-        input, dt, pos, vel = msg
-        self.time += int(dt * 10000)
+    def on_connect(self, msg):
+        self.id = msg
+        print 'connected with id: ' + str(self.id)
 
 
 class MainMenu(MenuClass):

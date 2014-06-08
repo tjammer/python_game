@@ -17,7 +17,7 @@ class Events(object):
         self.listeners[listener] = events
 
     def send_message(self, event, msg=None):
-        for listener, events in self.listeners.items():
+        for listener, events in self.listeners.iteritems():
             #try:
             listener(event, msg)
             #except (Exception, ):

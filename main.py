@@ -16,7 +16,7 @@ fps_limit = 120.
 client = Client()
 WindowManager.connect = client.start_connection
 WindowManager.register(client.get_input, 'input')
-client.register(WindowManager.receive_events, 'serverdata')
+client.register(WindowManager.receive_events, ('serverdata', 'on_connect'))
 
 
 def update(dt):

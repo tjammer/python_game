@@ -35,17 +35,22 @@ class Client(DatagramProtocol):
 
     def datagramReceived(self, datagram, address):
         self.server_data.ParseFromString(datagram)
-        if self.server_data.type == proto.mapupdate:
+        if self.server_data.type == proto.mapupdate and not self.id:
             self.connected = True
             self.id = self.server_data.id
-            print 'connected'
-        if self.server_data.type == proto.update:
-            ind = self.server_data.id == self.id
-            pos = vec2(self.server_data.posx, self.server_data.posy)
-            vel = vec2(self.server_data.velx, self.server_data.vely)
-            State = state(pos, vel, self.server_data.hp)
+            self.send_message('on_connect', self.id)
+        elif self.server_data.type == proto.update:
+            ind = self.server_data.id
+            State = self.server_to_state(self.server_data)
             time = self.server_data.time
-            self.send_message('serverdata', (ind, time, State))
+            self.send_message('serverdata',
+                              (proto.update, (ind, time, State)))
+        elif self.server_data.type == proto.newplayer:
+            ind = self.server_data.id
+            State = self.server_to_state(self.server_data)
+            time = self.server_data.time
+            self.send_message('serverdata',
+                              (proto.newplayer, (ind, time, State)))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
@@ -60,6 +65,12 @@ class Client(DatagramProtocol):
     def unregister(self, listener):
         print '%s deleted' % listener
         del self.listeners[listener]
+
+    def server_to_state(self, data):
+        pos = vec2(data.posx, data.posy)
+        vel = vec2(data.velx, data. vely)
+        hp = data.hp
+        return state(pos, vel, hp)
 
 
 class move(object):

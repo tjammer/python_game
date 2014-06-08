@@ -36,34 +36,37 @@ class WindowManager(Events):
             from twisted.internet import reactor
             reactor.stop()
 
-        if event == 'start_game':
+        elif event == 'start_game':
             self.stack = []
             self.start_game()
 
-        if event == 'to_main':
+        elif event == 'to_main':
             self.stack = []
             self.current_screen = MainMenu()
             self.register_screen()
 
-        if event == 'menu_transition_+':
+        elif event == 'menu_transition_+':
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.mousepos)
             self.current_screen = msg()
             self.register_screen()
 
-        if event == 'menu_transition_-':
+        elif event == 'menu_transition_-':
             self.stack.pop()
             self.current_screen = self.stack[-1]
             self.register_screen()
 
         # input to client
-        if event == 'input':
+        elif event == 'input':
             self.send_message('input', msg)
 
         # server plaerdata
-        if event == 'serverdata':
+        elif event == 'serverdata':
             if isinstance(self.stack[0], GameScreen):
                 self.stack[0].from_server(msg)
+
+        elif event == 'on_connect':
+            self.stack[0].on_connect(msg)
 
     def start_game(self):
         self.connect()
