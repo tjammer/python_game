@@ -41,6 +41,12 @@ class vec2(object):
         else:
             raise TypeError
 
+    def __mul__(self, num):
+        if isinstance(num, float) or isinstance(num, int):
+            return vec2(self.x * num, self.y * num)
+        elif isinstance(num, vec2):
+            return vec2(self.x + num.x, self.y + num.y)
+
     def mag(self):
         """magnitude of the vector"""
         return sqrt(self.x**2 + self.y**2)
