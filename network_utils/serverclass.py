@@ -31,6 +31,7 @@ class GameServer(DatagramProtocol):
                 if idx != pl_id:
                     self.transport.write(others.SerializeToString(), p.address)
         if data.type == proto.update and data.id == self.find_id(address):
+            print 'rec'
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
@@ -111,7 +112,7 @@ class GameServer(DatagramProtocol):
         self.players[pl_id] = player()
         self.players[pl_id].address = address
         self.players[pl_id].name = name
-        print ' '.join((name, 'joined the server.'))
+        print ' '.join((name, 'joined the server.', str(address)))
         self.players[pl_id].time = 0
         self.players[pl_id].spawn(100, 300)
         self.players_pack[pl_id] = proto.Player()

@@ -31,6 +31,7 @@ class Client(DatagramProtocol):
             self.input.time = self.time
             #print self.input.time
             self.input.type = proto.update
+            self.input.id = self.id
             self.transport.write(self.input.SerializeToString(), self.host)
 
     def datagramReceived(self, datagram, address):
