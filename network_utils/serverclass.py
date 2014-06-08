@@ -18,20 +18,17 @@ class GameServer(DatagramProtocol):
         data.ParseFromString(datagram)
         if data.type == proto.newplayer:
             pl_id = self.get_id()
-            self.players[pl_id] = player()
-            self.players[pl_id].address = address
-            self.players[pl_id].name = data.name
-            print 'new player ' + data.name
-            self.players[pl_id].time = 0
-            self.players[pl_id].spawn(100, 300)
-            self.players_pack[pl_id] = proto.Player()
-            self.players_pack[pl_id].id = pl_id
-            self.player_to_pack(pl_id)
-            self.timers[pl_id] = 0
+            self.init_player(data, address, pl_id)
+            #send connected info back to client
             spam = proto.Player()
             spam.type = proto.mapupdate
             spam.id = pl_id
             self.transport.write(spam.SerializeToString(), address)
+            others = self.players_pack[pl_id]
+            others.type = proto.newplayer
+            for idx, p in self.players.iteritems():
+                if idx != pl_id:
+                    self.transport.write(others.SerializeToString(), p.address)
         if data.type == proto.update and data.id == self.find_id(address):
             self.get_input(data)
             dt = data.time - self.players[data.id].time
@@ -62,7 +59,7 @@ class GameServer(DatagramProtocol):
 
     #find next available id
     def get_id(self):
-        idx = 0
+        idx = 1
         while idx in self.players:
             idx += 1
         return idx
@@ -75,10 +72,10 @@ class GameServer(DatagramProtocol):
         return -1
 
     def player_to_pack(self, idx):
-        self.players_pack[idx].posx = self.players[idx].state.pos[0]
-        self.players_pack[idx].posy = self.players[idx].state.pos[1]
-        self.players_pack[idx].velx = self.players[idx].state.vel[0]
-        self.players_pack[idx].vely = self.players[idx].state.vel[1]
+        self.players_pack[idx].posx = self.players[idx].state.pos.x
+        self.players_pack[idx].posy = self.players[idx].state.pos.y
+        self.players_pack[idx].velx = self.players[idx].state.vel.x
+        self.players_pack[idx].vely = self.players[idx].state.vel.y
         self.players_pack[idx].hp = self.players[idx].state.hp
         self.players_pack[idx].time = self.players[idx].time
 
@@ -90,15 +87,33 @@ class GameServer(DatagramProtocol):
         self.players[data.id].input.left = data.left
 
     def collide(self, idx):
-        for rect in self.map.quad_tree.retrieve([], self.players[idx].Rect):
-            coll = self.players[idx].Rect.collides(rect)
-            if coll:
-                ovr, axis = coll
-                self.players[idx].resolve_collision(ovr, axis, rect.angle)
-
         for keys in self.players:
             if keys != idx:
                 coll = self.players[idx].Rect.collides(self.players[keys].Rect)
                 if coll:
                     ovr, axis = coll
                     self.players[idx].resolve_collision(ovr, axis, 0)
+        #collide with players first to not get collided into wall
+        for rect in self.map.quad_tree.retrieve([], self.players[idx].Rect):
+            coll = self.players[idx].Rect.collides(rect)
+            if coll:
+                ovr, axis = coll
+                self.players[idx].resolve_collision(ovr, axis, rect.angle)
+
+    def init_player(self, data, address, pl_id):
+        #check if name already exists
+        name = data.name
+        i = 1
+        while name in [p.name for p in self.players.itervalues()]:
+            name = data.name + '_' + str(i)
+            i += 1
+        self.players[pl_id] = player()
+        self.players[pl_id].address = address
+        self.players[pl_id].name = name
+        print ' '.join((name, 'joined the server.'))
+        self.players[pl_id].time = 0
+        self.players[pl_id].spawn(100, 300)
+        self.players_pack[pl_id] = proto.Player()
+        self.players_pack[pl_id].id = pl_id
+        self.player_to_pack(pl_id)
+        self.timers[pl_id] = 0
