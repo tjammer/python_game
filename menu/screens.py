@@ -49,9 +49,7 @@ class GameScreen(Events):
                 correct_client(self.update_physics, smove, self.Moves,
                                self.head, self.index[0])
             else:
-                print s_state.pos
                 self.players[ind].client_update(s_state)
-                print self.players[ind].state.pos
         elif typ == proto.newplayer:
             print 'new player'
             ind, time, s_state = data
