@@ -1,6 +1,5 @@
 from movement import Movement
 from graphics.primitives import Rect
-from collision.vector import magnitude
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
 from menu.menu_events import Events
@@ -33,19 +32,19 @@ class player(Events):
         self.state.pos = self.pos
         self.state.vel = self.vel
 
-    def client_update(self, data):
+    def client_update(self, s_state):
         easing = .8
         snapping_distance = 20
 
-        diff = [data.posx - self.state.pos[0], data.posy - self.state.pos[1]]
-        len_diff = magnitude(*diff)
+        diff = vec2(s_state.pos.x - self.state.pos[0],
+                    s_state.pos.y - self.state.pos[1])
+        len_diff = diff.mag()
 
         if len_diff > snapping_distance:
-            self.state.pos = [data.posx, data.posy]
+            self.state.pos = s_state.pos
         elif len_diff > .1:
-            self.state.pos[0] += diff[0] * easing
-            self.state.pos[1] += diff[1] * easing
-        self.state.vel = [data.velx, data.vely]
+            self.state.pos += diff * easing
+        self.state.vel = s_state.vel
 
     def draw(self):
         self.Rect.draw()
