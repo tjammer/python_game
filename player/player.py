@@ -45,6 +45,7 @@ class player(Events):
         elif len_diff > .1:
             self.state.pos += diff * easing
         self.state.vel = s_state.vel
+        self.Rect.update(*self.state.pos)
 
     def draw(self):
         self.Rect.draw()

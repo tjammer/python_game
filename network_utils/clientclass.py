@@ -40,13 +40,13 @@ class Client(DatagramProtocol):
             self.connected = True
             self.id = self.server_data.id
             self.send_message('on_connect', self.id)
-        elif self.server_data.type == proto.update:
+        elif self.server_data.type == proto.update and self.connected:
             ind = self.server_data.id
             State = self.server_to_state(self.server_data)
             time = self.server_data.time
             self.send_message('serverdata',
                               (proto.update, (ind, time, State)))
-        elif self.server_data.type == proto.newplayer:
+        elif self.server_data.type == proto.newplayer and self.connected:
             ind = self.server_data.id
             State = self.server_to_state(self.server_data)
             time = self.server_data.time

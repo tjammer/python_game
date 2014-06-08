@@ -69,9 +69,9 @@ class WindowManager(Events):
             self.stack[0].on_connect(msg)
 
     def start_game(self):
-        self.connect()
         self.current_screen = GameScreen(self.window)
         self.register_screen()
+        self.connect()
 
     def register_screen(self):
         # menu screen

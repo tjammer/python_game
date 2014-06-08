@@ -45,11 +45,13 @@ class GameScreen(Events):
         if typ == proto.update:
             ind, time, s_state = data
             smove = move(time, None, s_state)
-            if ind == self.id:
+            if ind == self.Player.id:
                 correct_client(self.update_physics, smove, self.Moves,
                                self.head, self.index[0])
             else:
+                print s_state.pos
                 self.players[ind].client_update(s_state)
+                print self.players[ind].state.pos
         elif typ == proto.newplayer:
             print 'new player'
             ind, time, s_state = data
@@ -85,8 +87,8 @@ class GameScreen(Events):
         self.Camera.set_static()
 
     def on_connect(self, msg):
-        self.id = msg
-        print 'connected with id: ' + str(self.id)
+        self.Player.id = msg
+        print 'connected with id: ' + str(self.Player.id)
 
 
 class MainMenu(MenuClass):
