@@ -9,8 +9,8 @@ class Client(DatagramProtocol):
         self.time = 0
         self.input = proto.input()
         self.connected = False
-        #self.host = ('134.2.73.114', 8000)
-        self.host = ('127.0.0.1', 8000)
+        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
+        #self.host = ('127.0.0.1', 8000)
         self.con_timer = 0
         self.server_data = proto.Player()
         self.id = None
