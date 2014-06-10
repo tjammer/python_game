@@ -10,7 +10,6 @@ main = serverclass.GameServer()
 def update(t):
     time_ = time()
     dt = time_ - t[0]
-    print dt
     main.update(dt)
     t[0] = time_
 

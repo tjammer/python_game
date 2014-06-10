@@ -6,7 +6,7 @@ pi = math.acos(0) * 2
 
 class Rectangle(object):
     """points for Rectangle are clockwise, starting with left-bottom"""
-    def __init__(self, x, y, width, height, color, angle):
+    def __init__(self, x, y, width, height, color, angle=0):
         super(Rectangle, self).__init__()
         self.width = width
         self.height = height

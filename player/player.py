@@ -1,5 +1,6 @@
 from movement import Movement
 from graphics.primitives import Rect
+from collision.rectangle import Rectangle
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
 from menu.menu_events import Events
@@ -7,12 +8,16 @@ from menu.menu_events import Events
 
 class player(Events):
     """docstring for player"""
-    def __init__(self):
+    def __init__(self, server=False):
         super(player, self).__init__()
         self.state = state(vec2(50, 50), vec2(0, 0), 100)
         self.Move = Movement(*self.state.pos)
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
-        self.Rect = Rect(0, 0, 32, 72, (0, .8, 1.))
+        if not server:
+            self.rect = Rect
+        else:
+            self.rect = Rectangle
+        self.Rect = self.rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
         self.input = proto.input()
 
