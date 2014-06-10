@@ -15,6 +15,7 @@ class QuadTree(object):
         self.objects = []
         self.bounds = rect
         self.nodes = [None] * 4
+        self.server = server
         if not server:
             self.Rect = Rect
         else:
