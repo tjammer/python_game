@@ -1,11 +1,12 @@
 from graphics.primitives import Rect
+from rectangle import Rectangle
 
 
 class QuadTree(object):
     """Heavily inspired from
     http://gamedevelopment.tutsplus.com/tutorials/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space--gamedev-374
     """
-    def __init__(self, level, rect):
+    def __init__(self, level, rect, server):
         super(QuadTree, self).__init__()
         self.maxobjects = 5
         self.maxlevel = 5
@@ -14,6 +15,10 @@ class QuadTree(object):
         self.objects = []
         self.bounds = rect
         self.nodes = [None] * 4
+        if not server:
+            self.Rect = Rect
+        else:
+            self.Rect = Rectangle
 
     def clear(self):
         """clears the QuadTree"""
@@ -29,17 +34,17 @@ class QuadTree(object):
         y = self.bounds.y1
 
         self.nodes[0] = QuadTree(self.level+1,
-                                 Rect(x + sub_width, y,
-                                      sub_width, sub_height))
+                                 self.Rect(x + sub_width, y,
+                                           sub_width, sub_height))
         self.nodes[1] = QuadTree(self.level+1,
-                                 Rect(x, y,
-                                      sub_width, sub_height))
+                                 self.Rect(x, y,
+                                           sub_width, sub_height))
         self.nodes[2] = QuadTree(self.level+1,
-                                 Rect(x, y + sub_height,
-                                      sub_width, sub_height))
+                                 self.Rect(x, y + sub_height,
+                                           sub_width, sub_height))
         self.nodes[3] = QuadTree(self.level+1,
-                                 Rect(x + sub_width, y + sub_height,
-                                      sub_width, sub_height))
+                                 self.Rect(x + sub_width, y + sub_height,
+                                           sub_width, sub_height))
 
     def get_index(self, rect):
         """the assumption is that no object is that no object is bigger
