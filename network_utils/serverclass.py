@@ -11,7 +11,7 @@ class GameServer(DatagramProtocol):
         self.players = {}
         self.players_pack = {}
         self.timers = {}
-        self.map = Map('testmap')
+        self.map = Map('testmap', server=True)
 
     def datagramReceived(self, datagram, address):
         data = proto.input()
@@ -97,7 +97,7 @@ class GameServer(DatagramProtocol):
         while name in [p.name for p in self.players.itervalues()]:
             name = data.name + '_' + str(i)
             i += 1
-        self.players[pl_id] = player()
+        self.players[pl_id] = player(server=True)
         self.players[pl_id].address = address
         self.players[pl_id].name = name
         print ' '.join((name, 'joined the server.', str(address)))
