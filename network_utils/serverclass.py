@@ -19,25 +19,12 @@ class GameServer(DatagramProtocol):
         if data.type == proto.newplayer:
             pl_id = self.get_id()
             self.init_player(data, address, pl_id)
-            """
-            #send connected info back to client
-            spam = proto.Player()
-            spam.type = proto.mapupdate
-            spam.id = pl_id
-            self.transport.write(spam.SerializeToString(), address)
-            #other players to new one
-            others = self.players_pack[pl_id]
-            others.type = proto.newplayer
-            for idx, p in self.players.iteritems():
-                if idx != pl_id:
-                    self.transport.write(others.SerializeToString(), p.address)
-            """
         if data.type == proto.update and data.id == self.find_id(address):
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
                 dt = dt / 10000.
-            # update movement
+                # update movement
                 self.players[data.id].update(dt)
                 self.collide(data.id)
                 self.players[data.id].time = data.time

@@ -9,6 +9,7 @@ class Client(DatagramProtocol):
         self.time = 0
         self.input = proto.input()
         self.connected = False
+        #self.host = ('134.2.73.114', 8000)
         self.host = ('127.0.0.1', 8000)
         self.con_timer = 0
         self.server_data = proto.Player()
@@ -99,7 +100,7 @@ def correct_client(update_physics, s_move, moves, head, tail):
     """update_physics is a function which updates physics and has dt, state
     and input as an argument. state is the state sent from server as in
     player.state.state"""
-    threshold = 1
+    threshold = 5
 
     while s_move.time > moves[head[0]].time and head[0] != tail:
         moves.advance(head)
@@ -119,5 +120,4 @@ def correct_client(update_physics, s_move, moves, head, tail):
                 c_time = moves[index[0]].time
                 c_input = moves[index[0]].input
                 moves[index[0]].state = c_state
-
                 moves.advance(index)
