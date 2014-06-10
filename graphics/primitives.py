@@ -1,6 +1,6 @@
 from pyglet import graphics
 from pyglet import gl
-from pyglet.window import MouseCursor
+from pyglet import window
 from collision.rectangle import Rectangle
 
 
@@ -31,7 +31,7 @@ class Rect(Rectangle):
         self.ver_list.colors = list(color) * 4
 
 
-class CrossHair(MouseCursor):
+class CrossHair(window.MouseCursor):
     """docstring for CrossHair"""
     def __init__(self, pos=[0, 0], size=10):
         super(CrossHair, self).__init__()
@@ -59,7 +59,7 @@ class CrossHair(MouseCursor):
         self.cross.draw(gl.GL_LINES)
 
 
-class Cross(MouseCursor):
+class Cross(window.MouseCursor):
     """docstring for Cross"""
     def __init__(self, pos=[0, 0], size=8):
         super(Cross, self).__init__()
