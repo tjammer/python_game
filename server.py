@@ -10,9 +10,11 @@ main = serverclass.GameServer()
 def update(t):
     time_ = time()
     dt = time_ - t[0]
+    print dt
     main.update(dt)
-    t[0] += time_
+    t[0] = time_
 
 lc = LoopingCall(update, t)
+lc.start(1 / 60.)
 reactor.listenUDP(8000, main)
 reactor.run()
