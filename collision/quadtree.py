@@ -35,16 +35,16 @@ class QuadTree(object):
 
         self.nodes[0] = QuadTree(self.level+1,
                                  self.Rect(x + sub_width, y,
-                                           sub_width, sub_height))
+                                           sub_width, sub_height), self.server)
         self.nodes[1] = QuadTree(self.level+1,
                                  self.Rect(x, y,
-                                           sub_width, sub_height))
+                                           sub_width, sub_height), self.server)
         self.nodes[2] = QuadTree(self.level+1,
                                  self.Rect(x, y + sub_height,
-                                           sub_width, sub_height))
+                                           sub_width, sub_height), self.server)
         self.nodes[3] = QuadTree(self.level+1,
                                  self.Rect(x + sub_width, y + sub_height,
-                                           sub_width, sub_height))
+                                           sub_width, sub_height), self.server)
 
     def get_index(self, rect):
         """the assumption is that no object is that no object is bigger
