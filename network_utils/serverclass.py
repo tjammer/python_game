@@ -20,6 +20,7 @@ class GameServer(DatagramProtocol):
             pl_id = self.get_id()
             self.init_player(data, address, pl_id)
         if data.type == proto.update and data.id == self.find_id(address):
+            self.timers[data.id] = 0
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
@@ -29,7 +30,6 @@ class GameServer(DatagramProtocol):
                 self.collide(data.id)
                 self.players[data.id].time = data.time
                 self.player_to_pack(data.id)
-                self.timers[data.id] = 0
 
     def update(self, dt):
         keys = []
