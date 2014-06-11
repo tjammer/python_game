@@ -42,7 +42,7 @@ class Movement(object):
         if self.curr_sign != 0 and self.curr_sign != sign:
             v *= self.turn_multplier
         self.vel[0] = vel[0] + v * sign * dt
-        self.vel[1] = vel[1] + v * math.tan(self.angle) * sign * dt
+        #self.vel[1] = vel[1] + v * math.tan(self.angle) * sign * dt
         if abs(vel[0]) > self.max_vel:
             self.vel[0] = self.max_vel * self.curr_sign
         #check jump

@@ -64,7 +64,7 @@ class player(Events):
         self.Move.resolve_coll(self.state.pos, self.state.vel)
         if axis[1] > 0 and ovrlap < 0:
             self.Move.conds['on_ground'] = True
-            self.Move.angle = angle
+            #self.Move.angle = angle
 
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
