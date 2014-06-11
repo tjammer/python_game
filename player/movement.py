@@ -24,8 +24,7 @@ class Movement(object):
         return self.vel, self.pos
 
     def step(self, dt, pos, vel):
-        if not self.conds['on_ground']:
-            self.vel[1] = vel[1] - self.gravity * dt
+        self.vel[1] = vel[1] - self.gravity * dt
         for i, j in enumerate(self.pos):
             self.pos[i] = pos[i] + self.vel[i] * dt
 
