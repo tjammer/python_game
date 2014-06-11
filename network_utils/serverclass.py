@@ -12,6 +12,7 @@ class GameServer(DatagramProtocol):
         self.players_pack = {}
         self.timers = {}
         self.map = Map('testmap', server=True)
+        self.mxdt = .03
 
     def datagramReceived(self, datagram, address):
         data = proto.input()
@@ -24,7 +25,8 @@ class GameServer(DatagramProtocol):
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
-                dt = dt / 10000.
+                dt = (dt / 10000.)
+                dt = dt if dt < self.mxdt else self.mxdt
                 # update movement
                 self.players[data.id].update(dt)
                 self.collide(data.id)
