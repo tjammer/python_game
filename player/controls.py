@@ -18,11 +18,17 @@ class InputHandler(object):
         self.listeners = {}
         # such keys as escape, ^
         self.controls = {}
+        self.width = window.width
+        self.height = window.height
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
             self.mousepos[0] += dx
             self.mousepos[1] += dy
+            self.mousepos[0] = 0 if self.mousepos[0] < 0 else self.width if (
+                self.mousepos[0] > self.width) else self.mousepos[0]
+            self.mousepos[1] = 0 if self.mousepos[1] < 0 else self.height if (
+                self.mousepos[1] > self.height) else self.mousepos[1]
             self.send_message('changed_mouse', self.mousepos)
 
         @self.window.event
@@ -44,6 +50,11 @@ class InputHandler(object):
         def on_key_press(symbol, modifiers):
             if symbol == key.ESCAPE:
                 return EVENT_HANDLED
+
+        @self.window.event
+        def on_resize(width, height):
+            self.width = width
+            self.height = height
 
     def process_keys(self, dt):
        # register pressed keys for movement
