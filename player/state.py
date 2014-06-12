@@ -45,7 +45,7 @@ class vec2(object):
         if isinstance(num, float) or isinstance(num, int):
             return vec2(self.x * num, self.y * num)
         elif isinstance(num, vec2):
-            return vec2(self.x + num.x, self.y + num.y)
+            return vec2(self.x * num.x, self.y * num.y)
 
     def mag(self):
         """magnitude of the vector"""
