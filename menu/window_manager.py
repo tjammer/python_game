@@ -2,7 +2,7 @@ from screens import GameScreen, MainMenu
 from player.controls import InputHandler
 from graphics.primitives import CrossHair
 from menu_events import Events
-from network_utils import  protocol_pb2 as proto
+from network_utils import protocol_pb2 as proto
 
 
 class WindowManager(Events):
@@ -20,10 +20,16 @@ class WindowManager(Events):
         self.current_screen = MainMenu()
         self.register_screen()
 
+        """@self.window.event
+        def on_resize(width, height):
+            if isinstance(self.current_screen, GameScreen):
+                self.current_screen.Camera.on_resize(width, height)
+            self.InputHandler.on_resize(width, height)"""
+
     def update(self, dt):
         self.InputHandler.process_keys(dt)
-        if self.stack[0] != self.current_screen and isinstance(self.stack[0],
-                                                               GameScreen):
+        if (self.stack[0] != self.current_screen and
+                isinstance(self.stack[0], GameScreen)):
             self.stack[0].send_to_client(dt)
         self.current_screen.update(dt)
 
@@ -99,6 +105,8 @@ class WindowManager(Events):
             self.current_screen.controls = self.InputHandler.controls
             # sends player input to lient class
             self.current_screen.register(self.receive_events, 'input')
+            self.current_screen.Camera.register(self.InputHandler.receive_aim,
+                                                'mousepos')
 
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)

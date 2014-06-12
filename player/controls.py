@@ -51,11 +51,6 @@ class InputHandler(object):
             if symbol == key.ESCAPE:
                 return EVENT_HANDLED
 
-        @self.window.event
-        def on_resize(width, height):
-            self.width = width
-            self.height = height
-
     def process_keys(self, dt):
        # register pressed keys for movement
         self.directns.up = self.keys[key.SPACE]
@@ -65,6 +60,10 @@ class InputHandler(object):
         self.controls['f10'] = self.keys[key.F10]
 
         self.send_message('all_input', self.keys)
+
+    def on_resize(self, width, height):
+        self.width = width
+        self.height = height
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
@@ -80,3 +79,6 @@ class InputHandler(object):
     def unregister(self, listener):
         print '%s deleted' % listener
         del self.listeners[listener]
+
+    def receive_aim(self, event, msg):
+        pass
