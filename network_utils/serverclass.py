@@ -48,7 +48,6 @@ class GameServer(DatagramProtocol):
         for key in keys:
             print ' '.join((str(datetime.now()),
                            self.players[key].name, 'timed out'))
-            #del self.players[key], self.players_pack[key], self.timers[key]
             self.disc_player(key)
         self.send_all()
 
@@ -108,7 +107,6 @@ class GameServer(DatagramProtocol):
         self.players[pl_id] = player(server=True)
         self.players[pl_id].address = address
         self.players[pl_id].name = name
-        #print ' '.join((name, 'joined the server.', str(address)))
         print ' '.join((str(datetime.now()),
                         self.players[pl_id].name,
                         'joined the server', str(address)))
@@ -127,7 +125,6 @@ class GameServer(DatagramProtocol):
         self.players_pack[pl_id].type = proto.newplayer
         for idx, p in self.players.iteritems():
             if idx != pl_id:
-                print 'why even'
                 other = self.players_pack[idx]
                 other.type = proto.newplayer
                 self.transport.write(other.SerializeToString(),
