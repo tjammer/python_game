@@ -74,9 +74,7 @@ class GameServer(DatagramProtocol):
         self.players_pack[idx].type = proto.update
 
     def get_input(self, data):
-        self.players[data.id].input.up = data.up
-        self.players[data.id].input.right = data.right
-        self.players[data.id].input.left = data.left
+        self.players[data.id].input = data
 
     def collide(self, idx):
         for keys in self.players:

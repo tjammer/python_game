@@ -29,4 +29,6 @@ message input {
     optional bool left = 3;
     optional bool up = 4;
     optional string name = 6;
+    optional float mx = 8;
+    optional float my = 9;
 }

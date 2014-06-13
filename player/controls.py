@@ -81,4 +81,4 @@ class InputHandler(object):
         del self.listeners[listener]
 
     def receive_aim(self, event, msg):
-        pass
+        self.directns.mx, self.directns.my = msg[0], msg[1]
