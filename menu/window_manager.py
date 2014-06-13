@@ -54,6 +54,7 @@ class WindowManager(Events):
             self.stack = []
             self.current_screen = MainMenu()
             self.register_screen()
+            self.disconnect()
 
         elif event == 'menu_transition_+':
             if isinstance(self.current_screen, GameScreen):

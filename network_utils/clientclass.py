@@ -24,6 +24,14 @@ class Client(DatagramProtocol):
         self.input.time = 0
         self.transport.write(self.input.SerializeToString(), self.host)
 
+    def disconnect(self):
+        disc = proto.input()
+        disc.type = proto.disconnect
+        disc.id = self.id
+        disc.time = 0
+        self.transport.write(disc.SerializeToString(), self.host)
+        self.__init__()
+
     def get_input(self, event, msg):
         #self.input, dt = msg
         self.input, self.time = msg
@@ -53,6 +61,9 @@ class Client(DatagramProtocol):
             time = self.server_data.time
             self.send_message('serverdata',
                               (proto.newplayer, (ind, time, State)))
+        elif self.server_data.type == proto.disconnect and self.connected:
+            ind = self.server_data.id
+            self.send_message('serverdata', (proto.disconnect, ind))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

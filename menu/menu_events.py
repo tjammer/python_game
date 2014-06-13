@@ -80,10 +80,10 @@ class MenuClass(object):
 
     def send_message(self, event, msg=None):
         for listener, events in self.listeners.items():
-            try:
-                listener(event, msg)
-            except (Exception, ):
-                self.unregister(listener)
+            #try:
+            listener(event, msg)
+            #except (Exception, ):
+            #    self.unregister(listener)
 
     def unregister(self, listener):
         print '%s deleted' % listener

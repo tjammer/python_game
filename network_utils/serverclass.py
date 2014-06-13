@@ -2,6 +2,7 @@ from twisted.internet.protocol import DatagramProtocol
 import protocol_pb2 as proto
 from maps.map import Map
 from player.player import player
+from datetime import datetime
 
 
 class GameServer(DatagramProtocol):
@@ -20,7 +21,7 @@ class GameServer(DatagramProtocol):
         if data.type == proto.newplayer:
             pl_id = self.get_id()
             self.init_player(data, address, pl_id)
-        if data.type == proto.update and data.id == self.find_id(address):
+        elif data.type == proto.update and data.id == self.find_id(address):
             self.timers[data.id] = 0
             self.get_input(data)
             dt = data.time - self.players[data.id].time
@@ -32,6 +33,11 @@ class GameServer(DatagramProtocol):
                 self.collide(data.id)
                 self.players[data.id].time = data.time
                 self.player_to_pack(data.id)
+        elif (data.type == proto.disconnect and
+              data.id == self.find_id(address)):
+            print ' '.join((str(datetime.now()),
+                           self.players[data.id].name, 'disconnected'))
+            self.disc_player(data.id)
 
     def update(self, dt):
         keys = []
@@ -40,8 +46,10 @@ class GameServer(DatagramProtocol):
             if self.timers[key] > 10:
                 keys.append(key)
         for key in keys:
-            print self.players[key].name + 'deleted'
-            del self.players[key], self.players_pack[key], self.timers[key]
+            print ' '.join((str(datetime.now()),
+                           self.players[key].name, 'timed out'))
+            #del self.players[key], self.players_pack[key], self.timers[key]
+            self.disc_player(key)
         self.send_all()
 
     def send_all(self):
@@ -100,7 +108,10 @@ class GameServer(DatagramProtocol):
         self.players[pl_id] = player(server=True)
         self.players[pl_id].address = address
         self.players[pl_id].name = name
-        print ' '.join((name, 'joined the server.', str(address)))
+        #print ' '.join((name, 'joined the server.', str(address)))
+        print ' '.join((str(datetime.now()),
+                        self.players[pl_id].name,
+                        'joined the server', str(address)))
         self.players[pl_id].time = 0
         self.players[pl_id].spawn(100, 300)
         self.players_pack[pl_id] = proto.Player()
@@ -124,3 +135,11 @@ class GameServer(DatagramProtocol):
                 other.type = proto.update
                 self.transport.write(self.players_pack[pl_id].SerializeToString(), p.address)
         self.players_pack[pl_id].type = proto.update
+
+    def disc_player(self, id):
+        del self.players[id], self.players_pack[id], self.timers[id]
+        disc = proto.Player()
+        disc.type = proto.disconnect
+        disc.id = id
+        for idx, p in self.players.iteritems():
+            self.transport.write(disc.SerializeToString(), p.address)

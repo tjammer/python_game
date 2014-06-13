@@ -15,6 +15,7 @@ fps_limit = 120.
 #pyglet.clock.set_fps_limit(fps_limit)
 client = Client()
 WindowManager.connect = client.start_connection
+WindowManager.disconnect = client.disconnect
 WindowManager.register(client.get_input, 'input')
 client.register(WindowManager.receive_events, ('serverdata', 'on_connect'))
 

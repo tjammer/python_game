@@ -55,6 +55,9 @@ class GameScreen(Events):
             ind, time, s_state = data
             self.players[ind] = player.player()
             self.players[ind].state = s_state
+        elif typ == proto.disconnect:
+            ind = data
+            del self.players[ind]
 
     def update_physics(self, dt, state=False, input=False):
         self.Player.update(dt, state, input)
