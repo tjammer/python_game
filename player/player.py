@@ -6,10 +6,10 @@ from state import vec2, state
 from menu.menu_events import Events
 
 
-class player(Events):
+class Player(Events):
     """docstring for player"""
     def __init__(self, server=False):
-        super(player, self).__init__()
+        super(Player, self).__init__()
         self.state = state(vec2(50, 50), vec2(0, 0), 100)
         self.Move = Movement(*self.state.pos)
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.

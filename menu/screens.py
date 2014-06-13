@@ -16,11 +16,11 @@ class GameScreen(Events):
     def __init__(self, window):
         super(GameScreen, self).__init__()
         self.Camera = Camera(window)
-        self.Player = player.player()
+        self.player = player.Player()
         self.controls = {}
         self.controls_old = {}
         self.Map = Map('testmap')
-        self.Player.spawn(100, 100)
+        self.player.spawn(100, 100)
         self.time = 0
         self.Moves = moves(1024)
         self.index = [0]
@@ -31,7 +31,7 @@ class GameScreen(Events):
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
         self.update_physics(dt)
-        self.Camera.update(dt, self.Player.state)
+        self.Camera.update(dt, self.player.state)
         self.send_to_client(dt)
 
         if self.controls['esc'] and not self.controls_old['esc']:
@@ -45,7 +45,7 @@ class GameScreen(Events):
         if typ == proto.update:
             ind, time, s_state = data
             smove = move(time, None, s_state)
-            if ind == self.Player.id:
+            if ind == self.player.id:
                 correct_client(self.update_physics, smove, self.Moves,
                                self.head, self.index[0])
             else:
@@ -60,36 +60,36 @@ class GameScreen(Events):
             del self.players[ind]
 
     def update_physics(self, dt, state=False, input=False):
-        self.Player.update(dt, state, input)
+        self.player.update(dt, state, input)
         # for rect in self.Map.rects:
-        for rect in self.Map.quad_tree.retrieve([], self.Player.Rect):
-            coll = self.Player.Rect.collides(rect)
+        for rect in self.Map.quad_tree.retrieve([], self.player.Rect):
+            coll = self.player.Rect.collides(rect)
             if coll:
                 ovr, axis = coll
-                self.Player.resolve_collision(ovr, axis, rect.angle)
-        return self.Player.state
+                self.player.resolve_collision(ovr, axis, rect.angle)
+        return self.player.state
 
     def send_to_client(self, dt):
         self.time += int(dt * 10000)
-        c_move = move(self.time, self.Player.input, self.Player.state)
+        c_move = move(self.time, self.player.input, self.player.state)
         try:
             self.Moves[self.index[0]] = c_move
         except IndexError:
             self.Moves.append(c_move)
         self.Moves.advance(self.index)
-        self.send_message('input', (self.Player.input, self.time))
+        self.send_message('input', (self.player.input, self.time))
 
     def draw(self):
         self.Camera.set_camera()
         for plr in self.players.itervalues():
             plr.draw()
-        self.Player.draw()
+        self.player.draw()
         self.Map.draw()
         self.Camera.set_static()
 
     def on_connect(self, msg):
-        self.Player.id = msg
-        print 'connected with id: ' + str(self.Player.id)
+        self.player.id = msg
+        print 'connected with id: ' + str(self.player.id)
 
 
 class MainMenu(MenuClass):

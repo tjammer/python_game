@@ -1,7 +1,7 @@
 from twisted.internet.protocol import DatagramProtocol
 import protocol_pb2 as proto
 from maps.map import Map
-from player.player import player
+from player.player import Player
 from datetime import datetime
 
 
@@ -104,7 +104,7 @@ class GameServer(DatagramProtocol):
         while name in [p.name for p in self.players.itervalues()]:
             name = data.name + '_' + str(i)
             i += 1
-        self.players[pl_id] = player(server=True)
+        self.players[pl_id] = Player(server=True)
         self.players[pl_id].address = address
         self.players[pl_id].name = name
         print ' '.join((str(datetime.now()),

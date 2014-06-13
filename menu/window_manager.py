@@ -59,7 +59,7 @@ class WindowManager(Events):
         elif event == 'menu_transition_+':
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.mousepos)
-                self.current_screen.Player.input = proto.input()
+                self.current_screen.player.input = proto.input()
             self.current_screen = msg()
             self.register_screen()
 
@@ -102,7 +102,7 @@ class WindowManager(Events):
             self.InputHandler.send_message('changed_mouse',
                                            self.InputHandler.mousepos)
             # pass by ref bullshit
-            self.current_screen.Player.input = self.InputHandler.directns
+            self.current_screen.player.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
             # sends player input to lient class
             self.current_screen.register(self.receive_events, 'input')
