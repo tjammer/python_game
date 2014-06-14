@@ -1,5 +1,6 @@
 import math
 import vector
+from player.state import vec2
 
 pi = math.acos(0) * 2
 
@@ -20,12 +21,14 @@ class Rectangle(object):
 
         self.axis1x, self.axis1y = self.rotate(1, 0)
         self.axis2x, self.axis2y = self.rotate(0, 1)
+        self.center = vec2(x + width / 2, y + height / 2)
 
     def update(self, x, y):
         self.x1, self.y1 = x, y
         self.x2, self.y2 = self.rotated_coord(0, self.height)
         self.x3, self.y3 = self.rotated_coord(self.width, self.height)
         self.x4, self.y4 = self.rotated_coord(self.width, 0)
+        self.center = vec2(x + self.width / 2, y + self.height / 2)
 
     def collides(self, rect):
         return vector.collides(self, rect)
