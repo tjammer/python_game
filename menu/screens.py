@@ -71,7 +71,7 @@ class GameScreen(Events):
 
     def send_to_client(self, dt):
         self.time += int(dt * 10000)
-        c_move = move(self.time, self.player.input, self.player.state)
+        c_move = move(self.time, self.player.input, self.player.state.copy())
         try:
             self.Moves[self.index[0]] = c_move
         except IndexError:

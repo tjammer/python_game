@@ -57,3 +57,6 @@ class state(object):
     def __init__(self, pos, vel, hp=100):
         super(state, self).__init__()
         self.pos, self.vel, self.hp = pos, vel, hp
+
+    def copy(self):
+        return state(vec2(*self.pos), vec2(*self.vel), self.hp)
