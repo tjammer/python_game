@@ -25,12 +25,14 @@ class Client(DatagramProtocol):
         self.transport.write(self.input.SerializeToString(), self.host)
 
     def disconnect(self):
-        disc = proto.input()
-        disc.type = proto.disconnect
-        disc.id = self.id
-        disc.time = 0
-        self.transport.write(disc.SerializeToString(), self.host)
-        self.__init__()
+        if self.connected:
+            disc = proto.input()
+            disc.type = proto.disconnect
+            disc.id = self.id
+            disc.time = 0
+            self.transport.write(disc.SerializeToString(), self.host)
+        self.connected = False
+        self.id = None
 
     def get_input(self, event, msg):
         #self.input, dt = msg
@@ -70,10 +72,10 @@ class Client(DatagramProtocol):
 
     def send_message(self, event, msg=None):
         for listener, events in self.listeners.items():
-            try:
-                listener(event, msg)
-            except (Exception, ):
-                self.unregister(listener, msg)
+          #  try:
+            listener(event, msg)
+        #    except (Exception, ):
+         #       self.unregister(listener, msg)
 
     def unregister(self, listener, msg):
         print '%s deleted, %s' % (listener, msg)
