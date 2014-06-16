@@ -74,10 +74,10 @@ class InputHandler(object):
                 try:
                     listener(event, msg)
                 except (Exception, ):
-                    self.unregister(listener)
+                    self.unregister(listener, msg)
 
-    def unregister(self, listener):
-        print '%s deleted' % listener
+    def unregister(self, listener, msg):
+        print '%s deleted, %s' % (listener, msg)
         del self.listeners[listener]
 
     def receive_aim(self, event, msg):

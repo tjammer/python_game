@@ -70,13 +70,13 @@ class Client(DatagramProtocol):
 
     def send_message(self, event, msg=None):
         for listener, events in self.listeners.items():
-#            try:
-            listener(event, msg)
-#            except (Exception, ):
-#                self.unregister(listener)
+            try:
+                listener(event, msg)
+            except (Exception, ):
+                self.unregister(listener, msg)
 
-    def unregister(self, listener):
-        print '%s deleted' % listener
+    def unregister(self, listener, msg):
+        print '%s deleted, %s' % (listener, msg)
         del self.listeners[listener]
 
     def server_to_state(self, data):
