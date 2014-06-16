@@ -14,10 +14,10 @@ class Player(Events):
         self.move = Movement(*self.state.pos)
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         if not server:
-            self.rect = Rect
+            self.Rect = Rect
         else:
-            self.rect = Rectangle
-        self.Rect = self.rect(0, 0, 32, 72, (0, .8, 1.))
+            self.Rect = Rectangle
+        self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
         self.input = proto.input()
 
@@ -31,7 +31,7 @@ class Player(Events):
         self.state.vel, self.state.pos = self.move.update(dt,
                                                           state.pos, state.vel,
                                                           input)
-        self.Rect.update(*self.state.pos)
+        self.rect.update(*self.state.pos)
 
     def update_state(self):
         self.state.pos = self.pos
@@ -50,17 +50,17 @@ class Player(Events):
         elif len_diff > .1:
             self.state.pos += diff * easing
         self.state.vel = s_state.vel
-        self.Rect.update(*self.state.pos)
+        self.rect.update(*self.state.pos)
 
     def draw(self):
-        self.Rect.draw()
+        self.rect.draw()
 
     def resolve_collision(self, ovrlap, axis, angle):
-        self.state.pos[0] = self.Rect.x1 - ovrlap * axis[0]
-        self.state.pos[1] = self.Rect.y1 - ovrlap * axis[1]
+        self.state.pos[0] = self.rect.x1 - ovrlap * axis[0]
+        self.state.pos[1] = self.rect.y1 - ovrlap * axis[1]
         self.state.vel[0] *= axis[1] > 0
         self.state.vel[1] *= axis[0] > 0
-        self.Rect.update(*self.state.pos)
+        self.rect.update(*self.state.pos)
         self.move.resolve_coll(self.state.pos, self.state.vel)
         if axis[1] > 0 and ovrlap < 0:
             self.move.conds['on_ground'] = True

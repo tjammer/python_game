@@ -86,13 +86,13 @@ class GameServer(DatagramProtocol):
     def collide(self, idx):
         for keys in self.players:
             if keys != idx:
-                coll = self.players[idx].Rect.collides(self.players[keys].Rect)
+                coll = self.players[idx].rect.collides(self.players[keys].rect)
                 if coll:
                     ovr, axis = coll
                     self.players[idx].resolve_collision(ovr, axis, 0)
         #collide with players first to not get collided into wall
-        for rect in self.map.quad_tree.retrieve([], self.players[idx].Rect):
-            coll = self.players[idx].Rect.collides(rect)
+        for rect in self.map.quad_tree.retrieve([], self.players[idx].rect):
+            coll = self.players[idx].rect.collides(rect)
             if coll:
                 ovr, axis = coll
                 self.players[idx].resolve_collision(ovr, axis, rect.angle)

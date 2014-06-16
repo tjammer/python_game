@@ -62,8 +62,8 @@ class GameScreen(Events):
     def update_physics(self, dt, state=False, input=False):
         self.player.update(dt, state, input)
         # for rect in self.Map.rects:
-        for rect in self.Map.quad_tree.retrieve([], self.player.Rect):
-            coll = self.player.Rect.collides(rect)
+        for rect in self.Map.quad_tree.retrieve([], self.player.rect):
+            coll = self.player.rect.collides(rect)
             if coll:
                 ovr, axis = coll
                 self.player.resolve_collision(ovr, axis, rect.angle)
