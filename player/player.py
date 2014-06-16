@@ -11,7 +11,7 @@ class Player(Events):
     def __init__(self, server=False):
         super(Player, self).__init__()
         self.state = state(vec2(50, 50), vec2(0, 0), 100)
-        self.Move = Movement(*self.state.pos)
+        self.move = Movement(*self.state.pos)
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         if not server:
             self.rect = Rect
@@ -28,7 +28,7 @@ class Player(Events):
             state = self.state
         if not input:
             input = self.input
-        self.state.vel, self.state.pos = self.Move.update(dt,
+        self.state.vel, self.state.pos = self.move.update(dt,
                                                           state.pos, state.vel,
                                                           input)
         self.Rect.update(*self.state.pos)
@@ -61,10 +61,10 @@ class Player(Events):
         self.state.vel[0] *= axis[1] > 0
         self.state.vel[1] *= axis[0] > 0
         self.Rect.update(*self.state.pos)
-        self.Move.resolve_coll(self.state.pos, self.state.vel)
+        self.move.resolve_coll(self.state.pos, self.state.vel)
         if axis[1] > 0 and ovrlap < 0:
-            self.Move.conds['on_ground'] = True
-            #self.Move.angle = angle
+            self.move.conds['on_ground'] = True
+            #self.move.angle = angle
 
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
