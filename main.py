@@ -8,20 +8,20 @@ from network_utils.clientclass import Client
 window = pyglet.window.Window(1280, 720, vsync=True)
 #window.set_mouse_visible(True)
 window.set_exclusive_mouse(True)
-WindowManager = WindowManager(window)
+window_manager = WindowManager(window)
 # load and init different modules
 fps = pyglet.clock.ClockDisplay()
 fps_limit = 120.
 #pyglet.clock.set_fps_limit(fps_limit)
 client = Client()
-WindowManager.connect = client.start_connection
-WindowManager.disconnect = client.disconnect
-WindowManager.register(client.get_input, 'input')
-client.register(WindowManager.receive_events, ('serverdata', 'on_connect'))
+window_manager.connect = client.start_connection
+window_manager.disconnect = client.disconnect
+window_manager.register(client.get_input, 'input')
+client.register(window_manager.receive_events, ('serverdata', 'on_connect'))
 
 
 def update(dt):
-    WindowManager.update(dt)
+    window_manager.update(dt)
 pyglet.clock.schedule(update)
 
 
@@ -31,7 +31,7 @@ def on_draw():
     window.clear()
     pyglet.gl.glClearColor(0, .0, 0, 1)
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
-    WindowManager.draw()
+    window_manager.draw()
     fps.draw()
 
 reactor.listenUDP(8001, client)
