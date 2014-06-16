@@ -53,7 +53,7 @@ class GameScreen(Events):
         elif typ == proto.newplayer:
             print 'new player'
             ind, time, s_state = data
-            self.players[ind] = player.player()
+            self.players[ind] = player.Player()
             self.players[ind].state = s_state
         elif typ == proto.disconnect:
             ind = data
