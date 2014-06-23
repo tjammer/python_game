@@ -8,11 +8,11 @@ class Movement(object):
         super(Movement, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
-        self.gravity = 4000.
+        self.gravity = 2500.
         self.normal_accel = 500.
         self.boost_accel = 20.
         self.turn_multplier = 4.
-        self.jump_vel = 1500.
+        self.jump_vel = 900.
         self.max_vel = 500
         self.angle = 0
         self.conds = {'can_jump': False, 'on_ground': False}
