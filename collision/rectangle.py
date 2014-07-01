@@ -31,7 +31,8 @@ class Rectangle(object):
         self.center = vec2(x + self.width / 2, y + self.height / 2)
 
     def collides(self, rect):
-        return vector.collides(self, rect)
+        if isinstance(rect, Rectangle):
+            return vector.collides(self, rect)
 
     def rotate(self, x, y):
         x_ = x * math.cos(self.angle) - y * math.sin(self.angle)
