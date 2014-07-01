@@ -15,7 +15,7 @@ class GameScreen(Events):
     """docstring for GameScreen"""
     def __init__(self, window):
         super(GameScreen, self).__init__()
-        self.Camera = Camera(window)
+        self.camera = Camera(window)
         self.player = player.Player()
         self.controls = {}
         self.controls_old = {}
@@ -31,7 +31,7 @@ class GameScreen(Events):
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
         self.update_physics(dt)
-        self.Camera.update(dt, self.player.state)
+        self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
 
         if self.controls['esc'] and not self.controls_old['esc']:
@@ -80,12 +80,12 @@ class GameScreen(Events):
         self.send_message('input', (self.player.input, self.time))
 
     def draw(self):
-        self.Camera.set_camera()
+        self.camera.set_camera()
         for plr in self.players.itervalues():
             plr.draw()
         self.player.draw()
         self.Map.draw()
-        self.Camera.set_static()
+        self.camera.set_static()
 
     def on_connect(self, msg):
         self.player.id = msg

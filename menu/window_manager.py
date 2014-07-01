@@ -23,7 +23,7 @@ class WindowManager(Events):
         """@self.window.event
         def on_resize(width, height):
             if isinstance(self.current_screen, GameScreen):
-                self.current_screen.Camera.on_resize(width, height)
+                self.current_screen.camera.on_resize(width, height)
             self.InputHandler.on_resize(width, height)"""
 
     def update(self, dt):
@@ -95,7 +95,7 @@ class WindowManager(Events):
             for i, j in enumerate(self.saved_mouse):
                 self.InputHandler.mousepos[i] = j
 
-            self.InputHandler.register(self.current_screen.Camera.
+            self.InputHandler.register(self.current_screen.camera.
                                        receive_m_pos, 'changed_mouse')
 
             # set mouse on same position as it was before opening menu
@@ -106,7 +106,7 @@ class WindowManager(Events):
             self.current_screen.controls = self.InputHandler.controls
             # sends player input to lient class
             self.current_screen.register(self.receive_events, 'input')
-            self.current_screen.Camera.register(self.InputHandler.receive_aim,
+            self.current_screen.camera.register(self.InputHandler.receive_aim,
                                                 'mousepos')
 
         self.current_screen.register(self.receive_events)
