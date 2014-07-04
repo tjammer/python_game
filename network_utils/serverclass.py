@@ -3,6 +3,7 @@ import protocol_pb2 as proto
 from maps.map import Map
 from player.player import Player
 from datetime import datetime
+from gameplay.weapons import ProjectileManager
 
 
 class GameServer(DatagramProtocol):
@@ -11,7 +12,7 @@ class GameServer(DatagramProtocol):
         # super(GameServer, self).__init__()
         self.players = {}
         self.players_pack = {}
-        self.timers = {}
+        self.projectiles = ProjectileManager()
         self.map = Map('testmap', server=True)
         self.mxdt = .03
 
@@ -22,7 +23,7 @@ class GameServer(DatagramProtocol):
             pl_id = self.get_id()
             self.init_player(data, address, pl_id)
         elif data.type == proto.update and data.id == self.find_id(address):
-            self.timers[data.id] = 0
+            self.players[data.id].timer = 0
             self.get_input(data)
             dt = data.time - self.players[data.id].time
             if dt > 0:
@@ -41,9 +42,9 @@ class GameServer(DatagramProtocol):
 
     def update(self, dt):
         keys = []
-        for key in self.timers:
-            self.timers[key] += dt
-            if self.timers[key] > 10:
+        for key, player in self.players.iteritems():
+            player.timer += dt
+            if player.timer > 10:
                 keys.append(key)
         for key in keys:
             print ' '.join((str(datetime.now()),
@@ -97,6 +98,9 @@ class GameServer(DatagramProtocol):
                 ovr, axis = coll
                 self.players[idx].resolve_collision(ovr, axis, rect.angle)
 
+    def collide_proj(self):
+        pass
+
     def init_player(self, data, address, pl_id):
         #check if name already exists
         name = data.name
@@ -115,7 +119,7 @@ class GameServer(DatagramProtocol):
         self.players_pack[pl_id] = proto.Player()
         self.players_pack[pl_id].id = pl_id
         self.player_to_pack(pl_id)
-        self.timers[pl_id] = 0
+        self.players[pl_id].timer = 0
         #send info do newly connected player
         own = proto.Player()
         own.type = proto.mapupdate
@@ -134,7 +138,7 @@ class GameServer(DatagramProtocol):
         self.players_pack[pl_id].type = proto.update
 
     def disc_player(self, id):
-        del self.players[id], self.players_pack[id], self.timers[id]
+        del self.players[id], self.players_pack[id]
         disc = proto.Player()
         disc.type = proto.disconnect
         disc.id = id
