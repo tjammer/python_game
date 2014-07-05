@@ -19,10 +19,10 @@ class GameScreen(Events):
         self.player = player.Player()
         self.controls = {}
         self.controls_old = {}
-        self.Map = Map('testmap')
+        self.map = Map('testmap')
         self.player.spawn(100, 100)
         self.time = 0
-        self.Moves = moves(1024)
+        self.moves = moves(1024)
         self.index = [0]
         self.head = [0]
         #other players
@@ -40,13 +40,23 @@ class GameScreen(Events):
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
 
+    def update_physics(self, dt, state=False, input=False):
+        self.player.update(dt, state, input)
+        # for rect in self.map.rects:
+        for rect in self.map.quad_tree.retrieve([], self.player.rect):
+            coll = self.player.rect.collides(rect)
+            if coll:
+                ovr, axis = coll
+                self.player.resolve_collision(ovr, axis, rect.angle)
+        return self.player.state
+
     def from_server(self, data):
         typ, data = data
         if typ == proto.update:
             ind, time, s_state = data
             smove = move(time, None, s_state)
             if ind == self.player.id:
-                correct_client(self.update_physics, smove, self.Moves,
+                correct_client(self.update_physics, smove, self.moves,
                                self.head, self.index[0])
             else:
                 self.players[ind].client_update(s_state)
@@ -59,24 +69,14 @@ class GameScreen(Events):
             ind = data
             del self.players[ind]
 
-    def update_physics(self, dt, state=False, input=False):
-        self.player.update(dt, state, input)
-        # for rect in self.Map.rects:
-        for rect in self.Map.quad_tree.retrieve([], self.player.rect):
-            coll = self.player.rect.collides(rect)
-            if coll:
-                ovr, axis = coll
-                self.player.resolve_collision(ovr, axis, rect.angle)
-        return self.player.state
-
     def send_to_client(self, dt):
         self.time += int(dt * 10000)
         c_move = move(self.time, self.player.input, self.player.state.copy())
         try:
-            self.Moves[self.index[0]] = c_move
+            self.moves[self.index[0]] = c_move
         except IndexError:
-            self.Moves.append(c_move)
-        self.Moves.advance(self.index)
+            self.moves.append(c_move)
+        self.moves.advance(self.index)
         self.send_message('input', (self.player.input, self.time))
 
     def draw(self):
@@ -84,7 +84,7 @@ class GameScreen(Events):
         for plr in self.players.itervalues():
             plr.draw()
         self.player.draw()
-        self.Map.draw()
+        self.map.draw()
         self.camera.set_static()
 
     def on_connect(self, msg):
