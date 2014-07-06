@@ -1,5 +1,6 @@
 from collision.rectangle import Rectangle
 from player.state import vec2
+from types import MethodType
 
 
 class Weapon(object):
@@ -61,10 +62,10 @@ class Melee(Weapon):
         temp = aim_pos - pl_center
         direc = temp / temp.mag()
         pos = pl_center + direc * 50
-        proj = Projectile(self.dmg, self.knockback, self.id, pos.x, pos.y,
-                          width=50, height=50, vel=self.vel,
-                          selfhit=self.selfhit, direc=direc,
-                          lifetime=self.proj_lifetime)
+        proj = MeleeProjectile(self.dmg, self.knockback, self.id, pos.x, pos.y,
+                               width=50, height=50, vel=self.vel,
+                               selfhit=self.selfhit, direc=direc,
+                               lifetime=self.proj_lifetime)
         self.dispatch_proj(proj)
 
 
@@ -90,13 +91,27 @@ class Projectile(Rectangle):
         self.selfhit = selfhit
         self.lifetime = lifetime
 
-    def on_hit(self):
+    def on_hit(self, ovr, axis, player=None):
         pass
 
     def updateproj(self, dt):
         pos = vec2(self.x1, self.y1) + self.vel * dt
         self.update(*pos)
         self.lifetime -= dt
+
+
+class MeleeProjectile(Projectile):
+    """docstring for MeleeProjectile"""
+    def __init__(self, dmg, knockback, id, x, y, width, height, vel, selfhit,
+                 direc, lifetime):
+        super(MeleeProjectile, self).__init__(dmg, knockback, id, x, y, width,
+                                              height, vel, selfhit, direc,
+                                              lifetime)
+
+    def on_hit(self, ovr, axis, player=None):
+        if player and player.id != self.id:
+            player.state.hp -= self.dmg
+            player.state.vel -= self.direc * self.knockback
 
 
 class ProjectileManager(object):
@@ -147,9 +162,7 @@ class ProjectileManager(object):
 
     def resolve_collision(self, ovr, axis, proj, player=None):
         self.todelete.append(proj)
-        if player and player.id != proj.id:
-            player.state.hp -= proj.dmg
-            player.state.vel -= proj.direc * proj.knockback
+        proj.on_hit(ovr, axis, player)
 
     def del_projectiles(self):
         for proj in reversed(self.todelete):
