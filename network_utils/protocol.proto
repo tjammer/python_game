@@ -1,15 +1,23 @@
 package mygame_protocol;
 
 enum MessageType {
-    update = 0;
-    newplayer = 1;
+    playerUpdate = 0;
+    newPlayer = 1;
     disconnect = 2;
     chat = 3;
-    mapupdate = 4;
+    mapUpdate = 4;
+    projectile = 5;
+    response = 6;
+    input = 7;
+}
+
+message Message {
+    required MessageType type = 1;
+    optional Player player = 2;
+    optional Input input = 3;
 }
 
 message Player {
-    required MessageType type = 1 [default = update];
     optional int32 id = 6;
     optional float posx = 2;
     optional float posy = 3;
@@ -21,8 +29,7 @@ message Player {
     optional int32 time = 10;
 }
 
-message input {
-    required MessageType type = 5;
+message Input {
     required int32 time = 1;
     optional int32 id = 7;
     optional bool right = 2;

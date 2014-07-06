@@ -17,28 +17,28 @@ class GameServer(DatagramProtocol):
         self.mxdt = .03
 
     def datagramReceived(self, datagram, address):
-        data = proto.input()
+        data = proto.Message()
         data.ParseFromString(datagram)
-        if data.type == proto.newplayer:
+        if data.type == proto.newPlayer:
             pl_id = self.get_id()
-            self.init_player(data, address, pl_id)
-        elif data.type == proto.update and data.id == self.find_id(address):
-            self.players[data.id].timer = 0
-            self.get_input(data)
-            dt = data.time - self.players[data.id].time
+            self.init_player(data.input, address, pl_id)
+        elif data.type == proto.playerUpdate and data.input.id == self.find_id(address):
+            self.players[data.input.id].timer = 0
+            self.get_input(data.input)
+            dt = data.input.time - self.players[data.input.id].time
             if dt > 0:
                 dt = (dt / 10000.)
                 dt = dt if dt < self.mxdt else self.mxdt
                 # update movement
-                self.players[data.id].update(dt)
-                self.collide(data.id)
-                self.players[data.id].time = data.time
-                self.player_to_pack(data.id)
+                self.players[data.input.id].update(dt)
+                self.collide(data.input.id)
+                self.players[data.input.id].time = data.input.time
+                self.player_to_pack(data.input.id)
         elif (data.type == proto.disconnect and
-              data.id == self.find_id(address)):
+              data.input.id == self.find_id(address)):
             print ' '.join((str(datetime.now()),
-                           self.players[data.id].name, 'disconnected'))
-            self.disc_player(data.id)
+                           self.players[data.input.id].name, 'disconnected'))
+            self.disc_player(data.input.id)
 
     def update(self, dt):
         keys = []
@@ -56,7 +56,10 @@ class GameServer(DatagramProtocol):
     def send_all(self):
         for idx, player_ in self.players.iteritems():
             for idx_, pack in self.players_pack.iteritems():
-                self.transport.write(pack.SerializeToString(), player_.address)
+                msg = proto.Message()
+                msg.type = proto.playerUpdate
+                msg.player.CopyFrom(pack)
+                self.transport.write(msg.SerializeToString(), player_.address)
 
     #find next available id
     def get_id(self):
@@ -79,8 +82,6 @@ class GameServer(DatagramProtocol):
         self.players_pack[idx].vely = self.players[idx].state.vel.y
         self.players_pack[idx].hp = self.players[idx].state.hp
         self.players_pack[idx].time = self.players[idx].time
-
-        self.players_pack[idx].type = proto.update
 
     def get_input(self, data):
         self.players[data.id].input = data
@@ -111,7 +112,7 @@ class GameServer(DatagramProtocol):
         self.players[pl_id].address = address
         self.players[pl_id].name = name
         print ' '.join((str(datetime.now()),
-                        self.players[pl_id].name,
+                        self.players[pl_id].name, str(pl_id),
                         'joined the server', str(address)))
         self.players[pl_id].time = 0
         self.players[pl_id].spawn(100, 300)
@@ -120,26 +121,34 @@ class GameServer(DatagramProtocol):
         self.player_to_pack(pl_id)
         self.players[pl_id].timer = 0
         #send info do newly connected player
-        own = proto.Player()
-        own.type = proto.mapupdate
-        own.id = pl_id
+        own = proto.Message()
+        player = proto.Player()
+        own.type = proto.mapUpdate
+        player.id = pl_id
+        own.player.CopyFrom(player)
         self.transport.write(own.SerializeToString(), address)
         #send other players to player
-        self.players_pack[pl_id].type = proto.newplayer
         for idx, p in self.players.iteritems():
             if idx != pl_id:
-                other = self.players_pack[idx]
-                other.type = proto.newplayer
+                other = proto.Message()
+                player = self.players_pack[idx]
+                other.type = proto.newPlayer
+                other.player.CopyFrom(player)
                 self.transport.write(other.SerializeToString(),
                                      self.players[pl_id].address)
-                other.type = proto.update
-                self.transport.write(self.players_pack[pl_id].SerializeToString(), p.address)
-        self.players_pack[pl_id].type = proto.update
+                #other.type = proto.playerUpdate
+                new = proto.Message()
+                new.type = proto.newPlayer
+                player = self.players_pack[pl_id]
+                new.player.CopyFrom(player)
+                self.transport.write(new.SerializeToString(), p.address)
 
     def disc_player(self, id):
         del self.players[id], self.players_pack[id]
-        disc = proto.Player()
+        disc = proto.Message()
         disc.type = proto.disconnect
-        disc.id = id
+        player = proto.Player()
+        player.id = id
+        disc.player.CopyFrom(player)
         for idx, p in self.players.iteritems():
             self.transport.write(disc.SerializeToString(), p.address)

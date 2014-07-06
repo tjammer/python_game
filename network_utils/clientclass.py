@@ -7,30 +7,34 @@ class Client(DatagramProtocol):
     """docstring for Client"""
     def __init__(self):
         self.time = 0
-        self.input = proto.input()
         self.connected = False
-        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
-        #self.host = ('127.0.0.1', 8000)
+        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
+        self.host = ('127.0.0.1', 8000)
         self.con_timer = 0
-        self.server_data = proto.Player()
+        self.message = proto.Message()
+        self.input = proto.Input()
         self.id = None
 
         self.listeners = {}
 
     def start_connection(self):
         # self.transport.connect(*self.host)
-        self.input.type = proto.newplayer
-        self.input.name = 'asdf'
-        self.input.time = 0
-        self.transport.write(self.input.SerializeToString(), self.host)
+        self.message.Clear()
+        self.message.type = proto.newPlayer
+        self.message.input.Clear()
+        self.message.input.name = 'asdf'
+        self.message.input.time = 0
+        self.transport.write(self.message.SerializeToString(), self.host)
 
     def disconnect(self):
         if self.connected:
-            disc = proto.input()
-            disc.type = proto.disconnect
-            disc.id = self.id
-            disc.time = 0
-            self.transport.write(disc.SerializeToString(), self.host)
+            self.message.Clear()
+            self.input.Clear()
+            self.message.type = proto.disconnect
+            self.input.id = self.id
+            self.input.time = 0
+            self.message.input.CopyFrom(self.input)
+            self.transport.write(self.message.SerializeToString(), self.host)
         self.connected = False
         self.id = None
 
@@ -38,33 +42,33 @@ class Client(DatagramProtocol):
         #self.input, dt = msg
         self.input, self.time = msg
         if self.connected:
-            #self.time += int(dt * 10000)
+            self.message.Clear()
+            self.message.type = proto.playerUpdate
             self.input.time = self.time
-            #print self.input.time
-            self.input.type = proto.update
             self.input.id = self.id
-            self.transport.write(self.input.SerializeToString(), self.host)
+            self.message.input.CopyFrom(self.input)
+            self.transport.write(self.message.SerializeToString(), self.host)
 
     def datagramReceived(self, datagram, address):
-        self.server_data.ParseFromString(datagram)
-        if self.server_data.type == proto.mapupdate and not self.id:
+        self.message.ParseFromString(datagram)
+        if self.message.type == proto.mapUpdate and not self.id:
             self.connected = True
-            self.id = self.server_data.id
+            self.id = self.message.player.id
             self.send_message('on_connect', self.id)
-        elif self.server_data.type == proto.update and self.connected:
-            ind = self.server_data.id
-            State = self.server_to_state(self.server_data)
-            time = self.server_data.time
+        elif self.message.type == proto.playerUpdate and self.connected:
+            ind = self.message.player.id
+            state = self.server_to_state(self.message.player)
+            time = self.message.player.time
             self.send_message('serverdata',
-                              (proto.update, (ind, time, State)))
-        elif self.server_data.type == proto.newplayer and self.connected:
-            ind = self.server_data.id
-            State = self.server_to_state(self.server_data)
-            time = self.server_data.time
+                              (proto.playerUpdate, (ind, time, state)))
+        elif self.message.type == proto.newPlayer and self.connected:
+            ind = self.message.player.id
+            state = self.server_to_state(self.message.player)
+            time = self.message.player.time
             self.send_message('serverdata',
-                              (proto.newplayer, (ind, time, State)))
-        elif self.server_data.type == proto.disconnect and self.connected:
-            ind = self.server_data.id
+                              (proto.newPlayer, (ind, time, state)))
+        elif self.message.type == proto.disconnect and self.connected:
+            ind = self.message.player.id
             self.send_message('serverdata', (proto.disconnect, ind))
 
     def register(self, listener, events=None):

@@ -14,7 +14,7 @@ class InputHandler(object):
         self.mouse_offset = 1337
         self.window = window
         self.mousepos = [1280 / 2, 720 / 2]
-        self.directns = proto.input()
+        self.directns = proto.Input()
         self.listeners = {}
         # such keys as escape, ^
         self.controls = {}

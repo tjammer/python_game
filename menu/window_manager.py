@@ -59,7 +59,7 @@ class WindowManager(Events):
         elif event == 'menu_transition_+':
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.mousepos)
-                self.current_screen.player.input = proto.input()
+                self.current_screen.player.input = proto.Input()
             self.current_screen = msg()
             self.register_screen()
 

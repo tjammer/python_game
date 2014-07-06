@@ -52,7 +52,7 @@ class GameScreen(Events):
 
     def from_server(self, data):
         typ, data = data
-        if typ == proto.update:
+        if typ == proto.playerUpdate:
             ind, time, s_state = data
             smove = move(time, None, s_state)
             if ind == self.player.id:
@@ -60,7 +60,7 @@ class GameScreen(Events):
                                self.head, self.index[0])
             else:
                 self.players[ind].client_update(s_state)
-        elif typ == proto.newplayer:
+        elif typ == proto.newPlayer:
             print 'new player'
             ind, time, s_state = data
             self.players[ind] = player.Player()
@@ -70,7 +70,7 @@ class GameScreen(Events):
             del self.players[ind]
 
     def send_to_client(self, dt):
-        temp_input = proto.input()
+        temp_input = proto.Input()
         self.time += int(dt * 10000)
         c_move = move(self.time, temp_input.CopyFrom(self.player.input),
                       self.player.state.copy())

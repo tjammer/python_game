@@ -24,7 +24,7 @@ class Player(Events):
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
         self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
-        self.input = proto.input()
+        self.input = proto.Input()
         self.listeners = {}
 
     def update(self, dt, state=False, input=False):
