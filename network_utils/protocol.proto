@@ -31,4 +31,5 @@ message input {
     optional string name = 6;
     optional float mx = 8;
     optional float my = 9;
+    optional float att = 10;
 }
