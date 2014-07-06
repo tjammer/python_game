@@ -25,7 +25,6 @@ class Player(Events):
         self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
         self.input = proto.input()
-
         self.listeners = {}
 
     def update(self, dt, state=False, input=False):
@@ -41,10 +40,6 @@ class Player(Events):
             self.weapons.fire(self.rect.center,
                               vec2(self.input.mx, self.input.my))
         self.weapons.update(dt)
-
-    def update_state(self):
-        self.state.pos = self.pos
-        self.state.vel = self.vel
 
     def client_update(self, s_state):
         easing = .8

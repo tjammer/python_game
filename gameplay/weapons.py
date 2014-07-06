@@ -1,6 +1,5 @@
 from collision.rectangle import Rectangle
 from player.state import vec2
-from types import MethodType
 
 
 class Weapon(object):
