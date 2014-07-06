@@ -1,4 +1,4 @@
-from screens import GameScreen, MainMenu
+from screens import GameScreen, MainMenu, LoadScreen
 from player.controls import InputHandler
 from graphics.primitives import CrossHair
 from menu_events import Events
@@ -79,10 +79,13 @@ class WindowManager(Events):
 
         elif event == 'on_connect':
             self.stack[0].on_connect(msg)
+            self.current_screen.on_connect()
 
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.register_screen()
+        #get to load screen
+        self.receive_events('menu_transition_+', LoadScreen)
         self.connect()
 
     def register_screen(self):

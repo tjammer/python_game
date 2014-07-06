@@ -20,7 +20,7 @@ class GameScreen(Events):
         self.controls = {}
         self.controls_old = {}
         self.map = Map('testmap')
-        self.player.spawn(100, 100)
+        #self.player.spawn(100, 100)
         self.time = 0
         self.moves = moves(1024)
         self.index = [0]
@@ -88,7 +88,7 @@ class GameScreen(Events):
         self.camera.set_static()
 
     def on_connect(self, msg):
-        self.player.id = msg
+        self.player.get_id(msg)
         print 'connected with id: ' + str(self.player.id)
 
 
@@ -154,3 +154,22 @@ class GameMenu(MenuClass):
                 self.send_message('menu_transition_-')
         except:
             pass
+
+
+class LoadScreen(MenuClass):
+    """docstring for LoadScreen"""
+    def __init__(self):
+        super(LoadScreen, self).__init__()
+        self.label = Label('connecting to server', font_name='Helvetica',
+                           font_size=36, bold=False, x=200, y=550,
+                           anchor_x='left', anchor_y='baseline')
+
+    def draw(self):
+        self.label.draw()
+
+    def on_connect(self):
+        self.send_message('menu_transition_-')
+
+    def add_update(self):
+        if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+            self.send_message('to_main')
