@@ -12,8 +12,8 @@ class GameServer(DatagramProtocol):
         # super(GameServer, self).__init__()
         self.players = {}
         self.players_pack = {}
-        self.projectiles = ProjectileManager()
         self.map = Map('testmap', server=True)
+        self.projectiles = ProjectileManager(self.players, self.map)
         self.mxdt = .03
 
     def datagramReceived(self, datagram, address):
@@ -50,6 +50,7 @@ class GameServer(DatagramProtocol):
             print ' '.join((str(datetime.now()),
                            self.players[key].name, 'timed out'))
             self.disc_player(key)
+        self.projectiles.update(dt)
         self.send_all()
 
     def send_all(self):
@@ -98,9 +99,6 @@ class GameServer(DatagramProtocol):
                 ovr, axis = coll
                 self.players[idx].resolve_collision(ovr, axis, rect.angle)
 
-    def collide_proj(self):
-        pass
-
     def init_player(self, data, address, pl_id):
         #check if name already exists
         name = data.name
@@ -108,7 +106,8 @@ class GameServer(DatagramProtocol):
         while name in [p.name for p in self.players.itervalues()]:
             name = data.name + '_' + str(i)
             i += 1
-        self.players[pl_id] = Player(server=True)
+        self.players[pl_id] = Player(True, self.projectiles.add_projectile,
+                                     pl_id)
         self.players[pl_id].address = address
         self.players[pl_id].name = name
         print ' '.join((str(datetime.now()),

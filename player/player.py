@@ -4,19 +4,24 @@ from collision.rectangle import Rectangle
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
 from menu.menu_events import Events
+from gameplay.weapons import WeaponsManager
 
 
 class Player(Events):
     """docstring for player"""
-    def __init__(self, server=False):
+    def __init__(self, server=False, dispatch_proj=None, id=False):
         super(Player, self).__init__()
         self.state = state(vec2(50, 50), vec2(0, 0), 100)
         self.move = Movement(*self.state.pos)
+        self.dispatch_proj = dispatch_proj
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         if not server:
             self.Rect = Rect
         else:
             self.Rect = Rectangle
+        if id:
+            self.id = id
+            self.weapons = WeaponsManager(self.dispatch_proj, self.id)
         self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.))
         #input will be assigned by windowmanager class
         self.input = proto.input()
@@ -32,6 +37,10 @@ class Player(Events):
                                                           state.pos, state.vel,
                                                           input)
         self.rect.update(*self.state.pos)
+        if self.input.att:
+            self.weapons.fire(self.rect.center,
+                              vec2(self.input.mx, self.input.my))
+        self.weapons.update(dt)
 
     def update_state(self):
         self.state.pos = self.pos
@@ -69,3 +78,7 @@ class Player(Events):
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)
+
+    def get_id(self, id):
+        self.id = id
+        self.weapons = WeaponsManager(self.dispatch_proj, self.id)
