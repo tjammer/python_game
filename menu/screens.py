@@ -70,8 +70,10 @@ class GameScreen(Events):
             del self.players[ind]
 
     def send_to_client(self, dt):
+        temp_input = proto.input()
         self.time += int(dt * 10000)
-        c_move = move(self.time, self.player.input, self.player.state.copy())
+        c_move = move(self.time, temp_input.CopyFrom(self.player.input),
+                      self.player.state.copy())
         try:
             self.moves[self.index[0]] = c_move
         except IndexError:
