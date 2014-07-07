@@ -39,12 +39,14 @@ class Movement(object):
             self.vel[0] = 0
             sign = 0
         self.curr_sign = self.sign_of(vel[0])
+        #accelerate only if below maxspeed
         if not abs(vel[0]) >= self.max_vel:
             v = self.normal_accel
         else:
             v = 0
         if self.curr_sign != 0 and self.curr_sign != sign:
             v *= self.turn_multplier
+        #clip speed if walking on ground
         avel = abs(vel.x)
         cond1 = avel < self.max_vel and avel + v * dt > self.max_vel
         cond2 = avel > self.max_vel and self.groundtime > 0.1
