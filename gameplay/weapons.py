@@ -110,7 +110,7 @@ class MeleeProjectile(Projectile):
     def on_hit(self, ovr, axis, player=None):
         if player and player.id != self.id:
             player.state.hp -= self.dmg
-            player.state.vel -= self.direc * self.knockback
+            player.state.vel += self.direc * self.knockback
 
 
 class ProjectileManager(object):
