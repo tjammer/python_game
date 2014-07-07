@@ -39,7 +39,7 @@ class Movement(object):
         else:
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
-        if not avel < self.max_vel:
+        if not avel > self.max_vel:
             v = self.normal_accel
         else:
             v = 0
