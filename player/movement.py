@@ -37,6 +37,7 @@ class Movement(object):
         elif input.left and not input.right:
             sign = -1
         else:
+            self.vel.x = 0
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
         if not avel > self.max_vel:
