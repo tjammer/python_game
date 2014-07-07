@@ -23,10 +23,11 @@ message Player {
     optional float posy = 3;
     optional float velx = 4;
     optional float vely = 5;
-    optional string msg = 7;
+    optional MState mState = 7;
     optional int32 hp = 8;
     optional int32 armor = 9;
     optional int32 time = 10;
+    optional string chat = 11;
 }
 
 message Input {
@@ -38,5 +39,16 @@ message Input {
     optional string name = 6;
     optional float mx = 8;
     optional float my = 9;
-    optional float att = 10;
+    optional bool att = 10;
+}
+
+message MState {
+    optional bool onGround = 1;
+    optional bool ascending = 2;
+    optional bool landing = 3;
+    optional bool canJump = 4;
+    optional bool descending = 5;
+    optional bool isFiring = 6;
+    optional bool onRightWall = 7;
+    optional bool onLeftWall = 8;
 }
