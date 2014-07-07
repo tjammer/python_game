@@ -31,7 +31,7 @@ class Movement(object):
             self.pos[i] = pos[i] + self.vel[i] * dt
 
     def calc_vel(self, dt, pos, vel, input, conds, state):
-        abs(vel.x) = avel
+        avel = abs(vel.x)
         if input.right and not input.left:
             sign = 1
         elif input.left and not input.right:
