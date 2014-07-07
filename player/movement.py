@@ -15,8 +15,6 @@ class Movement(object):
         self.jump_vel = 900.
         self.max_vel = 500
         self.angle = 0
-        self.conds = {'can_jump': False, 'on_ground': False, 'rel_jump': True}
-        self.groundtime = 0
 
     def update(self, dt, state, input):
         pos, vel, conds = state.pos, state.vel, state.conds
