@@ -1,4 +1,5 @@
 from math import sqrt
+from network_utils import protocol_pb2 as proto
 
 
 class vec2(object):
@@ -63,6 +64,28 @@ class state(object):
     def __init__(self, pos, vel, hp=100):
         super(state, self).__init__()
         self.pos, self.vel, self.hp = pos, vel, hp
+        self.conds = proto.MState()
+        self.conds.canJump = True
+
+    def set_cond(self, condname):
+        if condname == 'ascending':
+            self.conds.ascending = True
+            self.conds.onGround = False
+            self.conds.landing = False
+            self.conds.canJump = False
+        elif condname == 'canJump':
+            self.conds.canJump = True
+        elif condname == 'onGround':
+            if not self.conds.onGround:
+                if not self.conds.landing:
+                    self.conds.landing = True
+                    self.conds.descending = False
+                    self.conds.ascending = False
+                else:
+                    self.conds.onGround = True
+        elif condname == 'descending':
+            self.conds.ascending = False
+            self.conds.descending = True
 
     def copy(self):
         return state(vec2(*self.pos), vec2(*self.vel), self.hp)

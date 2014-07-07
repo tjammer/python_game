@@ -18,10 +18,11 @@ class Movement(object):
         self.conds = {'can_jump': False, 'on_ground': False, 'rel_jump': True}
         self.groundtime = 0
 
-    def update(self, dt, pos, vel, input):
-        self.calc_vel(dt, pos, vel, input)
+    def update(self, dt, state, input):
+        pos, vel, conds = state.pos, state.vel, state.conds
+        self.calc_vel(dt, pos, vel, input, conds, state)
         self.step(dt, pos, vel)
-        self.set_conds(dt)
+        #self.set_conds(dt)
         return self.vel, self.pos
 
     def step(self, dt, pos, vel):
@@ -29,7 +30,35 @@ class Movement(object):
         for i, j in enumerate(self.pos):
             self.pos[i] = pos[i] + self.vel[i] * dt
 
-    def calc_vel(self, dt, pos, vel, input):
+    def calc_vel(self, dt, pos, vel, input, conds, state):
+        abs(vel.x) = avel
+        if input.right and not input.left:
+            sign = 1
+        elif input.left and not input.right:
+            sign = -1
+        else:
+            sign = 0
+        self.curr_sign = self.sign_of(vel.x)
+        if not avel < self.max_vel:
+            v = self.normal_accel
+        else:
+            v = 0
+        if conds.onGround and self.curr_sign * sign > 0:
+            v *= self.turn_multplier
+        if avel + v * dt > self.max_vel or (conds.onGround
+                                            and avel > self.max_vel):
+            self.vel.x = self.max_vel * self.curr_sign
+        self.vel.x = vel.x + v * sign * dt
+
+        if (conds.landing or conds.onGround) and conds.canJump:
+            self.vel.y = self.jump_vel
+            state.set_cond('ascending')
+        if not input.up:
+            state.set_cond('canJump')
+            if self.vel.y > 0:
+                self.vel.y = 0
+
+    def calc_vel_(self, dt, pos, vel, input):
         #check left right
         if input.right and not input.left:
             sign = 1

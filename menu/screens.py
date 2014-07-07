@@ -173,5 +173,8 @@ class LoadScreen(MenuClass):
         self.send_message('menu_transition_-')
 
     def add_update(self):
-        if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
-            self.send_message('to_main')
+        try:
+            if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+                self.send_message('to_main')
+        except:
+            pass

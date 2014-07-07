@@ -32,9 +32,7 @@ class Player(Events):
             state = self.state
         if not input:
             input = self.input
-        self.state.vel, self.state.pos = self.move.update(dt,
-                                                          state.pos, state.vel,
-                                                          input)
+        self.state.vel, self.state.pos = self.move.update(dt, state, input)
         self.rect.update(*self.state.pos)
         if self.input.att:
             self.weapons.fire(self.rect.center,
@@ -67,7 +65,8 @@ class Player(Events):
         self.rect.update(*self.state.pos)
         self.move.resolve_coll(self.state.pos, self.state.vel)
         if axis[1] > 0 and ovrlap < 0:
-            self.move.conds['on_ground'] = True
+            #self.move.conds['on_ground'] = True
+            self.state.conds.set_cond('onGround')
             #self.move.angle = angle
 
     def spawn(self, x, y):
