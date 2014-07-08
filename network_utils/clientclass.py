@@ -37,6 +37,7 @@ class Client(DatagramProtocol):
             self.transport.write(self.message.SerializeToString(), self.host)
         self.connected = False
         self.id = None
+        self.time = 0
 
     def get_input(self, event, msg):
         #self.input, dt = msg
