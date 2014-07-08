@@ -82,6 +82,7 @@ class GameServer(DatagramProtocol):
         self.players_pack[idx].vely = self.players[idx].state.vel.y
         self.players_pack[idx].hp = self.players[idx].state.hp
         self.players_pack[idx].time = self.players[idx].time
+        self.players_pack[idx].mState = self.players.state.conds
 
     def get_input(self, data):
         self.players[data.id].input = data
