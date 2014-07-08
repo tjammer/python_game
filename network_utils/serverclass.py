@@ -110,6 +110,7 @@ class GameServer(DatagramProtocol):
             i += 1
         self.players[pl_id] = Player(True, self.projectiles.add_projectile,
                                      pl_id)
+        self.players[pl_id].timer = 0
         self.players[pl_id].address = address
         self.players[pl_id].name = name
         print ' '.join((str(datetime.now()),
@@ -120,7 +121,6 @@ class GameServer(DatagramProtocol):
         self.players_pack[pl_id] = proto.Player()
         self.players_pack[pl_id].id = pl_id
         self.player_to_pack(pl_id)
-        self.players[pl_id].timer = 0
         #send info do newly connected player
         own = proto.Message()
         player = proto.Player()
