@@ -267,6 +267,6 @@ class WeaponsManager(object):
             print 'no ammmo'
 
     def update(self, dt, state, input):
-        if state.input.att:
+        if input.att:
             self.fire(dt, state.pos, vec2(input.mx, input.my))
         self.current_w.update(dt)
