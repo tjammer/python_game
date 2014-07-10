@@ -260,11 +260,13 @@ class WeaponsManager(object):
         self.weapons = [Melee(dispatch_proj, id)]
         self.current_w = self.weapons[0]
 
-    def fire(self, pl_center, aim_pos):
+    def fire(self, pos, aim_pos):
         try:
-            self.current_w.fire(pl_center, aim_pos)
+            self.current_w.fire(pos, aim_pos)
         except NoAmmoError:
             print 'no ammmo'
 
-    def update(self, dt):
+    def update(self, dt, state):
+        if state.input.att:
+            self.fire(dt, state.pos, vec2(state.input.mx, state.input.my))
         self.current_w.update(dt)

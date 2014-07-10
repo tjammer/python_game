@@ -34,10 +34,7 @@ class Player(Events):
             input = self.input
         self.state.vel, self.state.pos = self.move.update(dt, state, input)
         self.rect.update(*self.state.pos)
-        if self.input.att:
-            self.weapons.fire(self.state.pos,
-                              vec2(self.input.mx, self.input.my))
-        self.weapons.update(dt)
+        self.weapons.update(dt, state)
 
     def client_update(self, s_state):
         easing = .8
