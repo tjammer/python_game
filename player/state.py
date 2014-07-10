@@ -99,7 +99,6 @@ class state(object):
             self.conds.onLeftWall = False
             self.conds.onGround = False
             self.conds.landing = False
-            self.conds.canJump = False
         elif condname == 'onRightWall':
             self.conds.onRightWall = True
             self.conds.ascending = False

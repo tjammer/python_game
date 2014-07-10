@@ -14,7 +14,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='protocol.proto',
   package='mygame_protocol',
-  serialized_pb='\n\x0eprotocol.proto\x12\x0fmygame_protocol\"\xb6\x01\n\x07Message\x12*\n\x04type\x18\x01 \x02(\x0e\x32\x1c.mygame_protocol.MessageType\x12\'\n\x06player\x18\x02 \x01(\x0b\x32\x17.mygame_protocol.Player\x12%\n\x05input\x18\x03 \x01(\x0b\x32\x16.mygame_protocol.Input\x12/\n\nprojectile\x18\x04 \x01(\x0b\x32\x1b.mygame_protocol.Projectile\"\xac\x01\n\x06Player\x12\n\n\x02id\x18\x06 \x01(\x05\x12\x0c\n\x04posx\x18\x02 \x01(\x02\x12\x0c\n\x04posy\x18\x03 \x01(\x02\x12\x0c\n\x04velx\x18\x04 \x01(\x02\x12\x0c\n\x04vely\x18\x05 \x01(\x02\x12\'\n\x06mState\x18\x07 \x01(\x0b\x32\x17.mygame_protocol.MState\x12\n\n\x02hp\x18\x08 \x01(\x05\x12\r\n\x05\x61rmor\x18\t \x01(\x05\x12\x0c\n\x04time\x18\n \x01(\x05\x12\x0c\n\x04\x63hat\x18\x0b \x01(\t\"}\n\x05Input\x12\x0c\n\x04time\x18\x01 \x02(\x05\x12\n\n\x02id\x18\x07 \x01(\x05\x12\r\n\x05right\x18\x02 \x01(\x08\x12\x0c\n\x04left\x18\x03 \x01(\x08\x12\n\n\x02up\x18\x04 \x01(\x08\x12\x0c\n\x04name\x18\x06 \x01(\t\x12\n\n\x02mx\x18\x08 \x01(\x02\x12\n\n\x02my\x18\t \x01(\x02\x12\x0b\n\x03\x61tt\x18\n \x01(\x08\"\x9e\x01\n\x06MState\x12\x10\n\x08onGround\x18\x01 \x01(\x08\x12\x11\n\tascending\x18\x02 \x01(\x08\x12\x0f\n\x07landing\x18\x03 \x01(\x08\x12\x0f\n\x07\x63\x61nJump\x18\x04 \x01(\x08\x12\x12\n\ndescending\x18\x05 \x01(\x08\x12\x10\n\x08isFiring\x18\x06 \x01(\x08\x12\x13\n\x0bonRightWall\x18\x07 \x01(\x08\x12\x12\n\nonLeftWall\x18\x08 \x01(\x08\"\xa7\x01\n\nProjectile\x12-\n\x04type\x18\x01 \x02(\x0e\x32\x1f.mygame_protocol.ProjectileType\x12\x10\n\x08playerId\x18\x02 \x01(\x05\x12\x0e\n\x06projId\x18\x03 \x01(\x05\x12\x0c\n\x04posx\x18\x04 \x01(\x02\x12\x0c\n\x04posy\x18\x05 \x01(\x02\x12\x0c\n\x04velx\x18\x06 \x01(\x02\x12\x0c\n\x04vely\x18\x07 \x01(\x02\x12\x10\n\x08toDelete\x18\x08 \x01(\x08*\x80\x01\n\x0bMessageType\x12\x10\n\x0cplayerUpdate\x10\x00\x12\r\n\tnewPlayer\x10\x01\x12\x0e\n\ndisconnect\x10\x02\x12\x08\n\x04\x63hat\x10\x03\x12\r\n\tmapUpdate\x10\x04\x12\x0e\n\nprojectile\x10\x05\x12\x0c\n\x08response\x10\x06\x12\t\n\x05input\x10\x07*1\n\x0eProjectileType\x12\t\n\x05melee\x10\x00\x12\n\n\x06rocket\x10\x01\x12\x08\n\x04nade\x10\x02')
+  serialized_pb='\n\x0eprotocol.proto\x12\x0fmygame_protocol\"\xb6\x01\n\x07Message\x12*\n\x04type\x18\x01 \x02(\x0e\x32\x1c.mygame_protocol.MessageType\x12\'\n\x06player\x18\x02 \x01(\x0b\x32\x17.mygame_protocol.Player\x12%\n\x05input\x18\x03 \x01(\x0b\x32\x16.mygame_protocol.Input\x12/\n\nprojectile\x18\x04 \x01(\x0b\x32\x1b.mygame_protocol.Projectile\"\xac\x01\n\x06Player\x12\n\n\x02id\x18\x06 \x01(\x05\x12\x0c\n\x04posx\x18\x02 \x01(\x02\x12\x0c\n\x04posy\x18\x03 \x01(\x02\x12\x0c\n\x04velx\x18\x04 \x01(\x02\x12\x0c\n\x04vely\x18\x05 \x01(\x02\x12\'\n\x06mState\x18\x07 \x01(\x0b\x32\x17.mygame_protocol.MState\x12\n\n\x02hp\x18\x08 \x01(\x05\x12\r\n\x05\x61rmor\x18\t \x01(\x05\x12\x0c\n\x04time\x18\n \x01(\x05\x12\x0c\n\x04\x63hat\x18\x0b \x01(\t\"\x8d\x01\n\x05Input\x12\x0c\n\x04time\x18\x01 \x02(\x05\x12\n\n\x02id\x18\x07 \x01(\x05\x12\r\n\x05right\x18\x02 \x01(\x08\x12\x0c\n\x04left\x18\x03 \x01(\x08\x12\n\n\x02up\x18\x04 \x01(\x08\x12\x0c\n\x04name\x18\x06 \x01(\t\x12\n\n\x02mx\x18\x08 \x01(\x02\x12\n\n\x02my\x18\t \x01(\x02\x12\x0b\n\x03\x61tt\x18\n \x01(\x08\x12\x0e\n\x06switch\x18\x0b \x01(\x08\"\x9e\x01\n\x06MState\x12\x10\n\x08onGround\x18\x01 \x01(\x08\x12\x11\n\tascending\x18\x02 \x01(\x08\x12\x0f\n\x07landing\x18\x03 \x01(\x08\x12\x0f\n\x07\x63\x61nJump\x18\x04 \x01(\x08\x12\x12\n\ndescending\x18\x05 \x01(\x08\x12\x10\n\x08isFiring\x18\x06 \x01(\x08\x12\x13\n\x0bonRightWall\x18\x07 \x01(\x08\x12\x12\n\nonLeftWall\x18\x08 \x01(\x08\"\xb6\x01\n\nProjectile\x12-\n\x04type\x18\x01 \x02(\x0e\x32\x1f.mygame_protocol.ProjectileType\x12\x10\n\x08playerId\x18\x02 \x01(\x05\x12\x0e\n\x06projId\x18\x03 \x01(\x05\x12\x0c\n\x04posx\x18\x04 \x01(\x02\x12\x0c\n\x04posy\x18\x05 \x01(\x02\x12\x0c\n\x04velx\x18\x06 \x01(\x02\x12\x0c\n\x04vely\x18\x07 \x01(\x02\x12\x10\n\x08toDelete\x18\x08 \x01(\x08\x12\r\n\x05\x61ngle\x18\t \x01(\x02*\x8f\x01\n\x0bMessageType\x12\x10\n\x0cplayerUpdate\x10\x00\x12\r\n\tnewPlayer\x10\x01\x12\x0e\n\ndisconnect\x10\x02\x12\x08\n\x04\x63hat\x10\x03\x12\r\n\tmapUpdate\x10\x04\x12\x0e\n\nprojectile\x10\x05\x12\x0c\n\x08response\x10\x06\x12\t\n\x05input\x10\x07\x12\r\n\tmapChange\x10\x08*m\n\x0eProjectileType\x12\t\n\x05melee\x10\x00\x12\n\n\x06rocket\x10\x01\x12\x08\n\x04nade\x10\x02\x12\x0b\n\x07\x62laster\x10\x03\x12\x0f\n\x0b\x65xplBlaster\x10\x04\x12\x0e\n\nexplRocket\x10\x05\x12\x0c\n\x08\x65xplNade\x10\x06')
 
 _MESSAGETYPE = _descriptor.EnumDescriptor(
   name='MessageType',
@@ -54,11 +54,15 @@ _MESSAGETYPE = _descriptor.EnumDescriptor(
       name='input', index=7, number=7,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='mapChange', index=8, number=8,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=854,
-  serialized_end=982,
+  serialized_start=886,
+  serialized_end=1029,
 )
 
 MessageType = enum_type_wrapper.EnumTypeWrapper(_MESSAGETYPE)
@@ -80,11 +84,27 @@ _PROJECTILETYPE = _descriptor.EnumDescriptor(
       name='nade', index=2, number=2,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='blaster', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='explBlaster', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='explRocket', index=5, number=5,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='explNade', index=6, number=6,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=984,
-  serialized_end=1033,
+  serialized_start=1031,
+  serialized_end=1140,
 )
 
 ProjectileType = enum_type_wrapper.EnumTypeWrapper(_PROJECTILETYPE)
@@ -96,9 +116,14 @@ mapUpdate = 4
 projectile = 5
 response = 6
 input = 7
+mapChange = 8
 melee = 0
 rocket = 1
 nade = 2
+blaster = 3
+explBlaster = 4
+explRocket = 5
+explNade = 6
 
 
 
@@ -312,6 +337,13 @@ _INPUT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='switch', full_name='mygame_protocol.Input.switch', index=9,
+      number=11, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -321,8 +353,8 @@ _INPUT = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=395,
-  serialized_end=520,
+  serialized_start=396,
+  serialized_end=537,
 )
 
 
@@ -398,8 +430,8 @@ _MSTATE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=523,
-  serialized_end=681,
+  serialized_start=540,
+  serialized_end=698,
 )
 
 
@@ -466,6 +498,13 @@ _PROJECTILE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='angle', full_name='mygame_protocol.Projectile.angle', index=8,
+      number=9, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -475,8 +514,8 @@ _PROJECTILE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=684,
-  serialized_end=851,
+  serialized_start=701,
+  serialized_end=883,
 )
 
 _MESSAGE.fields_by_name['type'].enum_type = _MESSAGETYPE

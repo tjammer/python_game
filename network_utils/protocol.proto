@@ -16,6 +16,10 @@ enum ProjectileType {
     melee = 0;
     rocket = 1;
     nade = 2;
+    blaster = 3;
+    explBlaster = 4;
+    explRocket = 5;
+    explNade = 6;
 }
 
 message Message {
@@ -48,6 +52,7 @@ message Input {
     optional float mx = 8;
     optional float my = 9;
     optional bool att = 10;
+    optional bool switch = 11;
 }
 
 message MState {
@@ -70,4 +75,5 @@ message Projectile {
     optional float velx = 6;
     optional float vely = 7;
     optional bool toDelete = 8;
+    optional float angle = 9;
 }

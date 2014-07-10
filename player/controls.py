@@ -57,6 +57,7 @@ class InputHandler(object):
         self.directns.left = self.keys[key.A]
         self.directns.right = self.keys[key.D]
         self.directns.att = self.keys[1 + self.mouse_offset]
+        self.directns.switch = self.keys[key.Q]
         self.controls['esc'] = self.keys[key.ESCAPE]
         self.controls['f10'] = self.keys[key.F10]
 

@@ -2,6 +2,9 @@ from collision.rectangle import Rectangle
 from player.state import vec2
 from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect
+from math import atan, acos
+
+pi = acos(0)
 
 
 class Weapon(object):
@@ -83,6 +86,22 @@ class Blaster(Weapon):
         super(Blaster, self).__init__()
         self.dispatch_proj = dispatch_proj
         self.id = id
+        self.reload_t = 1000
+        self.ammo = 1
+        self.vel = 1000
+        self.selfhit = True
+        self.proj_lifetime = 10
+
+    def on_fire(self, pos, aim_pos):
+        self.ammo += 1
+        rectoffset = vec2(16, 32)
+        temp = aim_pos - pos - rectoffset
+        direc = temp / temp.mag()
+        proj = BlasterProjectile(x=pos.x+16+direc.x*32, y=pos.y+32+direc.y*72,
+                                 width=15, height=15, vel=self.vel,
+                                 direc=direc, lifetime=self.proj_lifetime)
+        proj.dispatch_proj = self.dispatch_proj
+        self.dispatch_proj(proj)
 
 
 class NoAmmoError(Exception):
@@ -95,9 +114,9 @@ class Projectile(Rectangle):
     #x and y are center positions for convenience
     def __init__(self, dmg=10, knockback=10, id=0, x=0, y=0, width=100,
                  height=100, vel=10, selfhit=False, direc=vec2(10, 0),
-                 lifetime=0.1, pos=None, offset=None):
+                 lifetime=0.1, pos=None, offset=None, angle=0):
         super(Projectile, self).__init__(x - width / 2, y - height / 2,
-                                         width, height)
+                                         width, height, angle=angle)
         self.dmg = dmg
         self.knockback = knockback
         #playerid for collision
@@ -140,6 +159,38 @@ class MeleeProjectile(Projectile):
     def updateproj(self, dt):
         self.update(*(vec2(*self.pos) + self.offset + self.rectoffset))
         self.lifetime -= dt
+
+
+class BlasterProjectile(Projectile):
+    """docstring for BlasterProjectile"""
+    def __init__(self, *args, **kwargs):
+        super(BlasterProjectile, self).__init__(*args, **kwargs)
+        self.type = proto.blaster
+
+    def on_hit(self, ovr, axis, player=None):
+        posx = self.x1 - ovr * axis[0]
+        posy = self.y1 - ovr * axis[1]
+        hwidth = 50
+        proj = BlasterExplosion(dmg=50, knockback=400, id=self.id,
+                                x=posx+hwidth, y=posy+hwidth, width=hwidth*2,
+                                height=hwidth*2, vel=0, direc=vec2(0, 0),
+                                lifetime=0.1)
+        self.dispatch_proj(proj)
+        return True
+
+
+class BlasterExplosion(Projectile):
+    """docstring for BlasterExplosion"""
+    def __init__(self, *args, **kwargs):
+        super(BlasterExplosion, self).__init__(*args, **kwargs)
+        self.type = proto.explBlaster
+
+    def on_hit(self, ovr, axis, player=None):
+        if player:
+            player.state.hp -= self.dmg
+            player.state.vel -= (self.center
+                                 - player.rect.center) * 5
+        return False
 
 
 class ProjectileManager(object):
@@ -216,6 +267,7 @@ class ProjectileManager(object):
         projectile.type = proj.type
         projectile.posx, projectile.posy = proj.x1, proj.y1
         projectile.velx, projectile.vely = proj.vel.x, proj.vel.y
+        projectile.angle = proj.angle
         projectile.toDelete = toDelete
         self.message.projectile.CopyFrom(projectile)
         for player in self.players.itervalues():
@@ -239,19 +291,38 @@ class ProjectileViewer(object):
     def process_proj(self, datagram):
         self.data.CopyFrom(datagram)
         ind = self.data.projId
+        angle = self.data.angle * 180 / pi
         if not self.data.toDelete:
+            vel = vec2(self.data.velx, self.data.vely)
             pos = vec2(self.data.posx, self.data.posy)
             if ind in self.projs:
                 self.projs[ind].update(*pos)
             else:
                 if self.data.type == proto.melee:
-                    self.projs[ind] = Rect(self.data.posx, self.data.posy,
-                                           width=70, height=70,
+                    self.projs[ind] = Rect(pos.x, pos.y, width=70, height=70,
                                            color=(1., 0., 0.))
+                    self.projs[ind].vel = vel
+                elif self.data.type == proto.blaster:
+                    self.projs[ind] = Rect(pos.x, pos.y, width=15, height=15,
+                                           color=(1., 0., 0.), angle=angle)
+                    self.projs[ind].vel = vel
+                elif self.data.type == proto.explBlaster:
+                    self.projs[ind] = Rect(pos.x, pos.y, width=100, height=100,
+                                           color=(1., .5, .5))
+                    self.projs[ind].vel = vel
                 else:
                     raise ValueError
         else:
-            del self.projs[ind]
+            try:
+                del self.projs[ind]
+            except KeyError:
+                pass
+
+    def update(self, dt):
+        for proj in self.projs.itervalues():
+            pos = vec2(proj.x1, proj.y1)
+            pos += proj.vel * dt
+            proj.update(*pos)
 
     def draw(self):
         for proj in self.projs.itervalues():
@@ -266,8 +337,9 @@ class WeaponsManager(object):
         self.id = id
         self._allweapos = {'melee': Melee}
         #start only with melee
-        self.weapons = [Melee(dispatch_proj, id)]
+        self.weapons = [Melee(dispatch_proj, id), Blaster(dispatch_proj, id)]
         self.current_w = self.weapons[0]
+        self.wli = 0
 
     def fire(self, pos, aim_pos):
         try:
@@ -278,4 +350,15 @@ class WeaponsManager(object):
     def update(self, dt, state, input):
         if input.att:
             self.fire(state.pos, vec2(input.mx, input.my))
+        if input.switch:
+            self.switch()
         self.current_w.update(dt)
+
+    def switch(self):
+        if not self.current_w.active:
+            self.wli += 1
+            if self.wli == len(self.weapons):
+                self.wli = 0
+            self.current_w = self.weapons[self.wli]
+            self.current_w.active = self.current_w.reload_t
+            print 'weapon switched'

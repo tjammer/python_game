@@ -35,6 +35,7 @@ class GameScreen(Events):
         self.update_physics(dt)
         self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
+        self.proj_viewer.update(dt)
 
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
