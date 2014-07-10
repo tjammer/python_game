@@ -19,14 +19,14 @@ class Weapon(object):
         self.start_ammo = start_ammo
         self.active = False
 
-    def on_fire(self, pl_center, aim_pos):
+    def on_fire(self, pos, aim_pos):
         pass
 
-    def fire(self, pl_center, aim_pos):
+    def fire(self, pos, aim_pos):
         if not self.active and self.ammo > 0:
             self.active = self.reload_t
             try:
-                self.on_fire(pl_center, aim_pos)
+                self.on_fire(pos, aim_pos)
             except TypeError:
                 pass
             self.ammo -= 1
@@ -58,18 +58,21 @@ class Melee(Weapon):
         self.selfhit = False
         self.proj_lifetime = 1. / 12
 
-    def on_fire(self, pl_center, aim_pos):
+    def on_fire(self, pos, aim_pos):
         self.ammo += 1
-        temp = aim_pos - pl_center
+        rectoffset = vec2(16, 36)
+        temp = aim_pos - pos + rectoffset
         direc = temp / temp.mag()
         if temp.mag() <= 20:
-            pos = pl_center + direc * temp.mag()
+            offset = direc * temp.mag()
         else:
-            pos = pl_center + direc * 20
-        proj = MeleeProjectile(self.dmg, self.knockback, self.id, pos.x, pos.y,
-                               width=50, height=50, vel=self.vel,
+            offset = direc * 20
+        npos = pos + rectoffset + offset
+        proj = MeleeProjectile(self.dmg, self.knockback, self.id, npos.x,
+                               npos.y, width=50, height=50, vel=self.vel,
                                selfhit=self.selfhit, direc=direc,
-                               lifetime=self.proj_lifetime)
+                               lifetime=self.proj_lifetime, pos=pos,
+                               offset=offset)
         self.dispatch_proj(proj)
 
 
@@ -83,7 +86,7 @@ class Projectile(Rectangle):
     #x and y are center positions for convenience
     def __init__(self, dmg=10, knockback=10, id=0, x=0, y=0, width=100,
                  height=100, vel=10, selfhit=False, direc=vec2(10, 0),
-                 lifetime=0.1):
+                 lifetime=0.1, pos=None, offset=None):
         super(Projectile, self).__init__(x - width / 2, y - height / 2,
                                          width, height)
         self.dmg = dmg
@@ -96,6 +99,8 @@ class Projectile(Rectangle):
         self.selfhit = selfhit
         self.lifetime = lifetime
         self.type = None
+        self.pos = pos
+        self.offset = offset
 
     def on_hit(self, ovr, axis, player=None):
         pass
@@ -111,12 +116,10 @@ class Projectile(Rectangle):
 
 class MeleeProjectile(Projectile):
     """docstring for MeleeProjectile"""
-    def __init__(self, dmg, knockback, id, x, y, width, height, vel, selfhit,
-                 direc, lifetime):
-        super(MeleeProjectile, self).__init__(dmg, knockback, id, x, y, width,
-                                              height, vel, selfhit, direc,
-                                              lifetime)
+    def __init__(self, *args, **kwargs):
+        super(MeleeProjectile, self).__init__(*args, **kwargs)
         self.type = proto.melee
+        self.rectoffset = vec2(16 - self.width / 2, 36 - self.height / 2)
 
     def on_hit(self, ovr, axis, player=None):
         if player and player.id != self.id:
@@ -124,6 +127,10 @@ class MeleeProjectile(Projectile):
             player.state.vel += self.direc * self.knockback
         #return if delete proj, in case of melee never
         return False
+
+    def updateproj(self, dt):
+        self.update(*(vec2(*self.pos) + self.offset + self.rectoffset))
+        self.lifetime -= dt
 
 
 class ProjectileManager(object):
