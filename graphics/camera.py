@@ -22,8 +22,8 @@ class Camera(Events):
     def update(self, dt, state):
         self.pos, self.vel = state.pos, state.vel
         # velocity easing
-        if self.vel.x != 0:
-            self.eas_vel.x -= (self.eas_vel.x - self.vel.x) * dt * 4.5
+        #if self.vel.x != 0:
+        #self.eas_vel.x -= (self.eas_vel.x - self.vel.x) * dt * 4.5
         #self.eas_vel.y -= (0*self.eas_vel.y + self.vel.y) * dt
         self.target = self.mpos + self.pos + self.eas_vel * 0.5 + self.offset
         self.campos -= (self.campos - self.target) * self.mul_easing * dt
