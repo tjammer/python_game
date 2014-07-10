@@ -170,11 +170,12 @@ class BlasterProjectile(Projectile):
     def on_hit(self, ovr, axis, player=None):
         posx = self.x1 - ovr * axis[0]
         posy = self.y1 - ovr * axis[1]
-        hwidth = 50
+        hwidth = 51
         proj = BlasterExplosion(dmg=50, knockback=400, id=self.id,
-                                x=posx+hwidth, y=posy+hwidth, width=hwidth*2,
+                                x=posx+hwidth*2./3, y=posy+hwidth*2./3,
+                                width=hwidth*2,
                                 height=hwidth*2, vel=0, direc=vec2(0, 0),
-                                lifetime=0.1)
+                                lifetime=0.05)
         self.dispatch_proj(proj)
         return True
 
@@ -307,8 +308,8 @@ class ProjectileViewer(object):
                                            color=(1., 0., 0.), angle=angle)
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=100, height=100,
-                                           color=(1., .5, .5))
+                    self.projs[ind] = Rect(pos.x, pos.y, width=102, height=102,
+                                           color=(4., .2, .6))
                     self.projs[ind].vel = vel
                 else:
                     raise ValueError
