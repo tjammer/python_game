@@ -266,7 +266,7 @@ class WeaponsManager(object):
         except NoAmmoError:
             print 'no ammmo'
 
-    def update(self, dt, state):
+    def update(self, dt, state, input):
         if state.input.att:
-            self.fire(dt, state.pos, vec2(state.input.mx, state.input.my))
+            self.fire(dt, state.pos, vec2(input.mx, input.my))
         self.current_w.update(dt)
