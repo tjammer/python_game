@@ -58,8 +58,11 @@ class GameScreen(Events):
             ind, time, s_state = data
             smove = move(time, None, s_state)
             if ind == self.player.id:
-                correct_client(self.update_physics, smove, self.moves,
-                               self.head, self.index[0])
+                try:
+                    correct_client(self.update_physics, smove, self.moves,
+                                   self.head, self.index[0])
+                except IndexError:
+                    pass
             else:
                 self.players[ind].client_update(s_state)
         elif typ == proto.projectile:
@@ -95,8 +98,11 @@ class GameScreen(Events):
         self.camera.set_static()
 
     def on_connect(self, msg):
-        self.player.get_id(msg)
+        ind, mapname = msg
+        self.player.get_id(ind)
+        self.map = Map(mapname)
         print 'connected with id: ' + str(self.player.id)
+        self.send_message('input', (self.player.input, 1337))
 
 
 class MainMenu(MenuClass):

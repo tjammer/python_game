@@ -12,7 +12,7 @@ class GameServer(DatagramProtocol):
         # super(GameServer, self).__init__()
         self.players = {}
         self.players_pack = {}
-        self.map = Map('testmap', server=True)
+        self.map = Map('test2', server=True)
         self.projectiles = ProjectileManager(self.players, self.map)
         self.mxdt = .03
 
@@ -126,6 +126,7 @@ class GameServer(DatagramProtocol):
         player = proto.Player()
         own.type = proto.mapUpdate
         player.id = pl_id
+        player.chat = self.map.name
         own.player.CopyFrom(player)
         self.transport.write(own.SerializeToString(), address)
         #send other players to player

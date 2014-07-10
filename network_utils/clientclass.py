@@ -8,8 +8,8 @@ class Client(DatagramProtocol):
     def __init__(self):
         self.time = 0
         self.connected = False
-        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
-        #self.host = ('127.0.0.1', 8000)
+        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
+        self.host = ('127.0.0.1', 8000)
         self.con_timer = 0
         self.message = proto.Message()
         self.input = proto.Input()
@@ -49,13 +49,16 @@ class Client(DatagramProtocol):
             self.input.id = self.id
             self.message.input.CopyFrom(self.input)
             self.transport.write(self.message.SerializeToString(), self.host)
+        elif self.time == 1337:
+            self.connected = True
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)
         if self.message.type == proto.mapUpdate and not self.id:
             self.connected = True
             self.id = self.message.player.id
-            self.send_message('on_connect', self.id)
+            mapname = self.message.player.chat
+            self.send_message('on_connect', (self.id, mapname))
         elif self.message.type == proto.playerUpdate and self.connected:
             ind = self.message.player.id
             state = self.server_to_state(self.message.player)

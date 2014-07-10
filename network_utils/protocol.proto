@@ -9,6 +9,7 @@ enum MessageType {
     projectile = 5;
     response = 6;
     input = 7;
+    mapChange = 8;
 }
 
 enum ProjectileType {
