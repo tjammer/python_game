@@ -268,5 +268,5 @@ class WeaponsManager(object):
 
     def update(self, dt, state, input):
         if input.att:
-            self.fire(dt, state.pos, vec2(input.mx, input.my))
+            self.fire(state.pos, vec2(input.mx, input.my))
         self.current_w.update(dt)
