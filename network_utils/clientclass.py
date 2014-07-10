@@ -71,6 +71,9 @@ class Client(DatagramProtocol):
         elif self.message.type == proto.disconnect and self.connected:
             ind = self.message.player.id
             self.send_message('serverdata', (proto.disconnect, ind))
+        elif self.message.type == proto.projectile and self.connected:
+            self.send_message('serverdata',
+                              (proto.projectile, self.message.projectile))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

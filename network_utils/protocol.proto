@@ -11,10 +11,17 @@ enum MessageType {
     input = 7;
 }
 
+enum ProjectileType {
+    melee = 0;
+    rocket = 1;
+    nade = 2;
+}
+
 message Message {
     required MessageType type = 1;
     optional Player player = 2;
     optional Input input = 3;
+    optional Projectile projectile = 4;
 }
 
 message Player {
@@ -51,4 +58,15 @@ message MState {
     optional bool isFiring = 6;
     optional bool onRightWall = 7;
     optional bool onLeftWall = 8;
+}
+
+message Projectile {
+    required ProjectileType type = 1;
+    optional int32 playerId = 2;
+    optional int32 projId = 3;
+    optional float posx = 4;
+    optional float posy = 5;
+    optional float velx = 6;
+    optional float vely = 7;
+    optional bool toDelete = 8;
 }

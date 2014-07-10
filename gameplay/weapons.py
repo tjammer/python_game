@@ -1,5 +1,7 @@
 from collision.rectangle import Rectangle
 from player.state import vec2
+from network_utils import protocol_pb2 as proto
+from graphics.primitives import Rect
 
 
 class Weapon(object):
@@ -60,7 +62,10 @@ class Melee(Weapon):
         self.ammo += 1
         temp = aim_pos - pl_center
         direc = temp / temp.mag()
-        pos = pl_center + direc * 50
+        if temp.mag() <= 20:
+            pos = pl_center + direc * temp.mag()
+        else:
+            pos = pl_center + direc * 20
         proj = MeleeProjectile(self.dmg, self.knockback, self.id, pos.x, pos.y,
                                width=50, height=50, vel=self.vel,
                                selfhit=self.selfhit, direc=direc,
@@ -76,8 +81,9 @@ class NoAmmoError(Exception):
 class Projectile(Rectangle):
     """docstring for Projectile"""
     #x and y are center positions for convenience
-    def __init__(self, dmg, knockback, id, x, y, width, height, vel, selfhit,
-                 direc, lifetime):
+    def __init__(self, dmg=10, knockback=10, id=0, x=0, y=0, width=100,
+                 height=100, vel=10, selfhit=False, direc=vec2(10, 0),
+                 lifetime=0.1):
         super(Projectile, self).__init__(x - width / 2, y - height / 2,
                                          width, height)
         self.dmg = dmg
@@ -89,6 +95,7 @@ class Projectile(Rectangle):
         self.vel = direc * vel
         self.selfhit = selfhit
         self.lifetime = lifetime
+        self.type = None
 
     def on_hit(self, ovr, axis, player=None):
         pass
@@ -98,6 +105,9 @@ class Projectile(Rectangle):
         self.update(*pos)
         self.lifetime -= dt
 
+    def pass_pos(self, pos, vel):
+        self.vel, self.pos = vel, pos
+
 
 class MeleeProjectile(Projectile):
     """docstring for MeleeProjectile"""
@@ -106,11 +116,14 @@ class MeleeProjectile(Projectile):
         super(MeleeProjectile, self).__init__(dmg, knockback, id, x, y, width,
                                               height, vel, selfhit, direc,
                                               lifetime)
+        self.type = proto.melee
 
     def on_hit(self, ovr, axis, player=None):
         if player and player.id != self.id:
             player.state.hp -= self.dmg
             player.state.vel += self.direc * self.knockback
+        #return if delete proj, in case of melee never
+        return False
 
 
 class ProjectileManager(object):
@@ -123,6 +136,10 @@ class ProjectileManager(object):
         self.players = players
         #map for collision
         self.map = Map
+        self.send_ = None
+        self.proj_num = 0
+        self.message = proto.Message()
+        self.message.type = proto.projectile
 
     def __iter__(self):
         return iter(self.projs)
@@ -139,9 +156,10 @@ class ProjectileManager(object):
             if proj.lifetime < 0:
                 self.todelete.append(proj)
         #loop over copy of list to make deletion possible
-        for proj in reversed(self.projs):
+        for proj in self.projs:
             self.collide(proj)
         self.del_projectiles()
+        self.send_all()
 
     def collide(self, proj):
         #extra function to be able to return when coll is found
@@ -160,17 +178,68 @@ class ProjectileManager(object):
                     self.resolve_collision(ovr, axis, proj)
 
     def resolve_collision(self, ovr, axis, proj, player=None):
-        self.todelete.append(proj)
-        proj.on_hit(ovr, axis, player)
+        #self.todelete.append(proj)
+        if proj.on_hit(ovr, axis, player):
+            self.todelete.append(proj)
 
     def del_projectiles(self):
-        for proj in reversed(self.todelete):
+        for proj in set(self.todelete):
             self.projs.remove(proj)
+            self.send(proj, toDelete=True)
             while proj in self.todelete:
                 self.todelete.remove(proj)
 
     def add_projectile(self, proj):
+        self.proj_num += 1
+        proj.projId = self.proj_num
         self.projs.append(proj)
+
+    def send(self, proj, toDelete=False):
+        projectile = proto.Projectile()
+        projectile.projId = proj.projId
+        projectile.type = proj.type
+        projectile.posx, projectile.posy = proj.x1, proj.y1
+        projectile.velx, projectile.vely = proj.vel.x, proj.vel.y
+        projectile.toDelete = toDelete
+        self.message.projectile.CopyFrom(projectile)
+        for player in self.players.itervalues():
+            self.send_(self.message.SerializeToString(), player.address)
+
+    def send_all(self):
+        for proj in self.projs:
+            self.send(proj)
+
+    def receive_send(self, func):
+        self.send_ = func
+
+
+class ProjectileViewer(object):
+    """docstring for ProjectileViewer"""
+    def __init__(self):
+        super(ProjectileViewer, self).__init__()
+        self.projs = {}
+        self.data = proto.Projectile()
+
+    def process_proj(self, datagram):
+        self.data.CopyFrom(datagram)
+        ind = self.data.projId
+        if not self.data.toDelete:
+            pos = vec2(self.data.posx, self.data.posy)
+            if ind in self.projs:
+                self.projs[ind].update(*pos)
+            else:
+                if self.data.type == proto.melee:
+                    self.projs[ind] = Rect(self.data.posx, self.data.posy,
+                                           width=50, height=50,
+                                           color=(1., 0., 0.))
+                else:
+                    raise ValueError
+        else:
+            del self.projs[ind]
+
+    def draw(self):
+        for proj in self.projs.itervalues():
+            proj.draw()
 
 
 class WeaponsManager(object):

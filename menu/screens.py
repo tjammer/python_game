@@ -9,6 +9,7 @@ from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
 from network_utils import protocol_pb2 as proto
+from gameplay.weapons import ProjectileViewer
 
 
 class GameScreen(Events):
@@ -17,6 +18,7 @@ class GameScreen(Events):
         super(GameScreen, self).__init__()
         self.camera = Camera(window)
         self.player = player.Player()
+        self.proj_viewer = ProjectileViewer()
         self.controls = {}
         self.controls_old = {}
         self.map = Map('testmap')
@@ -60,6 +62,8 @@ class GameScreen(Events):
                                self.head, self.index[0])
             else:
                 self.players[ind].client_update(s_state)
+        elif typ == proto.projectile:
+            self.proj_viewer.process_proj(data)
         elif typ == proto.newPlayer:
             print 'new player'
             ind, time, s_state = data
@@ -86,6 +90,7 @@ class GameScreen(Events):
         for plr in self.players.itervalues():
             plr.draw()
         self.player.draw()
+        self.proj_viewer.draw()
         self.map.draw()
         self.camera.set_static()
 

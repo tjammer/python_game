@@ -16,4 +16,5 @@ def update(t):
 lc = LoopingCall(update, t)
 lc.start(1 / 60.)
 reactor.listenUDP(8000, main)
+main.projectiles.receive_send(main.transport.write)
 reactor.run()
