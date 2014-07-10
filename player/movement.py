@@ -37,9 +37,9 @@ class Movement(object):
             self.vel.x = 0
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
-        if avel >= self.max_vel or (conds.onRightWall
-                                    and sign < 0) or (conds.onLeftWall
-                                                      and sign > 0):
+        if vel.x * sign >= self.max_vel or (conds.onRightWall
+                                            and sign < 0) or (conds.onLeftWall
+                                                              and sign > 0):
             v = 0
         else:
             v = self.normal_accel

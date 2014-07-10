@@ -88,18 +88,23 @@ class GameServer(DatagramProtocol):
         self.players[data.id].input = data
 
     def collide(self, idx):
+        colled = [False]
         for keys in self.players:
             if keys != idx:
                 coll = self.players[idx].rect.collides(self.players[keys].rect)
                 if coll:
+                    colled[0] = True
                     ovr, axis = coll
                     self.players[idx].resolve_collision(ovr, axis, 0)
         #collide with players first to not get collided into wall
         for rect in self.map.quad_tree.retrieve([], self.players[idx].rect):
             coll = self.players[idx].rect.collides(rect)
             if coll:
+                colled[0] = True
                 ovr, axis = coll
                 self.players[idx].resolve_collision(ovr, axis, rect.angle)
+        if not colled[0]:
+            self.players[idx].determine_state()
 
     def init_player(self, data, address, pl_id):
         #check if name already exists

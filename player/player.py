@@ -72,6 +72,10 @@ class Player(Events):
             elif ovrlap < 0:
                 self.state.set_cond('onLeftWall')
 
+    def determine_state(self):
+        if self.state.vel.y < 0:
+            self.state.set_cond('descending')
+
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)

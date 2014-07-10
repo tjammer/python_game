@@ -80,6 +80,7 @@ class state(object):
             self.conds.canJump = False
             self.conds.onRightWall = False
             self.conds.onLeftWall = False
+            self.conds.descending = False
         elif condname == 'canJump':
             self.conds.canJump = True
         elif condname == 'onGround':
@@ -91,11 +92,14 @@ class state(object):
                 else:
                     self.conds.onGround = True
                     self.conds.landing = False
-        elif condname == 'descending' and not self.wall:
+        elif condname == 'descending':
             self.conds.ascending = False
             self.conds.descending = True
             self.conds.onRightWall = False
             self.conds.onLeftWall = False
+            self.conds.onGround = False
+            self.conds.landing = False
+            self.conds.canJump = False
         elif condname == 'onRightWall':
             self.conds.onRightWall = True
             self.conds.ascending = False

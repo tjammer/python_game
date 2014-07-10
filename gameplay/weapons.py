@@ -49,7 +49,7 @@ class Melee(Weapon):
     def __init__(self, dispatch_proj, id):
         super(Melee, self).__init__()
         self.dmg = 40
-        self.knockback = 700
+        self.knockback = 300
         self.reload_t = 400
         self.dispatch_proj = dispatch_proj
         self.id = id
@@ -70,7 +70,7 @@ class Melee(Weapon):
             offset = direc * self.reach
         npos = pos + rectoffset + offset
         proj = MeleeProjectile(self.dmg, self.knockback, self.id, npos.x,
-                               npos.y, width=50, height=50, vel=self.vel,
+                               npos.y, width=70, height=70, vel=self.vel,
                                selfhit=self.selfhit, direc=direc,
                                lifetime=self.proj_lifetime, pos=pos,
                                offset=offset)
@@ -246,7 +246,7 @@ class ProjectileViewer(object):
             else:
                 if self.data.type == proto.melee:
                     self.projs[ind] = Rect(self.data.posx, self.data.posy,
-                                           width=50, height=50,
+                                           width=70, height=70,
                                            color=(1., 0., 0.))
                 else:
                     raise ValueError
