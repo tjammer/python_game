@@ -190,7 +190,7 @@ class BlasterExplosion(Projectile):
         if player:
             player.state.hp -= self.dmg
             player.state.vel -= (self.center
-                                 - player.rect.center) * 5
+                                 - player.rect.center) * 4.5
         return False
 
 
