@@ -57,16 +57,17 @@ class Melee(Weapon):
         self.vel = 0
         self.selfhit = False
         self.proj_lifetime = 1. / 12
+        self.reach = 40
 
     def on_fire(self, pos, aim_pos):
         self.ammo += 1
         rectoffset = vec2(16, 36)
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
-        if temp.mag() <= 20:
+        if temp.mag() <= self.reach:
             offset = direc * temp.mag()
         else:
-            offset = direc * 20
+            offset = direc * self.reach
         npos = pos + rectoffset + offset
         proj = MeleeProjectile(self.dmg, self.knockback, self.id, npos.x,
                                npos.y, width=50, height=50, vel=self.vel,
@@ -74,6 +75,14 @@ class Melee(Weapon):
                                lifetime=self.proj_lifetime, pos=pos,
                                offset=offset)
         self.dispatch_proj(proj)
+
+
+class Blaster(Weapon):
+    """docstring for Blaster"""
+    def __init__(self, dispatch_proj, id):
+        super(Blaster, self).__init__()
+        self.dispatch_proj = dispatch_proj
+        self.id = id
 
 
 class NoAmmoError(Exception):
