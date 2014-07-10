@@ -61,11 +61,16 @@ class vec2(object):
 
 class state(object):
     """docstring for state"""
-    def __init__(self, pos, vel, hp=100):
+    def __init__(self, pos, vel, hp=100, conds=False):
         super(state, self).__init__()
         self.pos, self.vel, self.hp = pos, vel, hp
-        self.conds = proto.MState()
-        self.conds.canJump = True
+        self.wall_t = .5
+        self.wall = 0
+        if not conds:
+            self.conds = proto.MState()
+            self.conds.canJump = True
+        else:
+            self.conds = conds
 
     def set_cond(self, condname):
         if condname == 'ascending':
@@ -73,6 +78,8 @@ class state(object):
             self.conds.onGround = False
             self.conds.landing = False
             self.conds.canJump = False
+            self.conds.onRightWall = False
+            self.conds.onLeftWall = False
         elif condname == 'canJump':
             self.conds.canJump = True
         elif condname == 'onGround':
@@ -83,9 +90,29 @@ class state(object):
                     self.conds.ascending = False
                 else:
                     self.conds.onGround = True
-        elif condname == 'descending':
+                    self.conds.landing = False
+        elif condname == 'descending' and not self.wall:
             self.conds.ascending = False
             self.conds.descending = True
+            self.conds.onRightWall = False
+            self.conds.onLeftWall = False
+        elif condname == 'onRightWall':
+            self.conds.onRightWall = True
+            self.conds.ascending = False
+            self.conds.descending = False
+            self.wall = self.wall_t
+        elif condname == 'onLeftWall':
+            self.conds.onLeftWall = True
+            self.conds.ascending = False
+            self.conds.descending = False
+            self.wall = self.wall_t
+
+    def update(self, dt):
+        self.wall -= dt
+        if self.wall < 0:
+            self.wall = 0
+            self.conds.onRightWall = False
+            self.conds.onLeftWall = False
 
     def copy(self):
-        return state(vec2(*self.pos), vec2(*self.vel), self.hp)
+        return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.conds)

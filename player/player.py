@@ -35,6 +35,7 @@ class Player(Events):
         self.state.vel, self.state.pos = self.move.update(dt, state, input)
         self.rect.update(*self.state.pos)
         self.weapons.update(dt, self.state, self.input)
+        self.state.update(dt)
 
     def client_update(self, s_state):
         easing = .8
@@ -65,6 +66,11 @@ class Player(Events):
             #self.move.conds['on_ground'] = True
             self.state.set_cond('onGround')
             #self.move.angle = angle
+        elif axis[0] > 0:
+            if ovrlap > 0:
+                self.state.set_cond('onRightWall')
+            elif ovrlap < 0:
+                self.state.set_cond('onLeftWall')
 
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)

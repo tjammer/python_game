@@ -117,7 +117,7 @@ class GameServer(DatagramProtocol):
                         self.players[pl_id].name, str(pl_id),
                         'joined the server', str(address)))
         self.players[pl_id].time = 0
-        self.players[pl_id].spawn(100, 300)
+        self.players[pl_id].spawn(100, 70)
         self.players_pack[pl_id] = proto.Player()
         self.players_pack[pl_id].id = pl_id
         self.player_to_pack(pl_id)
