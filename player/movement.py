@@ -1,4 +1,3 @@
-import math
 from state import vec2
 
 
@@ -13,12 +12,13 @@ class Movement(object):
         self.boost_accel = 20.
         self.turn_multplier = 4.
         self.jump_vel = 900.
-        self.max_vel = 500
+        self.max_vel = 500.
+        self.wall_boost = 650.
         self.angle = 0
 
     def update(self, dt, state, input):
         pos, vel, conds = state.pos, state.vel, state.conds
-        self.calc_vel(dt, pos, vel, input, conds, state)
+        self.comp_vel(dt, pos, vel, input, conds, state)
         self.step(dt, pos, vel)
         return self.vel, self.pos
 
@@ -27,7 +27,7 @@ class Movement(object):
         for i, j in enumerate(self.pos):
             self.pos[i] = pos[i] + self.vel[i] * dt
 
-    def calc_vel(self, dt, pos, vel, input, conds, state):
+    def comp_vel(self, dt, pos, vel, input, conds, state):
         avel = abs(vel.x)
         if input.right and not input.left:
             sign = 1
@@ -37,24 +37,41 @@ class Movement(object):
             self.vel.x = 0
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
-        if not avel > self.max_vel:
-            v = self.normal_accel
-        else:
+        if avel >= self.max_vel or (conds.onRightWall
+                                    and sign < 0) or (conds.onLeftWall
+                                                      and sign > 0):
             v = 0
+        else:
+            v = self.normal_accel
         if conds.onGround and self.curr_sign * sign > 0:
             v *= self.turn_multplier
-        if avel + v * dt > self.max_vel or (conds.onGround
-                                            and avel > self.max_vel):
+        #if avel + v * dt > self.max_vel or (conds.onGround
+         #                                   and avel > self.max_vel):
+        if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
         self.vel.x = vel.x + v * sign * dt
 
-        if (conds.landing or conds.onGround) and conds.canJump:
-            self.vel.y = self.jump_vel
-            state.set_cond('ascending')
+        if (conds.landing or conds.onGround) and conds.canJump and input.up:
+            self.jump(state)
+        elif (conds.onRightWall
+              or conds.onLeftWall) and conds.canJump and input.up:
+            self.walljump(state, conds)
         if not input.up:
             state.set_cond('canJump')
             if self.vel.y > 0:
                 self.vel.y = 0
+
+    def jump(self, state):
+        self.vel.y = self.jump_vel
+        state.set_cond('ascending')
+
+    def walljump(self, state, conds):
+        self.vel.y += self.jump_vel * 1.5
+        if conds.onLeftWall:
+            self.vel.x = self.wall_boost
+        elif conds.onRightWall:
+            self.vel.x = -self.wall_boost
+        state.set_cond('ascending')
 
     def sign_of(self, num):
         if num > 0:

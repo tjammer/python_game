@@ -64,7 +64,7 @@ class state(object):
     def __init__(self, pos, vel, hp=100, conds=False):
         super(state, self).__init__()
         self.pos, self.vel, self.hp = pos, vel, hp
-        self.wall_t = .5
+        self.wall_t = .2
         self.wall = 0
         if not conds:
             self.conds = proto.MState()
