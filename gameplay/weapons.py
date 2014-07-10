@@ -61,7 +61,7 @@ class Melee(Weapon):
     def on_fire(self, pos, aim_pos):
         self.ammo += 1
         rectoffset = vec2(16, 36)
-        temp = aim_pos - pos + rectoffset
+        temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
         if temp.mag() <= 20:
             offset = direc * temp.mag()
