@@ -5,7 +5,6 @@ from player.player import Player
 from datetime import datetime
 from gameplay.weapons import ProjectileManager
 from itertools import chain
-from collision.rectangle import Rectangle
 
 
 class GameServer(DatagramProtocol):
