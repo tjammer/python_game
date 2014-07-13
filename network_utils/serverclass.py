@@ -4,6 +4,8 @@ from maps.map import Map
 from player.player import Player
 from datetime import datetime
 from gameplay.weapons import ProjectileManager
+from itertools import chain
+from collision.rectangle import Rectangle
 
 
 class GameServer(DatagramProtocol):
@@ -88,22 +90,20 @@ class GameServer(DatagramProtocol):
         self.players[data.id].input = data
 
     def collide(self, idx):
-        colled = [False]
-        for keys in self.players:
-            if keys != idx:
-                coll = self.players[idx].rect.collides(self.players[keys].rect)
-                if coll:
-                    colled[0] = True
-                    ovr, axis = coll
-                    self.players[idx].resolve_collision(ovr, axis, 0)
-        #collide with players first to not get collided into wall
-        for rect in self.map.quad_tree.retrieve([], self.players[idx].rect):
+        colled = False
+        playergen = (player.rect for key, player in self.players.iteritems()
+                     if key != idx)
+        mapgen = (rect for rect in self.map.quad_tree.retrieve([],
+                  self.players[idx].rect))
+        gen = chain(playergen, mapgen)
+
+        for rect in gen:
             coll = self.players[idx].rect.collides(rect)
             if coll:
-                colled[0] = True
+                colled = True
                 ovr, axis = coll
-                self.players[idx].resolve_collision(ovr, axis, rect.angle)
-        if not colled[0]:
+                self.players[idx].resolve_collision(ovr, axis, 0)
+        if not colled:
             self.players[idx].determine_state()
 
     def init_player(self, data, address, pl_id):
