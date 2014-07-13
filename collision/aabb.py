@@ -12,9 +12,14 @@ class AABB(object):
         self.hwidth = width / 2.
         self.hheight = height / 2.
         self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
-        self.xaxis = vec2(1, 0)
-        self.yaxis = vec2(0, 1)
-        self.fpos = vec2(x, y)
+
+    def update(self, x, y):
+        self.pos = vec2(x, y)
+        self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
+        self.on_update()
+
+    def on_update(self):
+        pass
 
     def overlaps(self, aabb):
         distance = (self.center - aabb.center)
@@ -28,7 +33,7 @@ class AABB(object):
 
     def sweep(self, obj, dt):
         if self.overlaps(obj):
-            return True, vec2(0, 0)
+            return True, vec2(0, 0), 0
         else:
             #find distance for entry and exit
             if self.vel.x > 0:
@@ -66,10 +71,16 @@ class AABB(object):
                 return False
             #normal
             if xt_ent > yt_ent:
-                normal = vec2(1., 0.)
+                if xdist_ent >= 0:
+                    normal = vec2(1., 0.)
+                else:
+                    normal = vec2(-1., 0.)
             else:
-                normal = vec2(0., 1.)
-            return True, normal
+                if ydist_ent <= 0:
+                    normal = vec2(0., -1.)
+                else:
+                    normal = vec2(0., 1.)
+            return True, normal, enter
 
     def sign_of(self, vec):
         if not isinstance(vec, vec2):
