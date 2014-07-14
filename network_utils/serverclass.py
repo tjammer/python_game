@@ -31,8 +31,8 @@ class GameServer(DatagramProtocol):
                 dt = (dt / 10000.)
                 dt = dt if dt < self.mxdt else self.mxdt
                 # update movement
-                self.players[data.input.id].update(dt)
-                self.collide(data.input.id)
+                self.players[data.input.id].update(dt,
+                                                   self.rectgen(data.input.id))
                 self.players[data.input.id].time = data.input.time
                 self.player_to_pack(data.input.id)
         elif (data.type == proto.disconnect and
@@ -90,13 +90,8 @@ class GameServer(DatagramProtocol):
 
     def collide(self, idx):
         colled = False
-        playergen = (player.rect for key, player in self.players.iteritems()
-                     if key != idx)
-        mapgen = (rect for rect in self.map.quad_tree.retrieve([],
-                  self.players[idx].rect))
-        gen = chain(playergen, mapgen)
 
-        for rect in gen:
+        for rect in self.rectgen(idx):
             coll = self.players[idx].rect.collides(rect)
             if coll:
                 colled = True
@@ -121,7 +116,7 @@ class GameServer(DatagramProtocol):
                         self.players[pl_id].name, str(pl_id),
                         'joined the server', str(address)))
         self.players[pl_id].time = 0
-        self.players[pl_id].spawn(100, 70)
+        self.players[pl_id].spawn(100, 130)
         self.players_pack[pl_id] = proto.Player()
         self.players_pack[pl_id].id = pl_id
         self.player_to_pack(pl_id)
@@ -158,3 +153,10 @@ class GameServer(DatagramProtocol):
         disc.player.CopyFrom(player)
         for idx, p in self.players.iteritems():
             self.transport.write(disc.SerializeToString(), p.address)
+
+    def rectgen(self, idx):
+        playergen = (player.rect for key, player in self.players.iteritems()
+                     if key != idx)
+        mapgen = (rect for rect in self.map.quad_tree.retrieve([],
+                  self.players[idx].rect))
+        return chain(playergen, mapgen)
