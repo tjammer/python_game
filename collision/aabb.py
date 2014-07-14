@@ -3,7 +3,7 @@ from player.state import vec2
 
 class AABB(object):
     """docstring for AABB"""
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, color=(1., 1., 1.)):
         super(AABB, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
@@ -12,13 +12,14 @@ class AABB(object):
         self.hwidth = width / 2.
         self.hheight = height / 2.
         self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
+        self.color = color
 
     def update(self, x, y):
         self.pos = vec2(x, y)
         self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
-        self.on_update()
+        self.on_update(x, y)
 
-    def on_update(self):
+    def on_update(self, x, y):
         pass
 
     def overlaps(self, aabb):
@@ -33,7 +34,7 @@ class AABB(object):
 
     def sweep(self, obj, dt):
         if self.overlaps(obj):
-            return True, vec2(0, 0), 0
+            pass
         else:
             #find distance for entry and exit
             if self.vel.x > 0:
@@ -61,26 +62,24 @@ class AABB(object):
             else:
                 yt_ent = ydist_ent / self.vel.y
                 yt_ext = ydist_ext / self.vel.y
-            print xt_ent, xt_ext, yt_ent, yt_ext
             enter = max(xt_ent, yt_ent)
             exit = min(xt_ext, yt_ext)
-            print enter, exit
             #no coll
             if enter > exit or (xt_ent < 0
                                 and yt_ent < 0) or xt_ent > dt or yt_ent > dt:
                 return False
             #normal
             if xt_ent > yt_ent:
-                if xdist_ent >= 0:
+                if xdist_ent >= 0 and self.vel.x > 0:
                     normal = vec2(1., 0.)
-                else:
+                elif xdist_ent <= 0 and self.vel.x < 0:
                     normal = vec2(-1., 0.)
             else:
                 if ydist_ent <= 0:
                     normal = vec2(0., -1.)
                 else:
                     normal = vec2(0., 1.)
-            return True, normal, enter
+            return normal, enter, dt - enter
 
     def sign_of(self, vec):
         if not isinstance(vec, vec2):
