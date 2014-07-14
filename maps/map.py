@@ -1,6 +1,6 @@
 from xml.etree import ElementTree as ET
 from graphics.primitives import Rect
-from collision.rectangle import Rectangle
+from collision.aabb import AABB
 from collision.quadtree import QuadTree
 
 
@@ -13,7 +13,7 @@ class Map(object):
         self.quad_tree = None
         self.server = server
         if server:
-            self.Rect = Rectangle
+            self.Rect = AABB
         else:
             self.Rect = Rect
         self.load(''.join(('maps/', mapname, '.svg')))
@@ -32,8 +32,8 @@ class Map(object):
             color = (1, 1, 1)
             rects.append(self.Rect(x, y + height, width, height, color))
 
-        max_x = max(rect.x1 + rect.width for rect in rects)
-        max_y = max(rect.y1 + rect.height for rect in rects)
+        max_x = max(rect.pos.x + rect.width for rect in rects)
+        max_y = max(rect.pos.y + rect.height for rect in rects)
 
         self.quad_tree = QuadTree(0, self.Rect(0, 0, max_x, max_y),
                                   server=self.server)

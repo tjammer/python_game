@@ -31,8 +31,8 @@ class QuadTree(object):
     def split(self):
         sub_width = self.bounds.width / 2
         sub_height = self.bounds.height / 2
-        x = self.bounds.x1
-        y = self.bounds.y1
+        x = self.bounds.pos.x
+        y = self.bounds.pos.y
 
         self.nodes[0] = QuadTree(self.level+1,
                                  self.Rect(x + sub_width, y,
@@ -52,21 +52,21 @@ class QuadTree(object):
         than a cell if i am correct"""
 
         index = -1
-        x_center = self.bounds.x1 + self.bounds.width / 2
-        y_center = self.bounds.y1 + self.bounds.height / 2
+        x_center = self.bounds.pos.x + self.bounds.width / 2
+        y_center = self.bounds.pos.y + self.bounds.height / 2
 
-        top = rect.y1 > y_center
-        bottom = rect.y1 < y_center and rect.y1 + rect.height < y_center
+        top = rect.pos.y > y_center
+        bottom = rect.pos.y < y_center and rect.pos.y + rect.height < y_center
 
         # check for left quadrants
-        if rect.x1 < x_center and rect.x1 + rect.width < x_center:
+        if rect.pos.x < x_center and rect.pos.x + rect.width < x_center:
             if top:
                 index = 2
             elif bottom:
                 index = 1
 
         # check for right quadrants
-        elif rect.x1 > x_center:
+        elif rect.pos.x > x_center:
             if top:
                 index = 3
             elif bottom:
