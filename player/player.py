@@ -1,6 +1,6 @@
 from movement import Movement
 from graphics.primitives import Rect
-from collision.rectangle import Rectangle
+from collision.aabb import AABB
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
 from menu.menu_events import Events
@@ -11,14 +11,14 @@ class Player(Events):
     """docstring for player"""
     def __init__(self, server=False, dispatch_proj=None, id=False):
         super(Player, self).__init__()
-        self.state = state(vec2(50, 50), vec2(0, 0), 100)
+        self.state = state(vec2(100, 130), vec2(0, 0), 100)
         self.move = Movement(*self.state.pos)
         self.dispatch_proj = dispatch_proj
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         if not server:
             self.Rect = Rect
         else:
-            self.Rect = Rectangle
+            self.Rect = AABB
         if id:
             self.id = id
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
@@ -27,12 +27,22 @@ class Player(Events):
         self.input = proto.Input()
         self.listeners = {}
 
-    def update(self, dt, state=False, input=False):
+    def update(self, dt, rectgen, state=False, input=False):
         if not state:
             state = self.state
         if not input:
             input = self.input
-        self.state.vel, self.state.pos = self.move.update(dt, state, input)
+        self.rect.vel = self.move.get_vel(dt, state, input)
+        self.collide(dt, rectgen)
+        #self.weapons.update(dt, self.state, self.input)
+        self.state.update(dt)
+
+    def update_old(self, dt, state=False, input=False):
+        if not state:
+            state = self.state
+        if not input:
+            input = self.input
+        self.state.pos, self.state.vel = self.move.update(dt, state, input)
         self.rect.update(*self.state.pos)
         self.weapons.update(dt, self.state, self.input)
         self.state.update(dt)
@@ -54,6 +64,40 @@ class Player(Events):
 
     def draw(self):
         self.rect.draw()
+
+    def collide(self, dt, rectgen):
+        all_collisions = (self.rect.sweep(obj, dt) for obj in rectgen)
+        collisions = [coldata for coldata in all_collisions if coldata]
+        try:
+            xt = min(col[1] for col in collisions if col[0].x != 0)
+            xnorm = [col[0].x for col in collisions if col[1] == xt][0]
+        except ValueError:
+            xt = dt
+            xnorm = 0.
+        try:
+            yt = min(col[1] for col in collisions if col[0].y != 0)
+            ynorm = [col[0].y for col in collisions if col[1] == yt][0]
+        except ValueError:
+            yt = dt
+            ynorm = 0.
+        dt = vec2(xt, yt)
+        norm = vec2(xnorm, ynorm)
+        self.resolve_sweep(norm, dt)
+
+    def resolve_sweep(self, normal, dt):
+        self.state.pos, self.state.vel = self.move.step(dt, self.state.pos)
+        self.rect.update(*self.state.pos)
+        self.state.vel.x *= normal.x == 0
+        self.state.vel.y *= normal.y == 0
+        self.move.resolve_coll(self.state.pos, self.state.vel)
+        if normal.y < 0:
+            self.state.set_cond('onGround')
+        elif normal.x > 0:
+            self.state.set_cond('onRightWall')
+        elif normal.x < 0:
+            self.state.set_cond('onLeftWall')
+        elif normal.x == 0. and normal.y == 0.:
+            self.determine_state()
 
     def resolve_collision(self, ovrlap, axis, angle):
         self.state.pos[0] = self.rect.x1 - ovrlap * axis[0]

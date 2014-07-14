@@ -10,6 +10,7 @@ from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
 from network_utils import protocol_pb2 as proto
 from gameplay.weapons import ProjectileViewer
+from itertools import chain
 
 
 class GameScreen(Events):
@@ -44,6 +45,14 @@ class GameScreen(Events):
             self.controls_old[key_] = value
 
     def update_physics(self, dt, state=False, input=False):
+        playergen = (player.rect for player in self.players.itervalues())
+        mapgen = (rect for rect in self.map.quad_tree.retrieve([],
+                  self.player.rect))
+        rectgen = chain(playergen, mapgen)
+        self.player.update(dt, rectgen, state, input)
+        return self.player.state
+
+    def update_physics_old(self, dt, state=False, input=False):
         self.player.update(dt, state, input)
         # for rect in self.map.rects:
         self.colled = False

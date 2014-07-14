@@ -18,16 +18,19 @@ class Movement(object):
 
     def update(self, dt, state, input):
         pos, vel, conds = state.pos, state.vel, state.conds
-        self.comp_vel(dt, pos, vel, input, conds, state)
-        self.step(dt, pos, vel)
-        return self.vel, self.pos
+        self.compute_vel(dt, pos, vel, input, conds, state)
+        return self.step(dt, pos)
 
-    def step(self, dt, pos, vel):
-        self.vel[1] = vel[1] - self.gravity * dt
-        for i, j in enumerate(self.pos):
-            self.pos[i] = pos[i] + self.vel[i] * dt
+    def step(self, dt, pos):
+        self.pos = pos + self.vel * dt
+        return self.pos, self.vel
 
-    def comp_vel(self, dt, pos, vel, input, conds, state):
+    def get_vel(self, dt, state, input):
+        pos, vel, conds = state.pos, state.vel, state.conds
+        self.compute_vel(dt, pos, vel, input, conds, state)
+        return self.vel
+
+    def compute_vel(self, dt, pos, vel, input, conds, state):
         avel = abs(vel.x)
         if input.right and not input.left:
             sign = 1
@@ -49,7 +52,8 @@ class Movement(object):
          #                                   and avel > self.max_vel):
         if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
-        self.vel.x = vel.x + v * sign * dt
+        self.vel.x = self.vel.x + v * sign * dt
+        self.vel.y = self.vel.y - self.gravity * dt
 
         if (conds.landing or conds.onGround) and conds.canJump and input.up:
             self.jump(state)

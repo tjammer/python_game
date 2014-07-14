@@ -1,12 +1,36 @@
 from pyglet import graphics
 from pyglet import gl
 from collision.rectangle import Rectangle
+from collision.aabb import AABB
 
 
-class Rect(Rectangle):
+class Rect(AABB):
+    """docstring for Rect"""
+    def __init__(self, x, y, width, height, color=(1., 1., 1.)):
+        super(Rect, self).__init__(x, y, width, height, color)
+        self.ver_list = graphics.vertex_list(4,
+            ('v2f/stream', (x, y, x, y + height,
+             x + width, y + height, x + width, y)),
+            ('c3f', (self.color[0], self.color[1], self.color[2],
+             self.color[0], self.color[1], self.color[2],
+             self.color[0], self.color[1], self.color[2],
+             self.color[0], self.color[1], self.color[2])))
+
+    def draw(self):
+        self.ver_list.draw(gl.GL_POLYGON)
+
+    def on_update(self, x, y):
+        self.ver_list.vertices = [self.pos.x, self.pos.y, self.pos.x,
+                                  self.pos.y + self.height,
+                                  self.pos.x + self.width,
+                                  self.pos.y + self.height,
+                                  self.pos.x + self.width, self.pos.y]
+
+
+class Rect_(Rectangle):
     """Rectangle Class"""
     def __init__(self, x, y, width, height, color=(1., 1., 1.), angle=0):
-        super(Rect, self).__init__(x, y, width, height, color, angle)
+        super(Rect_, self).__init__(x, y, width, height, color, angle)
         self.ver_list = graphics.vertex_list(4,
                     ('v2f/stream', (self.x1, self.y1, self.x2, self.y2,
                                     self.x3, self.y3, self.x4, self.y4)),
