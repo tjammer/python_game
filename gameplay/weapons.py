@@ -1,10 +1,7 @@
-from collision.rectangle import Rectangle
+from collision.aabb import AABB as Rectangle
 from player.state import vec2
 from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect
-from math import atan, acos
-
-pi = acos(0)
 
 
 class Weapon(object):
@@ -75,8 +72,8 @@ class Melee(Weapon):
         proj = MeleeProjectile(self.dmg, self.knockback, self.id, npos.x,
                                npos.y, width=70, height=70, vel=self.vel,
                                selfhit=self.selfhit, direc=direc,
-                               lifetime=self.proj_lifetime, pos=pos,
-                               offset=offset)
+                               lifetime=self.proj_lifetime,
+                               offset=offset, ppos=pos)
         self.dispatch_proj(proj)
 
 
@@ -114,9 +111,9 @@ class Projectile(Rectangle):
     #x and y are center positions for convenience
     def __init__(self, dmg=10, knockback=10, id=0, x=0, y=0, width=100,
                  height=100, vel=10, selfhit=False, direc=vec2(10, 0),
-                 lifetime=0.1, pos=None, offset=None, angle=0):
+                 lifetime=0.1, offset=None, ppos=None):
         super(Projectile, self).__init__(x - width / 2, y - height / 2,
-                                         width, height, angle=angle)
+                                         width, height)
         self.dmg = dmg
         self.knockback = knockback
         #playerid for collision
@@ -127,16 +124,56 @@ class Projectile(Rectangle):
         self.selfhit = selfhit
         self.lifetime = lifetime
         self.type = None
-        self.pos = pos
         self.offset = offset
+        self.ppos = ppos
 
-    def on_hit(self, ovr, axis, player=None):
+    def on_hit(self, player=None):
         pass
 
-    def updateproj(self, dt):
-        pos = vec2(self.x1, self.y1) + self.vel * dt
-        self.update(*pos)
+    def updateproj(self, dt, mapgen, playergen):
         self.lifetime -= dt
+        return self.collide(dt, mapgen, playergen)
+
+    def collide(self, dt, mapgen, playergen):
+        all_collisions = ((self.sweep(obj.rect, dt), obj.id)
+                          for obj in playergen)
+        collisions = [coldata for coldata in all_collisions if coldata]
+        id = False
+        try:
+            xt = min(col[0][1] for col in collisions if col[0][0].x != 0)
+            id = [col[1] for col in collisions if col[0][1] == xt][0]
+        except (TypeError, ValueError):
+            xt = dt
+        try:
+            yt = min(col[0][1] for col in collisions if col[0][0].y != 0)
+            if yt < xt:
+                id = [col[1] for col in collisions if col[0][1] == yt][0]
+        except (TypeError, ValueError):
+            yt = dt
+        dt_ = vec2(xt, yt)
+        if not id:
+            all_collisions = (self.sweep(obj, dt) for obj in mapgen)
+            collisions = [coldata for coldata in all_collisions if coldata]
+            try:
+                xt = min(col[1] for col in collisions if col[0].x != 0)
+            except (TypeError, ValueError):
+                xt = dt
+            try:
+                yt = min(col[1] for col in collisions if col[0].y != 0)
+            except (TypeError, ValueError):
+                yt = dt
+            dt_ = vec2(xt, yt)
+            if (dt_.x < dt or dt_.y < dt) and not id:
+                id = -1
+        return self.resolve_sweep(dt_, id)
+
+    def resolve_sweep(self, dt, id):
+        pos = self.pos + self.vel * dt
+        self.update(*pos)
+        if not id:
+            return False
+        else:
+            return id
 
     def pass_pos(self, pos, vel):
         self.vel, self.pos = vel, pos
@@ -148,17 +185,25 @@ class MeleeProjectile(Projectile):
         super(MeleeProjectile, self).__init__(*args, **kwargs)
         self.type = proto.melee
         self.rectoffset = vec2(16 - self.width / 2, 36 - self.height / 2)
+        self.vel = vec2(0, 0)
 
-    def on_hit(self, ovr, axis, player=None):
+    def on_hit(self, player=None):
         if player and player.id != self.id:
             player.state.hp -= self.dmg
             player.state.vel += self.direc * self.knockback
         #return if delete proj, in case of melee never
         return False
 
-    def updateproj(self, dt):
-        self.update(*(vec2(*self.pos) + self.offset + self.rectoffset))
+    def updateproj(self, dt, mapgen, playergen):
+        self.update(*(vec2(*self.ppos) + self.offset + self.rectoffset))
         self.lifetime -= dt
+        return self.collide(dt, mapgen, playergen)
+
+    def resolve_sweep(self, dt, id):
+        if not id:
+            return False
+        else:
+            return id
 
 
 class BlasterProjectile(Projectile):
@@ -167,9 +212,9 @@ class BlasterProjectile(Projectile):
         super(BlasterProjectile, self).__init__(*args, **kwargs)
         self.type = proto.blaster
 
-    def on_hit(self, ovr, axis, player=None):
-        posx = self.x1 - ovr * axis[0]
-        posy = self.y1 - ovr * axis[1]
+    def on_hit(self, player=None):
+        posx = self.pos.x
+        posy = self.pos.y
         hwidth = 51
         proj = BlasterExplosion(dmg=50, knockback=400, id=self.id,
                                 x=posx+hwidth*2./3, y=posy+hwidth*2./3,
@@ -186,7 +231,7 @@ class BlasterExplosion(Projectile):
         super(BlasterExplosion, self).__init__(*args, **kwargs)
         self.type = proto.explBlaster
 
-    def on_hit(self, ovr, axis, player=None):
+    def on_hit(self, player=None):
         if player:
             player.state.hp -= self.dmg
             player.state.vel -= (self.center
@@ -196,18 +241,17 @@ class BlasterExplosion(Projectile):
 
 class ProjectileManager(object):
     """docstring for ProjectileManager"""
-    def __init__(self, players, Map):
+    def __init__(self, players, _map):
         super(ProjectileManager, self).__init__()
         self.projs = []
         self.todelete = []
-        #dict of players for collision
-        self.players = players
-        #map for collision
-        self.map = Map
         self.send_ = None
         self.proj_num = 0
         self.message = proto.Message()
         self.message.type = proto.projectile
+        #for collisions
+        self.players = players
+        self.map = _map
 
     def __iter__(self):
         return iter(self.projs)
@@ -220,12 +264,18 @@ class ProjectileManager(object):
 
     def update(self, dt):
         for proj in self.projs:
-            proj.updateproj(dt)
+            mapgen = (rect for rect in self.map.quad_tree.retrieve([], proj))
+            playergen = (player for player in self.players.itervalues())
+            coll = proj.updateproj(dt, mapgen, playergen)
+            if coll:
+                try:
+                    player = self.players[coll]
+                except KeyError:
+                    player = False
+                self.resolve_collision(proj, player)
             if proj.lifetime < 0:
                 self.todelete.append(proj)
         #loop over copy of list to make deletion possible
-        for proj in self.projs:
-            self.collide(proj)
         self.del_projectiles()
         self.send_all()
 
@@ -245,9 +295,10 @@ class ProjectileManager(object):
                     ovr, axis = coll
                     self.resolve_collision(ovr, axis, proj)
 
-    def resolve_collision(self, ovr, axis, proj, player=None):
+    def resolve_collision(self, proj, player):
         #self.todelete.append(proj)
-        if proj.on_hit(ovr, axis, player):
+        if proj.on_hit(player):
+            print True
             self.todelete.append(proj)
 
     def del_projectiles(self):
@@ -266,9 +317,8 @@ class ProjectileManager(object):
         projectile = proto.Projectile()
         projectile.projId = proj.projId
         projectile.type = proj.type
-        projectile.posx, projectile.posy = proj.x1, proj.y1
+        projectile.posx, projectile.posy = proj.pos.x, proj.pos.y
         projectile.velx, projectile.vely = proj.vel.x, proj.vel.y
-        projectile.angle = proj.angle
         projectile.toDelete = toDelete
         self.message.projectile.CopyFrom(projectile)
         for player in self.players.itervalues():
@@ -292,7 +342,6 @@ class ProjectileViewer(object):
     def process_proj(self, datagram):
         self.data.CopyFrom(datagram)
         ind = self.data.projId
-        angle = self.data.angle * 180 / pi
         if not self.data.toDelete:
             vel = vec2(self.data.velx, self.data.vely)
             pos = vec2(self.data.posx, self.data.posy)
@@ -305,7 +354,7 @@ class ProjectileViewer(object):
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.blaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=15, height=15,
-                                           color=(1., 0., 0.), angle=angle)
+                                           color=(1., 0., 0.))
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=102, height=102,
@@ -321,8 +370,7 @@ class ProjectileViewer(object):
 
     def update(self, dt):
         for proj in self.projs.itervalues():
-            pos = vec2(proj.x1, proj.y1)
-            pos += proj.vel * dt
+            pos = proj.pos + proj.vel * dt
             proj.update(*pos)
 
     def draw(self):
