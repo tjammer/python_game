@@ -24,17 +24,22 @@ class AABB(object):
 
     def overlaps(self, aabb):
         distance = (self.center - aabb.center)
-        if not abs(distance.x) >= self.hwidth + aabb.hwidth:
-            if not abs(distance.y) >= self.hheight + aabb.hheight:
-                return True
+        xovr = abs(distance.x) - self.hwidth - aabb.hwidth
+        if xovr < 0:
+            yovr = abs(distance.y) - self.hheight - aabb.hheight
+            if yovr < 0:
+                return xovr, yovr
         return False
 
     def collides(self, aabb):
         return self.overlaps(aabb)
 
     def sweep(self, obj, dt):
-        if self.overlaps(obj):
-            pass
+        ovrtest = self.overlaps(obj)
+        if ovrtest:
+            norm = vec2(1., 0)
+            self.vel *= -1.
+            return norm, dt - 1. / 600.
         else:
             #find distance for entry and exit
             if self.vel.x > 0:
