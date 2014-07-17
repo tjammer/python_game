@@ -154,7 +154,7 @@ class GameServer(DatagramProtocol):
         for idx, p in self.players.iteritems():
             self.transport.write(disc.SerializeToString(), p.address)
 
-    def rectgen(self, idx):
+    def rectgen(self, idx=-1):
         playergen = (player.rect for key, player in self.players.iteritems()
                      if key != idx)
         mapgen = (rect for rect in self.map.quad_tree.retrieve([],

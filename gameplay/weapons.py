@@ -163,7 +163,7 @@ class Projectile(Rectangle):
             except (TypeError, ValueError):
                 yt = dt
             dt_ = vec2(xt, yt)
-            if (dt_.x < dt or dt_.y < dt) and not id:
+            if (dt_.x < dt or dt_.y < dt):
                 id = -1
         return self.resolve_sweep(dt_, id)
 
@@ -217,7 +217,7 @@ class BlasterProjectile(Projectile):
         posy = self.pos.y
         hwidth = 51
         proj = BlasterExplosion(dmg=50, knockback=400, id=self.id,
-                                x=posx+hwidth*2./3, y=posy+hwidth*2./3,
+                                x=posx, y=posy,
                                 width=hwidth*2,
                                 height=hwidth*2, vel=0, direc=vec2(0, 0),
                                 lifetime=0.05)
@@ -225,14 +225,23 @@ class BlasterProjectile(Projectile):
         return True
 
 
-class BlasterExplosion(Projectile):
+class Explosion(Projectile):
+    """docstring for Explosion"""
+    def __init__(self, *args, **kwargs):
+        super(Explosion, self).__init__(*args, **kwargs)
+
+    def collide(self, dt, mapgen, playergen):
+        return [player for player in playergen if self.overlaps(player.rect)]
+
+
+class BlasterExplosion(Explosion):
     """docstring for BlasterExplosion"""
     def __init__(self, *args, **kwargs):
         super(BlasterExplosion, self).__init__(*args, **kwargs)
         self.type = proto.explBlaster
 
-    def on_hit(self, player=None):
-        if player:
+    def on_hit(self, players):
+        for player in players:
             player.state.hp -= self.dmg
             player.state.vel -= (self.center
                                  - player.rect.center) * 4.5
@@ -272,6 +281,9 @@ class ProjectileManager(object):
                     player = self.players[coll]
                 except KeyError:
                     player = False
+                except TypeError:
+                    #in case of explosions coll: list of players in expl radius
+                    player = coll
                 self.resolve_collision(proj, player)
             if proj.lifetime < 0:
                 self.todelete.append(proj)
@@ -298,7 +310,6 @@ class ProjectileManager(object):
     def resolve_collision(self, proj, player):
         #self.todelete.append(proj)
         if proj.on_hit(player):
-            print True
             self.todelete.append(proj)
 
     def del_projectiles(self):

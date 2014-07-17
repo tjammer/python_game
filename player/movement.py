@@ -26,11 +26,12 @@ class Movement(object):
         return self.pos, self.vel
 
     def get_vel(self, dt, state, input):
-        pos, vel, conds = state.pos, state.vel, state.conds
-        self.compute_vel(dt, pos, vel, input, conds, state)
+        vel, conds = state.vel, state.conds
+        self.compute_vel(dt, vel, input, conds, state)
         return self.vel
 
-    def compute_vel(self, dt, pos, vel, input, conds, state):
+    def compute_vel(self, dt, vel, input, conds, state):
+        self.vel = vel
         avel = abs(vel.x)
         if input.right and not input.left:
             sign = 1
