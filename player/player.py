@@ -33,8 +33,8 @@ class Player(Events):
         if not input:
             input = self.input
         self.rect.vel = self.move.get_vel(dt, state, input)
-        self.collide(dt, rectgen)
-        #self.weapons.update(dt, self.state, self.input)
+        self.collide(dt, rectgen, state)
+        self.weapons.update(dt, self.state, self.input)
         self.state.update(dt)
 
     def update_old(self, dt, state=False, input=False):
@@ -65,7 +65,7 @@ class Player(Events):
     def draw(self):
         self.rect.draw()
 
-    def collide(self, dt, rectgen):
+    def collide(self, dt, rectgen, state):
         all_collisions = (self.rect.sweep(obj, dt) for obj in rectgen)
         collisions = [coldata for coldata in all_collisions if coldata]
         try:
@@ -82,10 +82,10 @@ class Player(Events):
             ynorm = 0.
         dt = vec2(xt, yt)
         norm = vec2(xnorm, ynorm)
-        self.resolve_sweep(norm, dt)
+        self.resolve_sweep(norm, dt, state)
 
-    def resolve_sweep(self, normal, dt):
-        self.state.pos, self.state.vel = self.move.step(dt, self.state.pos)
+    def resolve_sweep(self, normal, dt, state):
+        self.state.pos, self.state.vel = self.move.step(dt, state.pos)
         self.rect.update(*self.state.pos)
         self.state.vel.x *= normal.x == 0
         self.state.vel.y *= normal.y == 0
