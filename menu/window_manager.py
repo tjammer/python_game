@@ -13,7 +13,7 @@ class WindowManager(Events):
         self.InputHandler = InputHandler(self.window)
         self.window.push_handlers(self.InputHandler.keys)
         self.stack = []
-        self.cross = CrossHair()
+        #self.cross = CrossHair()
         self.saved_mouse = (1280 / 2, 720 / 2)
 
         # set up main menu as starting screen
@@ -38,7 +38,7 @@ class WindowManager(Events):
         if self.stack[0] != self.current_screen:
             self.stack[0].draw()
         self.current_screen.draw()
-        self.cross.draw(*self.InputHandler.mousepos)
+        #self.cross.draw(*self.InputHandler.mousepos)
 
     # receive events, a lot of transitions will happen here
     def receive_events(self, event, msg):
@@ -61,6 +61,8 @@ class WindowManager(Events):
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.mousepos)
                 self.current_screen.player.input = proto.Input()
+                self.InputHandler.unregister(self.current_screen.camera.
+                                             receive_m_pos, 'mouse_cam')
             self.current_screen = msg()
             self.register_screen()
 
@@ -94,17 +96,19 @@ class WindowManager(Events):
         if not isinstance(self.current_screen, GameScreen):
             self.InputHandler.register(self.current_screen.receive_event,
                                        events=('changed_mouse', 'all_input'))
+            self.window.set_mouse_visible(True)
+            self.window.set_exclusive_mouse(False)
         # game screen
         else:
             for i, j in enumerate(self.saved_mouse):
-                self.InputHandler.mousepos[i] = j
+                self.InputHandler.m_cam[i] = j
 
             self.InputHandler.register(self.current_screen.camera.
-                                       receive_m_pos, 'changed_mouse')
+                                       receive_m_pos, 'mouse_cam')
 
             # set mouse on same position as it was before opening menu
-            self.InputHandler.send_message('changed_mouse',
-                                           self.InputHandler.mousepos)
+            self.InputHandler.send_message('mouse_cam',
+                                           self.InputHandler.m_cam)
             # pass by ref bullshit
             self.current_screen.player.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
@@ -112,6 +116,8 @@ class WindowManager(Events):
             self.current_screen.register(self.receive_events, 'input')
             self.current_screen.camera.register(self.InputHandler.receive_aim,
                                                 'mousepos')
+            self.window.set_mouse_visible(False)
+            self.window.set_exclusive_mouse(True)
 
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)

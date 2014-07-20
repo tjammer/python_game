@@ -11,6 +11,7 @@ from network_utils.clientclass import move, moves, correct_client
 from network_utils import protocol_pb2 as proto
 from gameplay.weapons import ProjectileViewer
 from itertools import chain
+from graphics.primitives import CrossHair
 
 
 class GameScreen(Events):
@@ -30,6 +31,8 @@ class GameScreen(Events):
         self.head = [0]
         #other players
         self.players = {}
+        #crosshair
+        self.cross = CrossHair()
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
@@ -110,6 +113,7 @@ class GameScreen(Events):
         self.proj_viewer.draw()
         self.map.draw()
         self.camera.set_static()
+        self.cross.draw(*self.camera.mpos)
 
     def on_connect(self, msg):
         ind, mapname = msg
