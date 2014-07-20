@@ -55,6 +55,7 @@ class WindowManager(Events):
             self.current_screen = MainMenu()
             self.register_screen()
             self.disconnect()
+            self.saved_mouse = (1280 / 2, 720 / 2)
 
         elif event == 'menu_transition_+':
             if isinstance(self.current_screen, GameScreen):
