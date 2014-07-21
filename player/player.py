@@ -34,7 +34,7 @@ class Player(Events):
             input = self.input
         self.rect.vel = self.move.get_vel(dt, state, input)
         self.collide(dt, rectgen, state)
-        self.weapons.update(dt, self.state, self.input)
+        self.weapons.update(dt, state, input)
         self.state.update(dt)
 
     def update_old(self, dt, state=False, input=False):
@@ -127,3 +127,6 @@ class Player(Events):
     def get_id(self, id):
         self.id = id
         self.weapons = WeaponsManager(self.dispatch_proj, self.id)
+
+    def die(self):
+        pass
