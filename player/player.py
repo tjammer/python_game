@@ -35,7 +35,7 @@ class Player(Events):
         self.rect.vel = self.move.get_vel(dt, state, input)
         self.collide(dt, rectgen, state)
         self.weapons.update(dt, state, input)
-        self.state.update(dt)
+        self.state.update(dt, state)
 
     def update_old(self, dt, state=False, input=False):
         if not state:
@@ -123,10 +123,11 @@ class Player(Events):
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)
+        self.state.conds.isDead = False
 
     def get_id(self, id):
         self.id = id
         self.weapons = WeaponsManager(self.dispatch_proj, self.id)
 
     def die(self):
-        pass
+        self.state.conds.isDead = 500
