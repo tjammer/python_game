@@ -142,12 +142,14 @@ class Projectile(Rectangle):
         try:
             xt = min(col[0][1] for col in collisions if col[0][0].x != 0)
             id = [col[1] for col in collisions if col[0][1] == xt][0]
+            print id
         except (TypeError, ValueError):
             xt = dt
         try:
             yt = min(col[0][1] for col in collisions if col[0][0].y != 0)
             if yt < xt:
                 id = [col[1] for col in collisions if col[0][1] == yt][0]
+                print id
         except (TypeError, ValueError):
             yt = dt
         dt_ = vec2(xt, yt)
