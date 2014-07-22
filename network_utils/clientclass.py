@@ -36,7 +36,8 @@ class Client(DatagramProtocol):
             self.input.id = self.id
             self.input.time = 0
             self.message.input.CopyFrom(self.input)
-            self.transport.write(self.message.SerializeToString(), self.host)
+            #self.transport.write(self.message.SerializeToString(), self.host)
+            self.ackman.send_rel(self.message, self.host)
         self.connected = False
         self.id = None
         self.time = 0
@@ -51,8 +52,6 @@ class Client(DatagramProtocol):
             self.input.id = self.id
             self.message.input.CopyFrom(self.input)
             self.transport.write(self.message.SerializeToString(), self.host)
-        elif self.time == 1337:
-            self.connected = True
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)
@@ -72,10 +71,12 @@ class Client(DatagramProtocol):
             ind = self.message.player.id
             state = self.server_to_state(self.message.player)
             time = self.message.player.time
+            self.ackman.respond(self.message, address)
             self.send_message('serverdata',
                               (proto.newPlayer, (ind, time, state)))
         elif self.message.type == proto.disconnect and self.connected:
             ind = self.message.player.id
+            self.ackman.respond(self.message, address)
             self.send_message('serverdata', (proto.disconnect, ind))
         elif self.message.type == proto.projectile and self.connected:
             self.send_message('serverdata',
