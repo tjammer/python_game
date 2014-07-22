@@ -137,19 +137,17 @@ class Projectile(Rectangle):
     def collide(self, dt, mapgen, playergen):
         all_collisions = ((self.sweep(obj.rect, dt), obj.id)
                           for obj in playergen)
-        collisions = [coldata for coldata in all_collisions if coldata]
+        collisions = [coldata for coldata in all_collisions if coldata[0]]
         id = False
         try:
             xt = min(col[0][1] for col in collisions if col[0][0].x != 0)
             id = [col[1] for col in collisions if col[0][1] == xt][0]
-            print id
         except (TypeError, ValueError):
             xt = dt
         try:
             yt = min(col[0][1] for col in collisions if col[0][0].y != 0)
             if yt < xt:
                 id = [col[1] for col in collisions if col[0][1] == yt][0]
-                print id
         except (TypeError, ValueError):
             yt = dt
         dt_ = vec2(xt, yt)
@@ -191,7 +189,7 @@ class MeleeProjectile(Projectile):
 
     def on_hit(self, player=None):
         if player and player.id != self.id:
-            player.state.hp -= self.dmg
+            self.damage_player(player, self.dmg)
             player.state.vel += self.direc * self.knockback
         #return if delete proj, in case of melee never
         return False
@@ -224,10 +222,9 @@ class BlasterProjectile(Projectile):
                                 height=hwidth*2, vel=0, direc=vec2(0, 0),
                                 lifetime=0.05)
         self.dispatch_proj(proj)
-        dmg = BlasterExplosion(dmg=40, knockback=0, id=self.id, x=posx, y=posy,
-                               width=10, height=10, vel=0, direc=vec2(0, 0),
-                               lifetime=0.)
-        self.dispatch_proj(dmg)
+        #direct dmg
+        if player:
+            self.damage_player(player, 40)
         return True
 
 
