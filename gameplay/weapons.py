@@ -186,13 +186,18 @@ class MeleeProjectile(Projectile):
         self.type = proto.melee
         self.rectoffset = vec2(16 - self.width / 2, 36 - self.height / 2)
         self.vel = vec2(0, 0)
+        self.ids = [self.id]
 
-    def on_hit(self, player=None):
-        if player and player.id != self.id:
-            self.damage_player(player, self.dmg)
-            player.state.vel += self.direc * self.knockback
-        #return if delete proj, in case of melee never
+    def on_hit(self, players=None):
+        for player in players:
+            if player.id not in self.ids:
+                self.damage_player(player, self.dmg)
+                player.state.vel += self.direc * self.knockback
+                self.ids.append(player.id)
         return False
+
+    def collide(self, dt, mapgen, playergen):
+        return [player for player in playergen if self.overlaps(player.rect)]
 
     def updateproj(self, dt, mapgen, playergen):
         self.update(*(vec2(*self.ppos) + self.offset + self.rectoffset))
