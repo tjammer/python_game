@@ -10,7 +10,7 @@ class Movement(object):
         self.gravity = 2500.
         self.normal_accel = 500.
         self.boost_accel = 20.
-        self.turn_multplier = 4.
+        self.turn_multplier = 8.
         self.jump_vel = 900.
         self.max_vel = 500.
         self.wall_boost = 650.
@@ -38,7 +38,7 @@ class Movement(object):
         elif input.left and not input.right:
             sign = -1
         else:
-            self.vel.x = 0
+            self.vel.x -= self.vel.x * dt * 30
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
         if vel.x * sign >= self.max_vel or (conds.onRightWall
@@ -49,8 +49,6 @@ class Movement(object):
             v = self.normal_accel
         if conds.onGround and self.curr_sign * sign > 0:
             v *= self.turn_multplier
-        #if avel + v * dt > self.max_vel or (conds.onGround
-         #                                   and avel > self.max_vel):
         if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
         self.vel.x = self.vel.x + v * sign * dt
