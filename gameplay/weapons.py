@@ -216,12 +216,16 @@ class BlasterProjectile(Projectile):
         posx = self.pos.x
         posy = self.pos.y
         hwidth = 51
-        proj = BlasterExplosion(dmg=50, knockback=400, id=self.id,
+        proj = BlasterExplosion(dmg=10, knockback=400, id=self.id,
                                 x=posx, y=posy,
                                 width=hwidth*2,
                                 height=hwidth*2, vel=0, direc=vec2(0, 0),
                                 lifetime=0.05)
         self.dispatch_proj(proj)
+        dmg = BlasterExplosion(dmg=40, knockback=0, id=self.id, x=posx, y=posy,
+                               width=10, height=10, vel=0, direc=vec2(0, 0),
+                               lifetime=0.)
+        self.dispatch_proj(dmg)
         return True
 
 
@@ -229,9 +233,19 @@ class Explosion(Projectile):
     """docstring for Explosion"""
     def __init__(self, *args, **kwargs):
         super(Explosion, self).__init__(*args, **kwargs)
+        self.players = []
 
     def collide(self, dt, mapgen, playergen):
         return [player for player in playergen if self.overlaps(player.rect)]
+
+    def on_hit(self, players):
+        for player in players:
+            if player not in self.players:
+                self.damage_player(player, self.dmg)
+                direc = self.center - player.rect.center
+                player.state.vel -= direc / direc.mag() * self.knockback
+            self.players.append(player)
+        return False
 
 
 class BlasterExplosion(Explosion):
@@ -240,17 +254,10 @@ class BlasterExplosion(Explosion):
         super(BlasterExplosion, self).__init__(*args, **kwargs)
         self.type = proto.explBlaster
 
-    def on_hit(self, players):
-        for player in players:
-            player.state.hp -= self.dmg
-            player.state.vel -= (self.center
-                                 - player.rect.center) * 4.5
-        return False
-
 
 class ProjectileManager(object):
     """docstring for ProjectileManager"""
-    def __init__(self, players, _map):
+    def __init__(self, players, _map, dmg_func):
         super(ProjectileManager, self).__init__()
         self.projs = []
         self.todelete = []
@@ -261,6 +268,7 @@ class ProjectileManager(object):
         #for collisions
         self.players = players
         self.map = _map
+        self.damage_player = dmg_func
 
     def __iter__(self):
         return iter(self.projs)
@@ -322,6 +330,7 @@ class ProjectileManager(object):
     def add_projectile(self, proj):
         self.proj_num += 1
         proj.projId = self.proj_num
+        proj.damage_player = self.damage_player
         self.projs.append(proj)
 
     def send(self, proj, toDelete=False):
@@ -408,6 +417,8 @@ class WeaponsManager(object):
             print 'no ammmo'
 
     def update(self, dt, state, input):
+        if state.conds.isDead:
+            return 0
         if input.att:
             self.fire(state.pos, vec2(input.mx, input.my))
         if input.switch:
