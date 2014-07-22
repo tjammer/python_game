@@ -149,14 +149,15 @@ class GameServer(DatagramProtocol):
                 player = self.players_pack[idx]
                 other.type = proto.newPlayer
                 other.player.CopyFrom(player)
-                self.transport.write(other.SerializeToString(),
-                                     self.players[pl_id].address)
+                #self.transport.write(other.SerializeToString(), address)
+                self.ackman.send_rel(other, address)
                 #other.type = proto.playerUpdate
                 new = proto.Message()
                 new.type = proto.newPlayer
                 player = self.players_pack[pl_id]
                 new.player.CopyFrom(player)
-                self.transport.write(new.SerializeToString(), p.address)
+                #self.transport.write(new.SerializeToString(), p.address)
+                self.ackman.send_rel(new, p.address)
 
     def disc_player(self, id):
         del self.players[id], self.players_pack[id]
@@ -166,7 +167,8 @@ class GameServer(DatagramProtocol):
         player.id = id
         disc.player.CopyFrom(player)
         for idx, p in self.players.iteritems():
-            self.transport.write(disc.SerializeToString(), p.address)
+            #self.transport.write(disc.SerializeToString(), p.address)
+            self.ackman.send_rel(disc, p.address)
 
     def rectgen(self, idx=-1):
         playergen = (player.rect for key, player in self.players.iteritems()
