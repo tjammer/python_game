@@ -61,9 +61,9 @@ class vec2(object):
 
 class state(object):
     """docstring for state"""
-    def __init__(self, pos, vel, hp=100, conds=False):
+    def __init__(self, pos, vel, hp=100, armor=0, conds=False):
         super(state, self).__init__()
-        self.pos, self.vel, self.hp = pos, vel, hp
+        self.pos, self.vel, self.hp, self.armor = pos, vel, hp, armor
         self.wall_t = .2
         self.wall = 0
         if not conds:
@@ -114,12 +114,17 @@ class state(object):
             self.conds.descending = False
             self.wall = self.wall_t
 
-    def update(self, dt):
+    def update(self, dt, stat):
         self.wall -= dt
         if self.wall < 0:
             self.wall = 0
             self.conds.onRightWall = False
             self.conds.onLeftWall = False
+        if stat.hp != self.hp:
+            print stat.hp
+        self.hp = stat.hp
+        self.armor = stat.armor
 
     def copy(self):
-        return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.conds)
+        return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.armor,
+                     self.conds)
