@@ -1,6 +1,7 @@
 import protocol_pb2 as proto
 from twisted.internet.protocol import DatagramProtocol
 from player.state import state, vec2
+from reliable import AckManager
 
 
 class Client(DatagramProtocol):
@@ -14,6 +15,7 @@ class Client(DatagramProtocol):
         self.message = proto.Message()
         self.input = proto.Input()
         self.id = None
+        self.ackman = AckManager()
 
         self.listeners = {}
 
@@ -58,6 +60,7 @@ class Client(DatagramProtocol):
             self.connected = True
             self.id = self.message.player.id
             mapname = self.message.player.chat
+            self.ackman.respond(self.message, address)
             self.send_message('on_connect', (self.id, mapname))
         elif self.message.type == proto.playerUpdate and self.connected:
             ind = self.message.player.id
@@ -77,6 +80,8 @@ class Client(DatagramProtocol):
         elif self.message.type == proto.projectile and self.connected:
             self.send_message('serverdata',
                               (proto.projectile, self.message.projectile))
+        elif self.message.type == proto.ackResponse:
+            self.ackman.receive_ack(self.message)
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
@@ -96,7 +101,13 @@ class Client(DatagramProtocol):
         pos = vec2(data.posx, data.posy)
         vel = vec2(data.velx, data. vely)
         hp = data.hp
-        return state(pos, vel, hp)
+        armor = data.armor
+        conds = proto.MState()
+        conds.CopyFrom(data.mState)
+        return state(pos, vel, hp, armor, conds=conds)
+
+    def register_ack(self):
+        self.ackman.receive_send(self.transport.write)
 
 
 class move(object):
@@ -145,3 +156,6 @@ def correct_client(update_physics, s_move, moves, head, tail):
                 c_input = moves[index[0]].input
                 moves[index[0]].state = c_state.copy()
                 moves.advance(index)
+        elif moves[head[0]].state.hp != s_move.state.hp:
+            c_state = update_physics(0, s_move.state, proto.Input())
+            moves[head[0]].state = c_state.copy()

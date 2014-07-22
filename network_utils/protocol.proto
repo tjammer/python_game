@@ -7,7 +7,8 @@ enum MessageType {
     chat = 3;
     mapUpdate = 4;
     projectile = 5;
-    response = 6;
+    stateUpdate = 6;
+    ackResponse = 9;
     input = 7;
     mapChange = 8;
 }
@@ -22,11 +23,23 @@ enum ProjectileType {
     explNade = 6;
 }
 
+enum GameState {
+    warmUp = 0;
+    inProgress = 1;
+    isDead = 2;
+    spawns = 3;
+    isReady = 4;
+    goesSpec = 5;
+    wantsJoin = 6;
+}
+
 message Message {
     required MessageType type = 1;
     optional Player player = 2;
     optional Input input = 3;
     optional Projectile projectile = 4;
+    optional GameState gameState = 6;
+    optional int32 ack = 5;
 }
 
 message Player {
@@ -64,6 +77,7 @@ message MState {
     optional bool isFiring = 6;
     optional bool onRightWall = 7;
     optional bool onLeftWall = 8;
+    optional bool isDead = 9;
 }
 
 message Projectile {
