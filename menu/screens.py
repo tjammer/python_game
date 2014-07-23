@@ -55,20 +55,6 @@ class GameScreen(Events):
         self.player.update(dt, rectgen, state, input)
         return self.player.state
 
-    def update_physics_old(self, dt, state=False, input=False):
-        self.player.update(dt, state, input)
-        # for rect in self.map.rects:
-        self.colled = False
-        for rect in self.map.quad_tree.retrieve([], self.player.rect):
-            coll = self.player.rect.collides(rect)
-            if coll:
-                ovr, axis = coll
-                self.colled = True
-                self.player.resolve_collision(ovr, axis, rect.angle)
-        if not self.colled:
-            self.player.determine_state()
-        return self.player.state
-
     def from_server(self, data):
         typ, data = data
         if typ == proto.playerUpdate:

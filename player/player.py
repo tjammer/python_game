@@ -37,16 +37,6 @@ class Player(Events):
         self.weapons.update(dt, state, input)
         self.state.update(dt, state)
 
-    def update_old(self, dt, state=False, input=False):
-        if not state:
-            state = self.state
-        if not input:
-            input = self.input
-        self.state.pos, self.state.vel = self.move.update(dt, state, input)
-        self.rect.update(*self.state.pos)
-        self.weapons.update(dt, self.state, self.input)
-        self.state.update(dt)
-
     def client_update(self, s_state):
         easing = .8
         snapping_distance = 20
