@@ -16,6 +16,7 @@ class Client(DatagramProtocol):
         self.input = proto.Input()
         self.id = None
         self.ackman = AckManager()
+        self.waiting = False
 
         self.listeners = {}
 
@@ -44,14 +45,20 @@ class Client(DatagramProtocol):
 
     def get_input(self, event, msg):
         #self.input, dt = msg
-        self.input, self.time = msg
-        if self.connected:
-            self.message.Clear()
-            self.message.type = proto.playerUpdate
-            self.input.time = self.time
-            self.input.id = self.id
-            self.message.input.CopyFrom(self.input)
-            self.transport.write(self.message.SerializeToString(), self.host)
+        if event == 'input':
+            self.input, self.time = msg
+            if self.connected:
+                self.message.Clear()
+                self.message.type = proto.playerUpdate
+                self.input.time = self.time
+                self.input.id = self.id
+                self.message.input.CopyFrom(self.input)
+                msg_ = self.message.SerializeToString()
+                self.transport.write(msg_, self.host)
+        elif event == 'other':
+            if msg.gameState == proto.wantsJoin and not self.waiting:
+                self.ackman.send_rel(msg, self.host)
+                self.waiting = True
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)
@@ -92,6 +99,11 @@ class Client(DatagramProtocol):
                               (proto.projectile, self.message.projectile))
         elif self.message.type == proto.ackResponse:
             self.ackman.receive_ack(self.message)
+        elif self.message.type == proto.stateUpdate:
+            ind = self.message.player.id
+            stat = self.message.gameState
+            self.ackman.respond(self.message, address)
+            self.send_message('serverdata', (proto.stateUpdate, (ind, stat)))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

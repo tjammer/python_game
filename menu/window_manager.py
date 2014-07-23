@@ -63,6 +63,10 @@ class WindowManager(Events):
                 self.current_screen.player.input = proto.Input()
                 self.InputHandler.unregister(self.current_screen.camera.
                                              receive_m_pos, 'mouse_cam')
+                spec = self.current_screen.isSpec
+                self.current_screen = msg(spec)
+                self.register_screen()
+                return 0
             self.current_screen = msg()
             self.register_screen()
 
@@ -75,6 +79,9 @@ class WindowManager(Events):
         elif event == 'input':
             self.send_message('input', msg)
 
+        elif event == 'other':
+            self.send_message('other', msg)
+
         # server plaerdata
         elif event == 'serverdata':
             if isinstance(self.stack[0], GameScreen):
@@ -83,6 +90,9 @@ class WindowManager(Events):
         elif event == 'on_connect':
             self.stack[0].on_connect(msg)
             self.current_screen.on_connect()
+
+        elif event == 'try_join':
+            self.stack[0].try_join()
 
     def start_game(self):
         self.current_screen = GameScreen(self.window)

@@ -31,7 +31,7 @@ class Events(object):
 class MenuClass(object):
     """docstring for MenuClass
     base class for other menus to inherit from"""
-    def __init__(self):
+    def __init__(self, vool=False):
         super(MenuClass, self).__init__()
         self.buttons = {}
         self.text_boxes = {}
@@ -39,6 +39,7 @@ class MenuClass(object):
         self.keys = {}
         self.keys_old = {}
         self.listeners = {}
+        self.bool = vool
 
     def update(self, dt):
         for key, button in self.buttons.items():

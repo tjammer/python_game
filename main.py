@@ -16,7 +16,7 @@ fps_limit = 120.
 client = Client()
 window_manager.connect = client.start_connection
 window_manager.disconnect = client.disconnect
-window_manager.register(client.get_input, 'input')
+window_manager.register(client.get_input, ('input', 'other'))
 client.register(window_manager.receive_events, ('serverdata', 'on_connect'))
 
 

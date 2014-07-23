@@ -27,7 +27,8 @@ class GameServer(DatagramProtocol):
         data = proto.Message()
         data.ParseFromString(datagram)
         if data.type == proto.newPlayer:
-            pl_id = self.get_id()            self.init_player(data.input, address, pl_id)
+            pl_id = self.get_id()
+            self.init_player(data.input, address, pl_id)
         elif data.type == proto.playerUpdate and data.input.id == self.find_id(address):
             self.players[data.input.id].timer = 0
             self.get_input(data.input)
@@ -52,6 +53,10 @@ class GameServer(DatagramProtocol):
             self.disc_player(data.input.id)
         elif data.type == proto.ackResponse:
             self.ackman.receive_ack(data)
+        elif data.type == proto.stateUpdate:
+            if data.gameState == proto.wantsJoin:
+                if self.gamestate.join(data):
+                    self.join_player(data.player.id)
 
     def update(self, dt):
         keys = []
@@ -65,8 +70,6 @@ class GameServer(DatagramProtocol):
             if player.timer > 10:
                 keys.append(key)
         for key in keys:
-            print ' '.join((str(datetime.now()),
-                           self.players[key].name, 'timed out'))
             self.disc_player(key)
         self.projectiles.update(dt)
         self.send_all()
@@ -198,6 +201,15 @@ class GameServer(DatagramProtocol):
         for idx, p in chain(self.players.iteritems(), self.specs.iteritems()):
             #self.transport.write(disc.SerializeToString(), p.address)
             self.ackman.send_rel(disc, p.address)
+
+    def join_player(self, id):
+        print id
+        self.players[id] = self.specs[id]
+        del self.specs[id]
+        self.players[id].spawn(100, 300)
+        self.players_pack[id] = proto.Player()
+        self.players_pack[id].id = id
+        self.player_to_pack(id)
 
     def rectgen(self, idx=-1):
         playergen = (player.rect for key, player in self.players.iteritems()

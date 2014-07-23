@@ -34,6 +34,7 @@ class GameScreen(Events):
         self.specs = {}
         #crosshair
         self.cross = CrossHair()
+        self.isSpec = True
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
@@ -68,14 +69,12 @@ class GameScreen(Events):
         elif typ == proto.projectile:
             self.proj_viewer.process_proj(data)
         elif typ == proto.newPlayer:
-            print data
             gs, data = data
             if gs == proto.goesSpec:
                 ind, name = data
                 new = player.Player()
                 new.name = name
                 self.specs[ind] = new
-                print 'new spec: %s' % name
             elif gs == proto.wantsJoin:
                 ind, name, state, time = data
                 new = player.Player()
@@ -91,7 +90,22 @@ class GameScreen(Events):
                 print 'disc player'
             elif ind in self.specs:
                 del self.specs[ind]
-                print 'disc spec'
+        elif typ == proto.stateUpdate:
+            ind, gs = data
+            if gs == proto.wantsJoin:
+                if ind == self.player.id:
+                    self.trans_to_game()
+                else:
+                    self.players[ind] = self.specs[ind]
+                    del self.specs[ind]
+            elif gs == proto.goesSpec:
+                if ind == self.player.id and self.isSpec:
+                    pass
+                elif ind == self.player.id and not self.isSpec:
+                    self.trans_to_spec()
+                else:
+                    self.specs[ind] = self.players[ind]
+                    del self.players[ind]
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
@@ -116,6 +130,15 @@ class GameScreen(Events):
         #self.send_message('input', (self.player.input, 1337))
         self.trans_to_spec()
 
+    def try_join(self):
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        plr = proto.Player()
+        plr.id = self.player.id
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.wantsJoin
+        self.send_message('other', msg)
+
     def on_update(self, dt):
         pass
 
@@ -125,10 +148,12 @@ class GameScreen(Events):
     def trans_to_spec(self):
         self.on_update = self.spec_update
         self.on_draw = self.spec_draw
+        self.isSpec = True
 
     def trans_to_game(self):
         self.on_update = self.game_update
         self.on_draw = self.game_draw
+        self.isSpec = False
 
     def game_update(self, dt):
         self.update_physics(dt)
@@ -205,10 +230,12 @@ class QuitScreen(MenuClass):
 class GameMenu(MenuClass):
     """docstring for GameMenu
     main menu ingame"""
-    def __init__(self):
-        super(GameMenu, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(GameMenu, self).__init__(*args, **kwargs)
         self.buttons['resume'] = btn([500, 400], 'resume game')
         self.buttons['to_main'] = btn([500, 200], 'main menu')
+        if self.bool:
+            self.buttons['join_game'] = btn([950, 50], 'join game')
 
     def handle_clicks(self, key):
         if key == 'resume':
@@ -216,6 +243,9 @@ class GameMenu(MenuClass):
 
         if key == 'to_main':
             self.send_message('to_main')
+
+        if key == 'join_game':
+            self.send_message('try_join')
 
     def add_update(self):
         try:
@@ -227,8 +257,8 @@ class GameMenu(MenuClass):
 
 class LoadScreen(MenuClass):
     """docstring for LoadScreen"""
-    def __init__(self):
-        super(LoadScreen, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(LoadScreen, self).__init__(*args, **kwargs)
         self.label = Label('connecting to server', font_name='Helvetica',
                            font_size=36, bold=False, x=200, y=550,
                            anchor_x='left', anchor_y='baseline')

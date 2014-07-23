@@ -41,4 +41,3 @@ class AckManager(object):
         newmsg.type = proto.ackResponse
         newmsg.ack = msg.ack
         self.send(newmsg.SerializeToString(), address)
-        print 'send response %i' % msg.ack
