@@ -68,6 +68,7 @@ class GameScreen(Events):
         elif typ == proto.projectile:
             self.proj_viewer.process_proj(data)
         elif typ == proto.newPlayer:
+            print data
             gs, data = data
             if gs == proto.goesSpec:
                 ind, name = data

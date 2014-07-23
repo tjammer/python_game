@@ -27,8 +27,7 @@ class GameServer(DatagramProtocol):
         data = proto.Message()
         data.ParseFromString(datagram)
         if data.type == proto.newPlayer:
-            pl_id = self.get_id()
-            self.init_player(data.input, address, pl_id)
+            pl_id = self.get_id()            self.init_player(data.input, address, pl_id)
         elif data.type == proto.playerUpdate and data.input.id == self.find_id(address):
             self.players[data.input.id].timer = 0
             self.get_input(data.input)
@@ -41,10 +40,15 @@ class GameServer(DatagramProtocol):
                                                    self.rectgen(data.input.id))
                 self.players[data.input.id].time = data.input.time
                 self.player_to_pack(data.input.id)
-        elif (data.type == proto.disconnect and
-              data.input.id == self.find_id(address)):
-            print ' '.join((str(datetime.now()),
-                           self.players[data.input.id].name, 'disconnected'))
+        elif data.type == proto.disconnect:
+            if data.input.id == self.find_id(address):
+                print ' '.join((str(datetime.now()),
+                                self.players[data.input.id].name,
+                                'disconnected'))
+            elif self.find_id(address) == -1:
+                print ' '.join((str(datetime.now()),
+                                self.specs[data.input.id].name,
+                                'disconnected'))
             self.disc_player(data.input.id)
         elif data.type == proto.ackResponse:
             self.ackman.receive_ack(data)
@@ -59,7 +63,7 @@ class GameServer(DatagramProtocol):
         for key, player in self.specs.iteritems():
             player.timer += dt
             if player.timer > 10:
-                key.append(key)
+                keys.append(key)
         for key in keys:
             print ' '.join((str(datetime.now()),
                            self.players[key].name, 'timed out'))
@@ -79,7 +83,7 @@ class GameServer(DatagramProtocol):
     #find next available id
     def get_id(self):
         idx = 1
-        while idx in self.players:
+        while idx in self.players or idx in self.specs:
             idx += 1
         return idx
 
@@ -122,7 +126,8 @@ class GameServer(DatagramProtocol):
         #check if name already exists
         name = data.name
         i = 1
-        while name in [p.name for p in self.players.itervalues()]:
+        namegen = chain(self.players.itervalues(), self.specs.itervalues())
+        while name in [p.name for p in namegen]:
             name = data.name + '_' + str(i)
             i += 1
         player = Player(True, self.projectiles.add_projectile, pl_id)
@@ -133,6 +138,7 @@ class GameServer(DatagramProtocol):
                         player.name, str(pl_id),
                         'joined the server', str(address)))
         player.time = 0
+        self.specs[pl_id] = player
         tosendplayer = proto.Player()
         tosendplayer.id = pl_id
         tosendplayer.chat = player.name
