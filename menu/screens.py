@@ -36,16 +36,12 @@ class GameScreen(Events):
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
-        self.update_physics(dt)
-        self.camera.update(dt, self.player.state)
-        self.send_to_client(dt)
-        self.proj_viewer.update(dt)
-
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
 
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
+        self.on_update(dt)
 
     def update_physics(self, dt, state=False, input=False):
         playergen = (player.rect for player in self.players.itervalues())
@@ -106,7 +102,20 @@ class GameScreen(Events):
         self.player.get_id(ind)
         self.map = Map(mapname)
         print 'connected with id: ' + str(self.player.id)
-        self.send_message('input', (self.player.input, 1337))
+        #self.send_message('input', (self.player.input, 1337))
+        self.trans_to_game()
+
+    def on_update(self, dt):
+        pass
+
+    def trans_to_game(self):
+        self.on_update = self.game_update
+
+    def game_update(self, dt):
+        self.update_physics(dt)
+        self.camera.update(dt, self.player.state)
+        self.send_to_client(dt)
+        self.proj_viewer.update(dt)
 
 
 class MainMenu(MenuClass):
