@@ -69,11 +69,22 @@ class Client(DatagramProtocol):
                               (proto.playerUpdate, (ind, time, state)))
         elif self.message.type == proto.newPlayer and self.connected:
             ind = self.message.player.id
-            state = self.server_to_state(self.message.player)
-            time = self.message.player.time
+            #state = self.server_to_state(self.message.player)
+            #time = self.message.player.time
+            name = self.message.player.chat
+            gs = self.message.gameState
+            if gs == proto.goesSpec:
+                self.send_message('serverdata',
+                                  (proto.newPlayer, (gs, (ind, name))))
+            elif gs == proto.wantsJoin:
+                state = self.server_to_state(self.message.player)
+                time = self.message.player.time
+                self.send_message('serverdata',
+                                  (proto.newPlayer, (gs, (ind,
+                                   name, state, time))))
             self.ackman.respond(self.message, address)
             self.send_message('serverdata',
-                              (proto.newPlayer, (ind, time, state)))
+                              (proto.newPlayer, (ind, name, gs)))
         elif self.message.type == proto.disconnect and self.connected:
             ind = self.message.player.id
             self.ackman.respond(self.message, address)

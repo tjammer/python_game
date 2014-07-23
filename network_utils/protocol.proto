@@ -66,6 +66,7 @@ message Input {
     optional float my = 9;
     optional bool att = 10;
     optional bool switch = 11;
+    optional bool down = 12;
 }
 
 message MState {

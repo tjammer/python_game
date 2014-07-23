@@ -31,6 +31,7 @@ class GameScreen(Events):
         self.head = [0]
         #other players
         self.players = {}
+        self.specs = {}
         #crosshair
         self.cross = CrossHair()
 
@@ -67,13 +68,29 @@ class GameScreen(Events):
         elif typ == proto.projectile:
             self.proj_viewer.process_proj(data)
         elif typ == proto.newPlayer:
-            print 'new player'
-            ind, time, s_state = data
-            self.players[ind] = player.Player()
-            self.players[ind].state = s_state
+            gs, data = data
+            if gs == proto.goesSpec:
+                ind, name = data
+                new = player.Player()
+                new.name = name
+                self.specs[ind] = new
+                print 'new spec: %s' % name
+            elif gs == proto.wantsJoin:
+                ind, name, state, time = data
+                new = player.Player()
+                new.name = name
+                new.state = state
+                new.time = time
+                self.players[ind] = new
+                print 'new player: %s' % name
         elif typ == proto.disconnect:
             ind = data
-            del self.players[ind]
+            if ind in self.players:
+                del self.players[ind]
+                print 'disc player'
+            elif ind in self.specs:
+                del self.specs[ind]
+                print 'disc spec'
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
@@ -88,6 +105,37 @@ class GameScreen(Events):
         self.send_message('input', (self.player.input, self.time))
 
     def draw(self):
+        self.on_draw()
+
+    def on_connect(self, msg):
+        ind, mapname = msg
+        self.player.get_id(ind)
+        self.map = Map(mapname)
+        print 'connected with id: ' + str(self.player.id)
+        #self.send_message('input', (self.player.input, 1337))
+        self.trans_to_spec()
+
+    def on_update(self, dt):
+        pass
+
+    def on_draw(self):
+        pass
+
+    def trans_to_spec(self):
+        self.on_update = self.spec_update
+        self.on_draw = self.spec_draw
+
+    def trans_to_game(self):
+        self.on_update = self.game_update
+        self.on_draw = self.game_draw
+
+    def game_update(self, dt):
+        self.update_physics(dt)
+        self.camera.update(dt, self.player.state)
+        self.send_to_client(dt)
+        self.proj_viewer.update(dt)
+
+    def game_draw(self):
         self.camera.set_camera()
         for plr in self.players.itervalues():
             plr.draw()
@@ -97,25 +145,19 @@ class GameScreen(Events):
         self.camera.set_static()
         self.cross.draw(*self.camera.mpos)
 
-    def on_connect(self, msg):
-        ind, mapname = msg
-        self.player.get_id(ind)
-        self.map = Map(mapname)
-        print 'connected with id: ' + str(self.player.id)
-        #self.send_message('input', (self.player.input, 1337))
-        self.trans_to_game()
-
-    def on_update(self, dt):
-        pass
-
-    def trans_to_game(self):
-        self.on_update = self.game_update
-
-    def game_update(self, dt):
-        self.update_physics(dt)
+    def spec_update(self, dt):
+        self.player.specupdate(dt)
         self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
         self.proj_viewer.update(dt)
+
+    def spec_draw(self):
+        self.camera.set_camera()
+        for plr in self.players.itervalues():
+            plr.draw()
+        self.proj_viewer.draw()
+        self.map.draw()
+        self.camera.set_static()
 
 
 class MainMenu(MenuClass):

@@ -37,6 +37,16 @@ class Player(Events):
         self.weapons.update(dt, state, input)
         self.state.update(dt, state)
 
+    def specupdate(self, dt):
+        if self.input.up:
+            self.state.pos.y += 1000 * dt
+        if self.input.right:
+            self.state.pos.x += 1000 * dt
+        if self.input.left:
+            self.state.pos.x -= 1000 * dt
+        if self.input.down:
+            self.state.pos.y -= 1000 * dt
+
     def client_update(self, s_state):
         easing = .8
         snapping_distance = 20
