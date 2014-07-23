@@ -17,7 +17,6 @@ class AckManager(object):
         msg_string = msg.SerializeToString()
         self.send(msg_string, address)
         self.acks[self.ack] = [msg_string, address, 0, 0]
-        print 'sent ack %i' % msg.ack
 
     def update(self, dt):
         for data in self.acks.itervalues():
@@ -28,14 +27,14 @@ class AckManager(object):
                 data[2] = 0
                 data[3] += 1
         for key, data in self.acks.items():
-            if data[3] > 10:
+            if data[3] > 5:
+                print 'del ack %i' % key
                 del self.acks[key]
 
     def receive_ack(self, data):
         ack = data.ack
         if ack in self.acks:
             del self.acks[ack]
-            print 'del ack %i' % ack
 
     def respond(self, msg, address):
         newmsg = proto.Message()
