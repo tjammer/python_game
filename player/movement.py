@@ -8,7 +8,7 @@ class Movement(object):
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
         self.gravity = 2500.
-        self.normal_accel = 500.
+        self.normal_accel = 1000.
         self.boost_accel = 20.
         self.turn_multplier = 8.
         self.jump_vel = 900.
@@ -38,7 +38,7 @@ class Movement(object):
         elif input.left and not input.right:
             sign = -1
         else:
-            self.vel.x -= self.vel.x * dt * 30
+            self.vel.x -= self.vel.x * dt * 15
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
         if vel.x * sign >= self.max_vel or (conds.onRightWall
@@ -47,7 +47,7 @@ class Movement(object):
             v = 0
         else:
             v = self.normal_accel
-        if conds.onGround and self.curr_sign * sign > 0:
+        if conds.onGround and self.curr_sign * sign < 0:
             v *= self.turn_multplier
         if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
