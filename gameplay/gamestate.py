@@ -39,3 +39,6 @@ class GamestateManager(object):
                 self.ackman.send_rel(msg, player.address)
             return True
         return False
+
+    def disconnect_player(self, id):
+        self.ingame.remove(id)

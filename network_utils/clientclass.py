@@ -16,7 +16,6 @@ class Client(DatagramProtocol):
         self.input = proto.Input()
         self.id = None
         self.ackman = AckManager()
-        self.waiting = False
 
         self.listeners = {}
 
@@ -56,9 +55,9 @@ class Client(DatagramProtocol):
                 msg_ = self.message.SerializeToString()
                 self.transport.write(msg_, self.host)
         elif event == 'other':
-            if msg.gameState == proto.wantsJoin and not self.waiting:
+            if msg.gameState == proto.wantsJoin:
                 self.ackman.send_rel(msg, self.host)
-                self.waiting = True
+                print True
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)

@@ -29,7 +29,7 @@ class GameServer(DatagramProtocol):
         if data.type == proto.newPlayer:
             pl_id = self.get_id()
             self.init_player(data.input, address, pl_id)
-        elif data.type == proto.playerUpdate and data.input.id == self.find_id(address):
+        elif data.type == proto.playerUpdate and self.isplayer(data, address):
             self.players[data.input.id].timer = 0
             self.get_input(data.input)
             dt = data.input.time - self.players[data.input.id].time
@@ -41,15 +41,7 @@ class GameServer(DatagramProtocol):
                                                    self.rectgen(data.input.id))
                 self.players[data.input.id].time = data.input.time
                 self.player_to_pack(data.input.id)
-        elif data.type == proto.disconnect:
-            if data.input.id == self.find_id(address):
-                print ' '.join((str(datetime.now()),
-                                self.players[data.input.id].name,
-                                'disconnected'))
-            elif self.find_id(address) == -1:
-                print ' '.join((str(datetime.now()),
-                                self.specs[data.input.id].name,
-                                'disconnected'))
+        elif data.type == proto.disconnect and self.isonline(data, address):
             self.disc_player(data.input.id)
         elif data.type == proto.ackResponse:
             self.ackman.receive_ack(data)
@@ -76,7 +68,7 @@ class GameServer(DatagramProtocol):
         self.ackman.update(dt)
 
     def send_all(self):
-        for idx, player_ in self.players.iteritems():
+        for player_ in self.allgen():
             for idx_, pack in self.players_pack.iteritems():
                 msg = proto.Message()
                 msg.type = proto.playerUpdate
@@ -90,15 +82,21 @@ class GameServer(DatagramProtocol):
             idx += 1
         return idx
 
-    #find id of adress
-    def find_id(self, address):
-        for idx in self.players:
-            if address == self.players[idx].address:
-                return idx
-        for idx in self.specs:
-            if address == self.specs[idx].address:
-                self.specs[idx].timer = 0
+    def isplayer(self, data, address):
+        id = data.input.id
+        for id in self.players:
+            if address == self.players[id].address:
+                return id
+        for id in self.specs:
+            if address == self.specs[id].address:
+                self.specs[id].timer = 0
         return -1
+
+    def isonline(self, data, address):
+        id = data.input.id
+        if id in self.players or id in self.specs:
+            return True
+        return False
 
     def player_to_pack(self, idx):
         self.players_pack[idx].posx = self.players[idx].state.pos.x
@@ -190,8 +188,13 @@ class GameServer(DatagramProtocol):
 
     def disc_player(self, id):
         if id in self.players:
+            print ' '.join((str(datetime.now()), self.players[id].name,
+                            'disconnected'))
             del self.players[id], self.players_pack[id]
-        if id in self.specs:
+            self.gamestate.disconnect_player(id)
+        elif id in self.specs:
+            print ' '.join((str(datetime.now()), self.specs[id].name,
+                            'disconnected'))
             del self.specs[id]
         disc = proto.Message()
         disc.type = proto.disconnect

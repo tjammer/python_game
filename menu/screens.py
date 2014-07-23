@@ -94,6 +94,7 @@ class GameScreen(Events):
             ind, gs = data
             if gs == proto.wantsJoin:
                 if ind == self.player.id:
+                    self.send_message('menu_transition_-')
                     self.trans_to_game()
                 else:
                     self.players[ind] = self.specs[ind]
@@ -236,6 +237,7 @@ class GameMenu(MenuClass):
         self.buttons['to_main'] = btn([500, 200], 'main menu')
         if self.bool:
             self.buttons['join_game'] = btn([950, 50], 'join game')
+        self.cd = 0
 
     def handle_clicks(self, key):
         if key == 'resume':
@@ -244,10 +246,14 @@ class GameMenu(MenuClass):
         if key == 'to_main':
             self.send_message('to_main')
 
-        if key == 'join_game':
+        if key == 'join_game' and not self.cd:
             self.send_message('try_join')
+            self.cd = 1
 
-    def add_update(self):
+    def add_update(self, dt):
+        self.cd -= dt
+        if self.cd < 0:
+            self.cd = 0
         try:
             if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
                 self.send_message('menu_transition_-')
@@ -269,7 +275,7 @@ class LoadScreen(MenuClass):
     def on_connect(self):
         self.send_message('menu_transition_-')
 
-    def add_update(self):
+    def add_update(self, dt):
         try:
             if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
                 self.send_message('to_main')

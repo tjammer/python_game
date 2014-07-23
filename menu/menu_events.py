@@ -53,7 +53,7 @@ class MenuClass(object):
             else:
                 button.Box.restore()
         self.animate(dt)
-        self.add_update()
+        self.add_update(dt)
 
         for key, value in self.keys.items():
             self.keys_old[key] = value
@@ -65,7 +65,7 @@ class MenuClass(object):
     def handle_clicks(self, key):
         pass
 
-    def add_update(self):
+    def add_update(self, dt):
         pass
 
     # receive events
