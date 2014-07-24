@@ -15,6 +15,7 @@ class Movement(object):
         self.max_vel = 500.
         self.wall_boost = 650.
         self.angle = 0
+        self.friction = 15
 
     def update(self, dt, state, input):
         pos, vel, conds = state.pos, state.vel, state.conds
@@ -38,7 +39,7 @@ class Movement(object):
         elif input.left and not input.right:
             sign = -1
         else:
-            self.vel.x -= self.vel.x * dt * 15
+            self.vel.x -= self.vel.x * dt * self.friction
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
         if vel.x * sign >= self.max_vel or (conds.onRightWall
@@ -62,7 +63,7 @@ class Movement(object):
         if not input.up:
             state.set_cond('canJump')
             if self.vel.y > 0:
-                self.vel.y = 0
+                self.vel.y -= self.vel.y * dt * self.friction * 2
 
     def jump(self, state):
         self.vel.y = self.jump_vel

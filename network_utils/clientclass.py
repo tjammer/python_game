@@ -57,7 +57,8 @@ class Client(DatagramProtocol):
         elif event == 'other':
             if msg.gameState == proto.wantsJoin:
                 self.ackman.send_rel(msg, self.host)
-                print True
+            elif msg.gameState == proto.goesSpec:
+                self.ackman.send_rel(msg, self.host)
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)

@@ -90,7 +90,7 @@ class GameServer(DatagramProtocol):
         for id in self.specs:
             if address == self.specs[id].address:
                 self.specs[id].timer = 0
-        return -1
+        return False
 
     def isonline(self, data, address):
         id = data.input.id

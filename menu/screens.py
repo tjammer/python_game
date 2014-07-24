@@ -137,7 +137,10 @@ class GameScreen(Events):
         plr = proto.Player()
         plr.id = self.player.id
         msg.player.CopyFrom(plr)
-        msg.gameState = proto.wantsJoin
+        if self.isSpec:
+            msg.gameState = proto.wantsJoin
+        else:
+            msg.gameState = proto.goesSpec
         self.send_message('other', msg)
 
     def on_update(self, dt):
@@ -237,6 +240,8 @@ class GameMenu(MenuClass):
         self.buttons['to_main'] = btn([500, 200], 'main menu')
         if self.bool:
             self.buttons['join_game'] = btn([950, 50], 'join game')
+        else:
+            self.buttons['join_game'] = btn([950, 50], 'spectate')
         self.cd = 0
 
     def handle_clicks(self, key):
@@ -251,9 +256,10 @@ class GameMenu(MenuClass):
             self.cd = 1
 
     def add_update(self, dt):
-        self.cd -= dt
-        if self.cd < 0:
-            self.cd = 0
+        if self.cd:
+            self.cd -= dt
+            if self.cd < 0:
+                self.cd = 0
         try:
             if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
                 self.send_message('menu_transition_-')
