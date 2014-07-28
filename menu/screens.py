@@ -91,10 +91,11 @@ class GameScreen(Events):
             elif ind in self.specs:
                 del self.specs[ind]
         elif typ == proto.stateUpdate:
-            ind, gs = data
+            gs, ind = data
             if gs == proto.wantsJoin:
                 if ind == self.player.id:
                     self.send_message('menu_transition_-')
+                    self.player.state.isDead = False
                     self.trans_to_game()
                 else:
                     self.players[ind] = self.specs[ind]
@@ -103,16 +104,31 @@ class GameScreen(Events):
                 if ind == self.player.id and self.isSpec:
                     pass
                 elif ind == self.player.id and not self.isSpec:
+                    self.send_message('menu_transition_-')
                     self.trans_to_spec()
                 else:
                     self.specs[ind] = self.players[ind]
                     del self.players[ind]
+            elif gs == proto.isDead:
+                ind, killer, weapon = ind
+                if ind == self.player.id:
+                    self.player.die()
+                    self.player.rect.update_color((.5, .5, .5))
+                else:
+                    self.players[ind].die()
+                    self.players[ind].rect.update_color((.5, .5, .5))
+            elif gs == proto.spawns:
+                ind, pos = ind
+                if ind == self.player.id:
+                    self.player.spawn(*pos)
+                else:
+                    self.player[ind].spawn(*pos)
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
         self.time += int(dt * 10000)
-        c_move = move(self.time, temp_input.CopyFrom(self.player.input),
-                      self.player.state.copy())
+        temp_input.CopyFrom(self.player.input)
+        c_move = move(self.time, temp_input, self.player.state.copy())
         try:
             self.moves[self.index[0]] = c_move
         except IndexError:

@@ -34,7 +34,10 @@ class Movement(object):
     def compute_vel(self, dt, vel, input, conds, state):
         self.vel = vel
         avel = abs(vel.x)
-        if input.right and not input.left:
+        if state.isDead:
+            self.vel.x -= self.vel.x * dt * self.friction
+            sign = 0
+        elif input.right and not input.left:
             sign = 1
         elif input.left and not input.right:
             sign = -1
@@ -55,11 +58,13 @@ class Movement(object):
         self.vel.x = self.vel.x + v * sign * dt
         self.vel.y = self.vel.y - self.gravity * dt
 
-        if (conds.landing or conds.onGround) and conds.canJump and input.up:
-            self.jump(state)
-        elif (conds.onRightWall
-              or conds.onLeftWall) and conds.canJump and input.up:
-            self.walljump(state, conds)
+        if not state.isDead:
+            if (conds.landing or
+                    conds.onGround) and conds.canJump and input.up:
+                self.jump(state)
+            elif (conds.onRightWall
+                  or conds.onLeftWall) and conds.canJump and input.up:
+                self.walljump(state, conds)
         if not input.up:
             state.set_cond('canJump')
             if self.vel.y > 0:

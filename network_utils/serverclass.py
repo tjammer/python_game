@@ -18,7 +18,8 @@ class GameServer(DatagramProtocol):
         self.specs = {}
         self.map = Map('test2', server=True)
         self.ackman = AckManager()
-        self.gamestate = GamestateManager(self.allgen, self.ackman)
+        self.gamestate = GamestateManager(self.allgen, self.ackman,
+                                          self.players)
         self.projectiles = ProjectileManager(self.players, self.map,
                                              self.gamestate.damage_player)
         self.mxdt = .03
@@ -49,6 +50,9 @@ class GameServer(DatagramProtocol):
             if data.gameState == proto.wantsJoin:
                 if self.gamestate.join(data):
                     self.join_player(data.player.id)
+            elif data.gameState == proto.goesSpec:
+                self.gamestate.spec(data)
+                self.spec_player(data.player.id)
 
     def update(self, dt):
         keys = []
@@ -64,6 +68,7 @@ class GameServer(DatagramProtocol):
         for key in keys:
             self.disc_player(key)
         self.projectiles.update(dt)
+        self.gamestate.update(dt)
         self.send_all()
         self.ackman.update(dt)
 
@@ -191,7 +196,6 @@ class GameServer(DatagramProtocol):
             print ' '.join((str(datetime.now()), self.players[id].name,
                             'disconnected'))
             del self.players[id], self.players_pack[id]
-            self.gamestate.disconnect_player(id)
         elif id in self.specs:
             print ' '.join((str(datetime.now()), self.specs[id].name,
                             'disconnected'))
@@ -206,13 +210,16 @@ class GameServer(DatagramProtocol):
             self.ackman.send_rel(disc, p.address)
 
     def join_player(self, id):
-        print id
         self.players[id] = self.specs[id]
         del self.specs[id]
         self.players[id].spawn(100, 300)
         self.players_pack[id] = proto.Player()
         self.players_pack[id].id = id
         self.player_to_pack(id)
+
+    def spec_player(self, id):
+        self.specs[id] = self.players[id]
+        del self.players[id], self.players_pack[id]
 
     def rectgen(self, idx=-1):
         playergen = (player.rect for key, player in self.players.iteritems()

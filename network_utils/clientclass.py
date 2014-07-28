@@ -102,8 +102,15 @@ class Client(DatagramProtocol):
         elif self.message.type == proto.stateUpdate:
             ind = self.message.player.id
             stat = self.message.gameState
+            if stat == proto.isDead:
+                killer = self.message.projectile.playerId
+                weapon = self.message.projectile.type
+                ind = (ind, killer, weapon)
+            elif stat == proto.spawns:
+                pos = vec2(self.message.player.posx, self.message.player.posy)
+                ind = (ind, pos)
             self.ackman.respond(self.message, address)
-            self.send_message('serverdata', (proto.stateUpdate, (ind, stat)))
+            self.send_message('serverdata', (proto.stateUpdate, (stat, ind)))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

@@ -26,6 +26,9 @@ class Rect(AABB):
                                   self.pos.y + self.height,
                                   self.pos.x + self.width, self.pos.y]
 
+    def update_color(self, color):
+        self.ver_list.colors = list(color) * 4
+
 
 class Rect_(Rectangle):
     """Rectangle Class"""

@@ -123,11 +123,15 @@ class Player(Events):
     def spawn(self, x, y):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)
-        self.state.conds.isDead = False
+        self.state.hp = 100
+        self.armor = 0
+        self.state.isDead = False
+        if isinstance(self.rect, Rect):
+            self.rect.update_color((0, .8, 1.))
 
     def get_id(self, id):
         self.id = id
         self.weapons = WeaponsManager(self.dispatch_proj, self.id)
 
     def die(self):
-        self.state.conds.isDead = 500
+        self.state.isDead = 5

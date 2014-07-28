@@ -96,7 +96,8 @@ class Blaster(Weapon):
         direc = temp / temp.mag()
         proj = BlasterProjectile(x=pos.x+16+direc.x*32, y=pos.y+32+direc.y*72,
                                  width=15, height=15, vel=self.vel,
-                                 direc=direc, lifetime=self.proj_lifetime)
+                                 direc=direc, lifetime=self.proj_lifetime,
+                                 dmg=40, id=self.id)
         proj.dispatch_proj = self.dispatch_proj
         self.dispatch_proj(proj)
 
@@ -191,7 +192,7 @@ class MeleeProjectile(Projectile):
     def on_hit(self, players=None):
         for player in players:
             if player.id not in self.ids:
-                self.damage_player(player, self.dmg)
+                self.damage_player(player, self)
                 player.state.vel += self.direc * self.knockback
                 self.ids.append(player.id)
         return False
@@ -229,7 +230,7 @@ class BlasterProjectile(Projectile):
         self.dispatch_proj(proj)
         #direct dmg
         if player:
-            self.damage_player(player, 40)
+            self.damage_player(player, self)
         return True
 
 
@@ -245,7 +246,7 @@ class Explosion(Projectile):
     def on_hit(self, players):
         for player in players:
             if player not in self.players:
-                self.damage_player(player, self.dmg)
+                self.damage_player(player, self)
                 direc = self.center - player.rect.center
                 player.state.vel -= direc / direc.mag() * self.knockback
             self.players.append(player)
@@ -421,7 +422,7 @@ class WeaponsManager(object):
             print 'no ammmo'
 
     def update(self, dt, state, input):
-        if state.conds.isDead:
+        if state.isDead:
             return 0
         if input.att:
             self.fire(state.pos, vec2(input.mx, input.my))

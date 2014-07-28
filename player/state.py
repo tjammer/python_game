@@ -66,6 +66,7 @@ class state(object):
         self.pos, self.vel, self.hp, self.armor = pos, vel, hp, armor
         self.wall_t = .2
         self.wall = 0
+        self.isDead = False
         if not conds:
             self.conds = proto.MState()
             self.conds.canJump = True
