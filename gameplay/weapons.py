@@ -409,10 +409,11 @@ class WeaponsManager(object):
         super(WeaponsManager, self).__init__()
         self.dispatch_proj = dispatch_proj
         self.id = id
-        self._allweapos = {'melee': Melee}
+        self._allweapos = {'w0': Melee, 'w1': Blaster}
         #start only with melee
-        self.weapons = [Melee(dispatch_proj, id), Blaster(dispatch_proj, id)]
-        self.current_w = self.weapons[0]
+        self.weapons = {'w0': Melee(dispatch_proj, id),
+                        'w1': Blaster(dispatch_proj, id)}
+        self.current_w = self.weapons['w0']
         self.wli = 0
 
     def fire(self, pos, aim_pos):
@@ -426,15 +427,15 @@ class WeaponsManager(object):
             return 0
         if input.att:
             self.fire(state.pos, vec2(input.mx, input.my))
-        if input.switch:
-            self.switch()
+        if input.w0:
+            self.switch_to('w0')
+        elif input.w1:
+            self.switch_to('w1')
         self.current_w.update(dt)
 
-    def switch(self):
-        if not self.current_w.active:
-            self.wli += 1
-            if self.wli == len(self.weapons):
-                self.wli = 0
-            self.current_w = self.weapons[self.wli]
-            self.current_w.active = self.current_w.reload_t
-            print 'weapon switched'
+    def switch_to(self, key):
+        if self.current_w != self.weapons[key]:
+            active = self.current_w.active
+            self.current_w = self.weapons[key]
+            self.current_w.active = active
+            print 'weapon switched to ' + key
