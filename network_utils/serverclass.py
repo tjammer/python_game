@@ -162,6 +162,7 @@ class GameServer(DatagramProtocol):
                 #other players
                 other = proto.Message()
                 player = self.players_pack[idx]
+                player.chat = p.name
                 other.type = proto.newPlayer
                 other.player.CopyFrom(player)
                 other.gameState = proto.wantsJoin
@@ -195,6 +196,7 @@ class GameServer(DatagramProtocol):
         if id in self.players:
             print ' '.join((str(datetime.now()), self.players[id].name,
                             'disconnected'))
+            self.gamestate.leave(id)
             del self.players[id], self.players_pack[id]
         elif id in self.specs:
             print ' '.join((str(datetime.now()), self.specs[id].name,
@@ -216,9 +218,11 @@ class GameServer(DatagramProtocol):
         self.players_pack[id] = proto.Player()
         self.players_pack[id].id = id
         self.player_to_pack(id)
+        self.gamestate.to_team(id)
 
     def spec_player(self, id):
         self.specs[id] = self.players[id]
+        self.gamestate.leave(id)
         del self.players[id], self.players_pack[id]
 
     def rectgen(self, idx=-1):

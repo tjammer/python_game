@@ -1,6 +1,13 @@
 from network_utils import protocol_pb2 as proto
 
 
+def duel_calc_score(killed, killer):
+    if killed != killer:
+        killer.score += 1
+    else:
+        killer.score -= 1
+
+
 class GamestateManager(object):
     """docstring for GamestateManager"""
     def __init__(self, allgenfunc, ackman, players):
@@ -10,6 +17,9 @@ class GamestateManager(object):
         self.ackman = ackman
         self.ingame = players
         #self.gameType = Duel()
+        self.a = Team()
+        self.b = Team()
+        self.gamestate = proto.warmUp
 
     def update(self, dt):
         for player in self.ingame.itervalues():
@@ -61,6 +71,18 @@ class GamestateManager(object):
             return True
         return False
 
+    def to_team(self, id):
+        if len(self.a) == 0:
+            self.a.join(self.ingame[id])
+        else:
+            self.b.join(self.ingame[id])
+
+    def leave(self, id):
+        if id in self.a:
+            self.a.leave(id)
+        else:
+            self.b.leave(id)
+
     def spec(self, data):
         id = data.player.id
         msg = proto.Message()
@@ -84,3 +106,83 @@ class GamestateManager(object):
         msg.gameState = proto.spawns
         for player_ in self.all():
             self.ackman.send_rel(msg, player_.address)
+
+    def score(self, killed, killer):
+        if self.gamestate == proto.inProgress:
+            for team in (self.a, self.b):
+                if killed in team and killer in team:
+                    team.score -= 1
+                    return 0
+                elif killer in team:
+                    team.score += 1
+
+
+class Team(object):
+    """docstring for Team"""
+    def __init__(self):
+        super(Team, self).__init__()
+        self.players = {}
+        self.score = 0
+        self.name = '_'
+
+    def __iter__(self):
+        return self.players.iterkeys()
+
+    def __len__(self):
+        return len(self.players)
+
+    def __repr__(self):
+        return str([pl.id for pl in self.players.itervalues()])
+
+    def join(self, player):
+        self.players[player.id] = player
+
+    def leave(self, id):
+        del self.players[id]
+
+
+class GameStateViewer(object):
+    """docstring for GameStateViewer"""
+    def __init__(self, players, hudhook, scorehook):
+        super(GameStateViewer, self).__init__()
+        self.players = players
+        self.a = Team()
+        self.b = Team()
+        self.ownid = -1
+        self.gamestate = proto.warmUp
+        self.hudhook = hudhook
+        self.scorehook = scorehook
+
+    def leave(self, id):
+        if id in self.a:
+            self.a.leave(id)
+        else:
+            self.b.leave(id)
+            self.hudhook(score='-')
+
+    def score(self, killed, killer):
+        if self.gamestate == proto.warmUp:
+            for team in (self.a, self.b):
+                if killed in team and killer in team:
+                    team.score -= 1
+                    break
+                elif killer in team:
+                    team.score += 1
+        self.scorehook(self.a.score, self.b.score)
+
+    def init_self(self, id):
+        self.ownid = id
+
+    def add_self(self, ownplayer):
+        if len(self.b) == 0:
+            self.b = self.a
+        self.a = Team()
+        self.a.join(ownplayer)
+        self.scorehook(self.a.score, self.b.score)
+
+    def to_team(self, id):
+        if len(self.a) == 0:
+            self.a.join(self.players[id])
+        else:
+            self.b.join(self.players[id])
+            self.hudhook(score=self.players[id].name)

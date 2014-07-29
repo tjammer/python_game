@@ -12,6 +12,8 @@ from network_utils import protocol_pb2 as proto
 from gameplay.weapons import ProjectileViewer
 from itertools import chain
 from graphics.primitives import CrossHair
+from hud import Hud
+from gameplay.gamestate import GameStateViewer
 
 
 class GameScreen(Events):
@@ -35,6 +37,9 @@ class GameScreen(Events):
         #crosshair
         self.cross = CrossHair()
         self.isSpec = True
+        self.hud = Hud()
+        self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
+                                       self.hud.set_score)
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
@@ -65,7 +70,10 @@ class GameScreen(Events):
                 except IndexError:
                     pass
             else:
+                #try:
                 self.players[ind].client_update(s_state)
+                #except KeyError:
+                #    pass
         elif typ == proto.projectile:
             self.proj_viewer.process_proj(data)
         elif typ == proto.newPlayer:
@@ -74,20 +82,24 @@ class GameScreen(Events):
                 ind, name = data
                 new = player.Player()
                 new.name = name
+                new.id = ind
                 self.specs[ind] = new
+            #if there are existing players on the server
             elif gs == proto.wantsJoin:
                 ind, name, state, time = data
                 new = player.Player()
                 new.name = name
                 new.state = state
                 new.time = time
+                new.id = ind
                 self.players[ind] = new
                 print 'new player: %s' % name
+                self.gs_view.to_team(ind)
         elif typ == proto.disconnect:
             ind = data
             if ind in self.players:
+                self.gs_view.leave(ind)
                 del self.players[ind]
-                print 'disc player'
             elif ind in self.specs:
                 del self.specs[ind]
         elif typ == proto.stateUpdate:
@@ -100,6 +112,7 @@ class GameScreen(Events):
                 else:
                     self.players[ind] = self.specs[ind]
                     del self.specs[ind]
+                    self.gs_view.to_team(ind)
             elif gs == proto.goesSpec:
                 if ind == self.player.id and self.isSpec:
                     pass
@@ -108,6 +121,7 @@ class GameScreen(Events):
                     self.trans_to_spec()
                 else:
                     self.specs[ind] = self.players[ind]
+                    self.gs_view.leave(ind)
                     del self.players[ind]
             elif gs == proto.isDead:
                 ind, killer, weapon = ind
@@ -117,12 +131,13 @@ class GameScreen(Events):
                 else:
                     self.players[ind].die()
                     self.players[ind].rect.update_color((.5, .5, .5))
+                self.gs_view.score(ind, killer)
             elif gs == proto.spawns:
                 ind, pos = ind
                 if ind == self.player.id:
                     self.player.spawn(*pos)
                 else:
-                    self.player[ind].spawn(*pos)
+                    self.players[ind].spawn(*pos)
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
@@ -145,6 +160,7 @@ class GameScreen(Events):
         self.map = Map(mapname)
         print 'connected with id: ' + str(self.player.id)
         #self.send_message('input', (self.player.input, 1337))
+        self.gs_view.init_self(ind)
         self.trans_to_spec()
 
     def try_join(self):
@@ -174,12 +190,17 @@ class GameScreen(Events):
         self.on_update = self.game_update
         self.on_draw = self.game_draw
         self.isSpec = False
+        self.player.weapons.hook_hud(self.hud.update_prop)
+        self.player.state.hook_hud(self.hud.update_prop)
+        self.gs_view.add_self(self.player)
+        self.hud.init_player(self.players)
 
     def game_update(self, dt):
         self.update_physics(dt)
         self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
         self.proj_viewer.update(dt)
+        self.hud.update(dt)
 
     def game_draw(self):
         self.camera.set_camera()
@@ -189,6 +210,7 @@ class GameScreen(Events):
         self.proj_viewer.draw()
         self.map.draw()
         self.camera.set_static()
+        self.hud.draw()
         self.cross.draw(*self.camera.mpos)
 
     def spec_update(self, dt):

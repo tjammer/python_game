@@ -410,17 +410,23 @@ class WeaponsManager(object):
         self.dispatch_proj = dispatch_proj
         self.id = id
         self._allweapos = {'w0': Melee, 'w1': Blaster}
+        self._stringweaps = {'w0': 'melee', 'w1': 'blaster'}
         #start only with melee
         self.weapons = {'w0': Melee(dispatch_proj, id),
                         'w1': Blaster(dispatch_proj, id)}
         self.current_w = self.weapons['w0']
+        self.current_s = self._stringweaps['w0']
         self.wli = 0
+        self.hudhook = False
 
     def fire(self, pos, aim_pos):
         try:
             self.current_w.fire(pos, aim_pos)
+            if self.hudhook:
+                self.hudhook(ammo=str(self.current_w.ammo))
         except NoAmmoError:
-            print 'no ammmo'
+            if self.hudhook:
+                self.hudhook(text='no ammo')
 
     def update(self, dt, state, input):
         if state.isDead:
@@ -438,4 +444,9 @@ class WeaponsManager(object):
             active = self.current_w.active
             self.current_w = self.weapons[key]
             self.current_w.active = active
-            print 'weapon switched to ' + key
+            self.current_s = self._stringweaps[key]
+            if self.hudhook:
+                self.hudhook(weapon=self.current_s)
+
+    def hook_hud(self, hudhook):
+        self.hudhook = hudhook

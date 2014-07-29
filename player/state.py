@@ -72,6 +72,7 @@ class state(object):
             self.conds.canJump = True
         else:
             self.conds = conds
+        self.hudhook = False
 
     def set_cond(self, condname):
         if condname == 'ascending':
@@ -122,10 +123,15 @@ class state(object):
             self.conds.onRightWall = False
             self.conds.onLeftWall = False
         if stat.hp != self.hp:
-            print stat.hp
+            pass
         self.hp = stat.hp
         self.armor = stat.armor
+        if self.hudhook:
+            self.hudhook(hp=str(self.hp), armor=str(self.armor))
 
     def copy(self):
         return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.armor,
                      self.conds)
+
+    def hook_hud(self, hudhook):
+        self.hudhook = hudhook
