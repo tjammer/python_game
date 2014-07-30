@@ -71,6 +71,8 @@ class Hud(object):
             self.time.text = self.gametime
         if self.killmsg_active:
             self.killmsg_active -= dt
+            if self.killmsg_active <= 0:
+                self.killmsg_active = False
 
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
                     ammo=False, time=False, score=False, msg=False):

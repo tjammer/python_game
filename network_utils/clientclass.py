@@ -24,7 +24,7 @@ class Client(DatagramProtocol):
         self.message.Clear()
         self.message.type = proto.newPlayer
         self.message.input.Clear()
-        self.message.input.name = 'asdf'
+        self.message.input.name = 'mokapharr'
         self.message.input.time = 0
         self.transport.write(self.message.SerializeToString(), self.host)
 
