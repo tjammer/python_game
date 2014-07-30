@@ -1,4 +1,5 @@
 from player.state import vec2
+from time import time
 
 
 class AABB(object):
@@ -42,7 +43,7 @@ class AABB(object):
             x, y = ovrtest
             norm = vec2(float(x > y), -float(y > x))
             if not obj.isplayer:
-                return norm, 0
+                return norm, -dt
         else:
             #find distance for entry and exit
             if self.vel.x > 0:
@@ -82,10 +83,12 @@ class AABB(object):
                 return False
             #normal
             if xt_ent > yt_ent:
-                if xdist_ent >= 0 and self.vel.x > 0:
+                if xdist_ent >= 0 and self.vel.x > 0 and yt_ent != 0:
                     normal = vec2(1., 0.)
-                elif xdist_ent <= 0 and self.vel.x < 0:
+                elif xdist_ent <= 0 and self.vel.x < 0 and yt_ent != 0:
                     normal = vec2(-1., 0.)
+                else:
+                    return False
             else:
                 if ydist_ent <= 0:
                     normal = vec2(0., -1.)
