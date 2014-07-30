@@ -160,7 +160,7 @@ class GameStateViewer(object):
             self.b.leave(id)
             self.hudhook(score='-')
 
-    def score(self, killed, killer):
+    def score(self, killed, killer, weapon=False):
         if self.gamestate == proto.warmUp:
             for team in (self.a, self.b):
                 if killed in team and killer in team:
@@ -168,7 +168,7 @@ class GameStateViewer(object):
                     break
                 elif killer in team:
                     team.score += 1
-        self.scorehook(self.a.score, self.b.score)
+        self.scorehook(self.a.score, self.b.score, msg=weapon)
 
     def init_self(self, id):
         self.ownid = id
@@ -186,3 +186,8 @@ class GameStateViewer(object):
         else:
             self.b.join(self.players[id])
             self.hudhook(score=self.players[id].name)
+        self.reset_score()
+
+    def reset_score(self):
+        self.a.score = 0
+        self.b.score = 0

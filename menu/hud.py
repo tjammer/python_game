@@ -1,4 +1,5 @@
 from pyglet.text import Label
+from network_utils import protocol_pb2 as proto
 
 
 class Hud(object):
@@ -9,6 +10,7 @@ class Hud(object):
         self.hp_t = '0'
         self.armor_t = '0'
         self.text_active = 5
+        self.killmsg_active = 2
         self.hp = Label(self.hp_t, font_name='Helvetica', font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
                         anchor_y='bottom')
@@ -28,13 +30,16 @@ class Hud(object):
                           bold=True)
         self.killmsg = Label('0:00', font_name='Helvetica', font_size=36,
                              x=640, y=680, anchor_x='left', anchor_y='center')
-        self.score = Label('0:0 enemy', font_name='Helvetica', font_size=24,
+        self.score = Label('me 0:0 enemy', font_name='Helvetica', font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center')
         self.normal_hpcol = (255, 255, 255, 255)
         self.low_hpcol = (255, 128, 0, 255)
         self.high_hpcol = (0, 204, 255, 255)
         self.enemyname = '_'
+        self.ownname = 'me'
         self.gametime = 0
+        self.weaponcolors = {proto.melee: (0, 255, 255, 255),
+                             proto.explBlaster: (255, 255, 0, 255)}
 
     def init_player(self, players):
         if len(players) == 0:
@@ -49,6 +54,8 @@ class Hud(object):
         self.armor.draw()
         if self.text_active:
             self.text.draw()
+        if self.killmsg_active:
+            self.killmsg.draw()
         self.weapon.draw()
         self.ammo.draw()
         self.time.draw()
@@ -62,9 +69,11 @@ class Hud(object):
         if self.gametime > 0:
             self.gametime -= dt
             self.time.text = self.gametime
+        if self.killmsg_active:
+            self.killmsg_active -= dt
 
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
-                    ammo=False, time=False, score=False):
+                    ammo=False, time=False, score=False, msg=False):
         if armor:
             self.armor.text = armor
             if int(armor) <= 20:
@@ -99,5 +108,7 @@ class Hud(object):
             self.enemyname = score
             self.score.text = '0:0 ' + self.enemyname
 
-    def set_score(self, own, other):
-        self.score.text = str(own) + ':' + str(other) + ' ' + self.enemyname
+    def set_score(self, own, other, msg=False):
+        self.score.text = ' '.join((self.ownname,
+                                   str(own), ':', str(other),
+                                   self.enemyname))

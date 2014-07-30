@@ -131,7 +131,7 @@ class GameScreen(Events):
                 else:
                     self.players[ind].die()
                     self.players[ind].rect.update_color((.5, .5, .5))
-                self.gs_view.score(ind, killer)
+                self.gs_view.score(ind, killer, weapon)
             elif gs == proto.spawns:
                 ind, pos = ind
                 if ind == self.player.id:
