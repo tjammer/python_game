@@ -22,7 +22,7 @@ class Player(Events):
         if id:
             self.id = id
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
-        self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.))
+        self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.), isplayer=True)
         #input will be assigned by windowmanager class
         self.input = proto.Input()
         self.listeners = {}
@@ -87,8 +87,8 @@ class Player(Events):
     def resolve_sweep(self, normal, dt, state):
         self.state.pos, self.state.vel = self.move.step(dt, state.pos)
         self.rect.update(*self.state.pos)
-        self.state.vel.x *= normal.x == 0
-        self.state.vel.y *= normal.y == 0
+        self.state.vel.x *= normal.x == 0.
+        self.state.vel.y *= normal.y == 0.
         self.move.resolve_coll(self.state.pos, self.state.vel)
         if normal.y < 0:
             self.state.set_cond('onGround')

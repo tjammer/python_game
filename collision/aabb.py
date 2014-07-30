@@ -3,7 +3,8 @@ from player.state import vec2
 
 class AABB(object):
     """docstring for AABB"""
-    def __init__(self, x, y, width, height, color=(1., 1., 1.)):
+    def __init__(self, x, y, width, height, color=(1., 1., 1.),
+                 isplayer=False):
         super(AABB, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
@@ -13,6 +14,7 @@ class AABB(object):
         self.hheight = height / 2.
         self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
         self.color = color
+        self.isplayer = isplayer
 
     def update(self, x, y):
         self.pos = vec2(x, y)
@@ -37,9 +39,10 @@ class AABB(object):
     def sweep(self, obj, dt):
         ovrtest = self.overlaps(obj)
         if ovrtest:
-            norm = vec2(1., 0)
-            self.vel *= -1.
-            return norm, dt - 1. / 600.
+            x, y = ovrtest
+            norm = vec2(float(x > y), -float(y > x))
+            if not obj.isplayer:
+                return norm, 0
         else:
             #find distance for entry and exit
             if self.vel.x > 0:

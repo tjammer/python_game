@@ -6,7 +6,8 @@ from collision.aabb import AABB
 
 class Rect(AABB):
     """docstring for Rect"""
-    def __init__(self, x, y, width, height, color=(1., 1., 1.)):
+    def __init__(self, x, y, width, height, color=(1., 1., 1.),
+                 isplayer=False):
         super(Rect, self).__init__(x, y, width, height, color)
         self.ver_list = graphics.vertex_list(4,
             ('v2f/stream', (x, y, x, y + height,
@@ -15,6 +16,7 @@ class Rect(AABB):
              self.color[0], self.color[1], self.color[2],
              self.color[0], self.color[1], self.color[2],
              self.color[0], self.color[1], self.color[2])))
+        self.isplayer = isplayer
 
     def draw(self):
         self.ver_list.draw(gl.GL_POLYGON)
