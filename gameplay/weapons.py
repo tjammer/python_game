@@ -450,3 +450,7 @@ class WeaponsManager(object):
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
+
+    def reset(self):
+        self.current_w = self.weapons['w0']
+        self.current_s = self._stringweaps['w0']

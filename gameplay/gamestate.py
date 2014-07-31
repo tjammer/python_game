@@ -100,6 +100,8 @@ class GamestateManager(object):
             self.a.leave(id)
         else:
             self.b.leave(id)
+        if self.gamestate == proto.countDown or self.gamestate == proto.inProgress:
+            self.to_warmup()
 
     def spec(self, data):
         id = data.player.id
@@ -165,13 +167,14 @@ class GamestateManager(object):
         msg = proto.Message()
         msg.type = proto.stateUpdate
         plr = proto.Player()
-        plr.id = id
-        plr.chat = self.ingame[id].name
+        plr.id = 0
         msg.player.CopyFrom(plr)
         msg.gameState = proto.countDown
         msg.gameTime = self.gametime
         for player in self.all():
             self.ackman.send_rel(msg, player.address)
+        for player in self.ingame.itervalues():
+            player.freeze()
 
     def start_game(self):
         self.gametime = 300
@@ -179,8 +182,7 @@ class GamestateManager(object):
         msg = proto.Message()
         msg.type = proto.stateUpdate
         plr = proto.Player()
-        plr.id = id
-        plr.chat = self.ingame[id].name
+        plr.id = 0
         msg.player.CopyFrom(plr)
         msg.gameState = proto.inProgress
         msg.gameTime = self.gametime
@@ -188,6 +190,24 @@ class GamestateManager(object):
             self.ackman.send_rel(msg, player.address)
         for player in self.ingame.itervalues():
             self.spawn(player)
+
+    def to_warmup(self):
+        for player in self.ingame.itervalues():
+            player.ready = False
+            self.spawn(player)
+        for team in (self.a, self.b):
+            team.score = 0
+        self.gametime = 0
+        self.gamestate = proto.warmUp
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        plr = proto.Player()
+        plr.id = 0
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.warmUp
+        msg.gameTime = self.gametime
+        for player in self.all():
+            self.ackman.send_rel(msg, player.address)
 
 
 class Team(object):
@@ -281,4 +301,8 @@ class GameStateViewer(object):
         self.hudhook(text=text)
 
     def start_game(self):
-        self.gamestate == proto.inProgress
+        self.gamestate = proto.inProgress
+
+    def to_warmup(self):
+        self.gamestate = proto.warmUp
+        self.reset_score()

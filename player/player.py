@@ -125,7 +125,7 @@ class Player(Events):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)
         self.state.hp = 100
-        self.armor = 0
+        self.armor = 100
         self.state.isDead = False
         self.state.frozen = False
         if isinstance(self.rect, Rect):

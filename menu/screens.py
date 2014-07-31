@@ -151,6 +151,8 @@ class GameScreen(Events):
                 self.player.freeze()
             elif gs == proto.inProgress:
                 self.gs_view.start_game()
+            elif gs == proto.warmUp:
+                self.gs_view.to_warmup()
 
     def send_to_client(self, dt):
         temp_input = proto.Input()

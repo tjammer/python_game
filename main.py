@@ -32,7 +32,7 @@ def on_draw():
     pyglet.gl.glClearColor(0, .0, 0, 1)
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
     window_manager.draw()
-    fps.draw()
+    #fps.draw()
 
 reactor.listenUDP(8001, client)
 client.register_ack()
