@@ -1,5 +1,5 @@
 from graphics.primitives import Rect
-from rectangle import Rectangle
+from aabb import AABB
 
 
 class QuadTree(object):
@@ -19,7 +19,7 @@ class QuadTree(object):
         if not server:
             self.Rect = Rect
         else:
-            self.Rect = Rectangle
+            self.Rect = AABB
 
     def clear(self):
         """clears the QuadTree"""
