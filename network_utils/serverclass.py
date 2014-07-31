@@ -19,7 +19,8 @@ class GameServer(DatagramProtocol):
         self.map = Map('newtest', server=True)
         self.ackman = AckManager()
         self.gamestate = GamestateManager(self.allgen, self.ackman,
-                                          self.players, self.map.spawns)
+                                          self.players, self.map.spawns,
+                                          self.map.items)
         self.projectiles = ProjectileManager(self.players, self.map,
                                              self.gamestate.damage_player)
         self.mxdt = .03
@@ -153,7 +154,7 @@ class GameServer(DatagramProtocol):
         #send info do newly connected player
         own = proto.Message()
         player = proto.Player()
-        own.type = proto.mapUpdate
+        own.type = proto.connectResponse
         player.id = pl_id
         player.chat = self.map.name
         own.player.CopyFrom(player)

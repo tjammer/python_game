@@ -60,7 +60,7 @@ class Client(DatagramProtocol):
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)
-        if self.message.type == proto.mapUpdate and not self.id:
+        if self.message.type == proto.connectResponse and not self.id:
             self.connected = True
             self.id = self.message.player.id
             mapname = self.message.player.chat
@@ -74,8 +74,6 @@ class Client(DatagramProtocol):
                               (proto.playerUpdate, (ind, time, state)))
         elif self.message.type == proto.newPlayer and self.connected:
             ind = self.message.player.id
-            #state = self.server_to_state(self.message.player)
-            #time = self.message.player.time
             name = self.message.player.chat
             gs = self.message.gameState
             if gs == proto.goesSpec:
@@ -188,6 +186,6 @@ def correct_client(update_physics, s_move, moves, head, tail):
                 c_input = moves[index[0]].input
                 moves[index[0]].state = c_state.copy()
                 moves.advance(index)
-        elif moves[head[0]].state.hp != s_move.state.hp:
+        elif moves[head[0]].state.chksm != s_move.state.chksm:
             c_state = update_physics(0, s_move.state, proto.Input())
             moves[head[0]].state = c_state.copy()

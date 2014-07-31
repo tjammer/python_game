@@ -11,6 +11,7 @@ enum MessageType {
     ackResponse = 9;
     input = 7;
     mapChange = 8;
+    connectResponse = 10;
 }
 
 enum ProjectileType {
