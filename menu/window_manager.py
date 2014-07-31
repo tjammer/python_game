@@ -1,6 +1,5 @@
 from screens import GameScreen, MainMenu, LoadScreen
 from player.controls import InputHandler
-from graphics.primitives import CrossHair
 from menu_events import Events
 from network_utils import protocol_pb2 as proto
 
@@ -30,7 +29,7 @@ class WindowManager(Events):
         self.InputHandler.process_keys(dt)
         if (self.stack[0] != self.current_screen and
                 isinstance(self.stack[0], GameScreen)):
-            self.stack[0].send_to_client(dt)
+            self.stack[0].idle_update(dt)
         self.current_screen.update(dt)
 
     def draw(self):

@@ -1,4 +1,5 @@
 from network_utils import protocol_pb2 as proto
+from random import choice
 
 
 def duel_calc_score(killed, killer):
@@ -10,7 +11,7 @@ def duel_calc_score(killed, killer):
 
 class GamestateManager(object):
     """docstring for GamestateManager"""
-    def __init__(self, allgenfunc, ackman, players):
+    def __init__(self, allgenfunc, ackman, players, spawns):
         super(GamestateManager, self).__init__()
         #function which return generator of all players and specs
         self.all = allgenfunc
@@ -20,6 +21,10 @@ class GamestateManager(object):
         self.a = Team()
         self.b = Team()
         self.gamestate = proto.warmUp
+        self.gametime = 0
+        self.spawns = spawns
+        for spawn in spawns:
+            spawn.active = False
 
     def update(self, dt):
         for player in self.ingame.itervalues():
@@ -28,6 +33,11 @@ class GamestateManager(object):
                 if player.state.isDead <= 0.0 or (player.state.isDead < 4
                                                   and player.input.att):
                     self.spawn(player)
+        for spawn in self.spawns:
+            if spawn.active:
+                spawn.active -= dt
+                if spawn.active <= 0:
+                    spawn.active = False
 
     def damage_player(self, player, proj):
         #armor absorbs 2/3 of dmg
@@ -54,6 +64,7 @@ class GamestateManager(object):
             projectile.playerId = proj.id
             msg.projectile.CopyFrom(projectile)
             msg.gameState = proto.isDead
+            msg.gameTime = self.gametime
             for player_ in self.all():
                 self.ackman.send_rel(msg, player_.address)
 
@@ -66,6 +77,7 @@ class GamestateManager(object):
             plr.id = id
             msg.player.CopyFrom(plr)
             msg.gameState = proto.wantsJoin
+            msg.gameTime = self.gametime
             for player in self.all():
                 self.ackman.send_rel(msg, player.address)
             return True
@@ -91,11 +103,14 @@ class GamestateManager(object):
         plr.id = id
         msg.player.CopyFrom(plr)
         msg.gameState = proto.goesSpec
+        msg.gameTime = self.gametime
         for player in self.all():
             self.ackman.send_rel(msg, player.address)
 
     def spawn(self, player):
-        player.spawn(100, 200)
+        spawnp = choice([spawn for spawn in self.spawns if not spawn.active])
+        self.spawns[self.spawns.index(spawnp)].active = 2
+        player.spawn(*spawnp)
         msg = proto.Message()
         msg.type = proto.stateUpdate
         plr = proto.Player()
@@ -104,6 +119,7 @@ class GamestateManager(object):
         plr.posy = player.state.pos.y
         msg.player.CopyFrom(plr)
         msg.gameState = proto.spawns
+        msg.gameTime = self.gametime
         for player_ in self.all():
             self.ackman.send_rel(msg, player_.address)
 
@@ -152,6 +168,14 @@ class GameStateViewer(object):
         self.gamestate = proto.warmUp
         self.hudhook = hudhook
         self.scorehook = scorehook
+        self.gametime = 10
+
+    def update(self, dt):
+        if self.gametime > 0:
+            self.gametime -= dt
+            if self.gametime < 0:
+                self.gametime = False
+        self.hudhook(time=self.gametime)
 
     def leave(self, id):
         if id in self.a:
@@ -191,3 +215,6 @@ class GameStateViewer(object):
     def reset_score(self):
         self.a.score = 0
         self.b.score = 0
+
+    def set_time(self, time):
+        self.gametime = time

@@ -38,8 +38,9 @@ message Message {
     optional Player player = 2;
     optional Input input = 3;
     optional Projectile projectile = 4;
-    optional GameState gameState = 6;
+    optional GameState gameState = 7;
     optional int32 ack = 5;
+    optional float gameTime = 6;
 }
 
 message Player {

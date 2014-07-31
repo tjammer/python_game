@@ -1,5 +1,4 @@
 from player.state import vec2
-from time import time
 
 
 class AABB(object):

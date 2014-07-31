@@ -10,7 +10,7 @@ class Hud(object):
         self.hp_t = '0'
         self.armor_t = '0'
         self.text_active = 5
-        self.killmsg_active = 2
+        self.killmsg_active = False
         self.hp = Label(self.hp_t, font_name='Helvetica', font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
                         anchor_y='bottom')
@@ -37,7 +37,7 @@ class Hud(object):
         self.high_hpcol = (0, 204, 255, 255)
         self.enemyname = '_'
         self.ownname = 'me'
-        self.gametime = 0
+        self.gametime = 70
         self.weaponcolors = {proto.melee: (0, 255, 255, 255),
                              proto.explBlaster: (255, 255, 0, 255)}
 
@@ -66,13 +66,11 @@ class Hud(object):
             self.text_active -= dt
             if self.text_active <= 0:
                 self.text_active = False
-        if self.gametime > 0:
-            self.gametime -= dt
-            self.time.text = self.gametime
         if self.killmsg_active:
             self.killmsg_active -= dt
             if self.killmsg_active <= 0:
                 self.killmsg_active = False
+        self.time.text = self.calc_time(self.gametime)
 
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
                     ammo=False, time=False, score=False, msg=False):
@@ -103,9 +101,8 @@ class Hud(object):
                 self.weapon.color = (255, 255, 0, 255)
         if ammo:
             self.ammo.text = ammo
-        if time:
-            diff = self.gametime - time
-            self.gametime = self.gametime + diff * 0.2
+        if isinstance(time, float):
+            self.gametime = time
         if score:
             self.enemyname = score
             self.score.text = '0:0 ' + self.enemyname
@@ -114,3 +111,8 @@ class Hud(object):
         self.score.text = ' '.join((self.ownname,
                                    str(own), ':', str(other),
                                    self.enemyname))
+
+    def calc_time(self, gametime):
+        mins = '{:01.0f}'.format(gametime // 60)
+        secs = '{:02.0f}'.format(gametime % 60)
+        return ''.join((mins, ':', secs))

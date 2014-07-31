@@ -9,8 +9,8 @@ class Client(DatagramProtocol):
     def __init__(self):
         self.time = 0
         self.connected = False
-        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
-        #self.host = ('127.0.0.1', 8000)
+        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
+        self.host = ('127.0.0.1', 8000)
         self.con_timer = 0
         self.message = proto.Message()
         self.input = proto.Input()
@@ -102,6 +102,7 @@ class Client(DatagramProtocol):
         elif self.message.type == proto.stateUpdate:
             ind = self.message.player.id
             stat = self.message.gameState
+            gt = self.message.gameTime
             if stat == proto.isDead:
                 killer = self.message.projectile.playerId
                 weapon = self.message.projectile.type
@@ -110,7 +111,8 @@ class Client(DatagramProtocol):
                 pos = vec2(self.message.player.posx, self.message.player.posy)
                 ind = (ind, pos)
             self.ackman.respond(self.message, address)
-            self.send_message('serverdata', (proto.stateUpdate, (stat, ind)))
+            self.send_message('serverdata', (proto.stateUpdate,
+                              (gt, (stat, ind))))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events

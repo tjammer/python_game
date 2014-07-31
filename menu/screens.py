@@ -25,7 +25,7 @@ class GameScreen(Events):
         self.proj_viewer = ProjectileViewer()
         self.controls = {}
         self.controls_old = {}
-        self.map = Map('testmap')
+        self.map = Map('newtest')
         #self.player.spawn(100, 100)
         self.time = 0
         self.moves = moves(1024)
@@ -103,7 +103,9 @@ class GameScreen(Events):
             elif ind in self.specs:
                 del self.specs[ind]
         elif typ == proto.stateUpdate:
+            gametime, data = data
             gs, ind = data
+            self.gs_view.set_time(gametime)
             if gs == proto.wantsJoin:
                 if ind == self.player.id:
                     self.send_message('menu_transition_-')
@@ -181,6 +183,11 @@ class GameScreen(Events):
     def on_draw(self):
         pass
 
+    def idle_update(self, dt):
+        self.send_to_client(dt)
+        self.gs_view.update(dt)
+        self.hud.update(dt)
+
     def trans_to_spec(self):
         self.on_update = self.spec_update
         self.on_draw = self.spec_draw
@@ -200,6 +207,7 @@ class GameScreen(Events):
         self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
         self.proj_viewer.update(dt)
+        self.gs_view.update(dt)
         self.hud.update(dt)
 
     def game_draw(self):
@@ -218,6 +226,7 @@ class GameScreen(Events):
         self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
         self.proj_viewer.update(dt)
+        self.gs_view.update(dt)
 
     def spec_draw(self):
         self.camera.set_camera()
