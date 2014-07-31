@@ -454,3 +454,5 @@ class WeaponsManager(object):
     def reset(self):
         self.current_w = self.weapons['w0']
         self.current_s = self._stringweaps['w0']
+        if self.hudhook:
+                self.hudhook(weapon=self.current_s)
