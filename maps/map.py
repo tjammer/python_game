@@ -3,6 +3,7 @@ from graphics.primitives import Rect
 from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
+from gameplay.items import Armor, DrawableArmor, ItemManager
 
 
 class Map(object):
@@ -15,8 +16,11 @@ class Map(object):
         self.server = server
         if server:
             self.Rect = AABB
+            self.Armor = Armor
         else:
             self.Rect = Rect
+            self.Armor = DrawableArmor
+        self.items = ItemManager()
         self.load(''.join(('maps/', mapname, '.svg')))
 
     def load(self, mapname):
@@ -56,6 +60,30 @@ class Map(object):
                     height = int(atr['height'])
                     self.spawns.append(vec2(x, -y - height))
 
+        #armors
+        self.ind = 0
+        for child in root.getchildren():
+            if child.attrib['id'] == 'layer3':
+                for rect in child:
+                    atr = rect.attrib
+                    x = int(atr['x'])
+                    y = int(atr['y'])
+                    width = int(atr['width'])
+                    height = int(atr['height'])
+                    avalue = int(atr['armor'])
+                    color = (1., 1., 0.)
+                    armor = self.Armor(x=x, y=-y-height, width=width,
+                                       height=height, value=avalue,
+                                       bonus=False, respawn=10, color=color,
+                                       ind=self.ind)
+                    self.items.add(armor)
+                    self.ind += 1
+
     def draw(self):
         for rect in self.rects:
             rect.draw()
+        for item in self.items:
+            item.draw()
+
+    def serverupdate(self, itemid, spawn):
+        self.items.fromserver(itemid, spawn)

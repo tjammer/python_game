@@ -153,6 +153,13 @@ class GameScreen(Events):
                 self.gs_view.start_game()
             elif gs == proto.warmUp:
                 self.gs_view.to_warmup()
+        elif typ == proto.mapUpdate:
+            ind, itemid, gt, spawn = data
+            self.gs_view.set_time(gt)
+            if ind == self.player.id:
+                #todo: pickupmsg
+                pass
+            self.map.serverupdate(itemid, spawn)
 
     def send_to_client(self, dt):
         temp_input = proto.Input()

@@ -11,7 +11,7 @@ class Movement(object):
         self.normal_accel = 1000.
         self.boost_accel = 20.
         self.turn_multplier = 8.
-        self.jump_vel = 900.
+        self.jump_vel = 1000.
         self.max_vel = 500.
         self.wall_boost = 650.
         self.angle = 0
@@ -56,7 +56,12 @@ class Movement(object):
         if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
         self.vel.x = self.vel.x + v * sign * dt
-        self.vel.y = self.vel.y - self.gravity * dt
+        #wallsliding
+        if (conds.onLeftWall or conds.onRightWall) and self.vel.y < 0:
+            gravity = self.gravity * .5
+        else:
+            gravity = self.gravity
+        self.vel.y = self.vel.y - gravity * dt
 
         if not state.isDead:
             if (conds.landing or

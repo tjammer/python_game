@@ -7,7 +7,7 @@ from collision.aabb import AABB
 class Rect(AABB):
     """docstring for Rect"""
     def __init__(self, x, y, width, height, color=(1., 1., 1.),
-                 isplayer=False):
+                 isplayer=False, **kwargs):
         super(Rect, self).__init__(x, y, width, height, color)
         self.ver_list = graphics.vertex_list(4,
             ('v2f/stream', (x, y, x, y + height,

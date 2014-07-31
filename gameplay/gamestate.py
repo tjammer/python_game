@@ -11,7 +11,7 @@ def duel_calc_score(killed, killer):
 
 class GamestateManager(object):
     """docstring for GamestateManager"""
-    def __init__(self, allgenfunc, ackman, players, spawns):
+    def __init__(self, allgenfunc, ackman, players, spawns, items):
         super(GamestateManager, self).__init__()
         #function which return generator of all players and specs
         self.all = allgenfunc
@@ -25,6 +25,7 @@ class GamestateManager(object):
         self.spawns = spawns
         for spawn in spawns:
             spawn.active = False
+        self.items = items
 
     def update(self, dt):
         for player in self.ingame.itervalues():
@@ -33,6 +34,10 @@ class GamestateManager(object):
                 if player.state.isDead <= 0.0 or (player.state.isDead < 4
                                                   and player.input.att):
                     self.spawn(player)
+            for item in self.items:
+                if player.rect.overlaps(item):
+                    if self.items.apply(player, item):
+                        self.send_mapupdate(item, player)
         for spawn in self.spawns:
             if spawn.active:
                 spawn.active -= dt
@@ -44,6 +49,7 @@ class GamestateManager(object):
                 self.gametime = 0
         if self.gamestate == proto.countDown and self.gametime <= 0:
             self.start_game()
+        self.items.update(dt, self.send_mapupdate)
 
     def damage_player(self, player, proj):
         #armor absorbs 2/3 of dmg
@@ -206,6 +212,29 @@ class GamestateManager(object):
         msg.player.CopyFrom(plr)
         msg.gameState = proto.warmUp
         msg.gameTime = self.gametime
+        for player in self.all():
+            self.ackman.send_rel(msg, player.address)
+
+    def send_mapupdate(self, item, player_=False):
+        msg = proto.Message()
+        msg.type = proto.mapUpdate
+        plr = proto.Player()
+        if player_:
+            plr.id = player_.id
+        else:
+            plr.id = -1
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.mapUpdate
+        msg.gameTime = self.gametime
+        input = proto.Input()
+        input.time = 0
+        input.id = item.ind
+        #spawn
+        if player_:
+            input.right = False
+        else:
+            input.right = True
+        msg.input.CopyFrom(input)
         for player in self.all():
             self.ackman.send_rel(msg, player.address)
 

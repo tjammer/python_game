@@ -112,6 +112,14 @@ class Client(DatagramProtocol):
             self.ackman.respond(self.message, address)
             self.send_message('serverdata', (proto.stateUpdate,
                               (gt, (stat, ind))))
+        elif self.message.type == proto.mapUpdate:
+            ind = self.message.player.id
+            itemid = self.message.input.id
+            gt = self.message.gameTime
+            spawn = self.message.input.right
+            self.ackman.respond(self.message, address)
+            self.send_message('serverdata', (proto.mapUpdate,
+                              (ind, itemid, gt, spawn)))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
