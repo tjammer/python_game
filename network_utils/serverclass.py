@@ -53,6 +53,8 @@ class GameServer(DatagramProtocol):
             elif data.gameState == proto.goesSpec:
                 self.gamestate.spec(data)
                 self.spec_player(data.player.id)
+            elif data.gameState == proto.isReady:
+                self.gamestate.ready_up(data)
 
     def update(self, dt):
         keys = []

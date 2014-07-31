@@ -46,6 +46,10 @@ class GameScreen(Events):
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', GameMenu)
 
+        if self.controls['rdy'] and not self.controls_old['rdy']:
+            if not self.isSpec:
+                self.ready_up()
+
         for key_, value in self.controls.items():
             self.controls_old[key_] = value
         self.on_update(dt)
@@ -140,6 +144,13 @@ class GameScreen(Events):
                     self.player.spawn(*pos)
                 else:
                     self.players[ind].spawn(*pos)
+            elif gs == proto.isReady:
+                ind, name = ind
+                self.gs_view.is_ready(ind, name)
+            elif gs == proto.countDown:
+                self.player.freeze()
+            elif gs == proto.inProgress:
+                self.gs_view.start_game()
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
@@ -175,6 +186,15 @@ class GameScreen(Events):
             msg.gameState = proto.wantsJoin
         else:
             msg.gameState = proto.goesSpec
+        self.send_message('other', msg)
+
+    def ready_up(self):
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        plr = proto.Player()
+        plr.id = self.player.id
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.isReady
         self.send_message('other', msg)
 
     def on_update(self, dt):

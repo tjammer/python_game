@@ -55,10 +55,8 @@ class Client(DatagramProtocol):
                 msg_ = self.message.SerializeToString()
                 self.transport.write(msg_, self.host)
         elif event == 'other':
-            if msg.gameState == proto.wantsJoin:
-                self.ackman.send_rel(msg, self.host)
-            elif msg.gameState == proto.goesSpec:
-                self.ackman.send_rel(msg, self.host)
+            #only need one message for now, check git for other
+            self.ackman.send_rel(msg, self.host)
 
     def datagramReceived(self, datagram, address):
         self.message.ParseFromString(datagram)
@@ -110,6 +108,9 @@ class Client(DatagramProtocol):
             elif stat == proto.spawns:
                 pos = vec2(self.message.player.posx, self.message.player.posy)
                 ind = (ind, pos)
+            elif stat == proto.isReady:
+                name = self.message.player.chat
+                ind = (ind, name)
             self.ackman.respond(self.message, address)
             self.send_message('serverdata', (proto.stateUpdate,
                               (gt, (stat, ind))))

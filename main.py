@@ -5,7 +5,7 @@ from twisted.internet import reactor
 from menu.window_manager import WindowManager
 from network_utils.clientclass import Client
 
-window = pyglet.window.Window(1280, 720, vsync=False)
+window = pyglet.window.Window(1280, 720, vsync=True)
 #window.set_mouse_visible(True)
 window.set_exclusive_mouse(True)
 window_manager = WindowManager(window)
@@ -32,7 +32,7 @@ def on_draw():
     pyglet.gl.glClearColor(0, .0, 0, 1)
     pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
     window_manager.draw()
-    #fps.draw()
+    fps.draw()
 
 reactor.listenUDP(8001, client)
 client.register_ack()

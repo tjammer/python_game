@@ -26,6 +26,7 @@ class Player(Events):
         #input will be assigned by windowmanager class
         self.input = proto.Input()
         self.listeners = {}
+        self.ready = False
 
     def update(self, dt, rectgen, state=False, input=False):
         if not state:
@@ -126,6 +127,7 @@ class Player(Events):
         self.state.hp = 100
         self.armor = 0
         self.state.isDead = False
+        self.state.frozen = False
         if isinstance(self.rect, Rect):
             self.rect.update_color((0, .8, 1.))
 
@@ -135,3 +137,6 @@ class Player(Events):
 
     def die(self):
         self.state.isDead = 5
+
+    def freeze(self):
+        self.state.frozen = True

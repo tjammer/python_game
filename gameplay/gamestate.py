@@ -38,6 +38,12 @@ class GamestateManager(object):
                 spawn.active -= dt
                 if spawn.active <= 0:
                     spawn.active = False
+        if self.gametime > 0:
+            self.gametime -= dt
+            if self.gametime < 0:
+                self.gametime = 0
+        if self.gamestate == proto.countDown and self.gametime <= 0:
+            self.start_game()
 
     def damage_player(self, player, proj):
         #armor absorbs 2/3 of dmg
@@ -108,7 +114,11 @@ class GamestateManager(object):
             self.ackman.send_rel(msg, player.address)
 
     def spawn(self, player):
-        spawnp = choice([spawn for spawn in self.spawns if not spawn.active])
+        try:
+            spawnp = choice([spawn for spawn in self.spawns
+                            if not spawn.active])
+        except IndexError:
+            spawnp = choice(self.spawns)
         self.spawns[self.spawns.index(spawnp)].active = 2
         player.spawn(*spawnp)
         msg = proto.Message()
@@ -131,6 +141,53 @@ class GamestateManager(object):
                     return 0
                 elif killer in team:
                     team.score += 1
+
+    def ready_up(self, data):
+        id = data.player.id
+        self.ingame[id].ready = True
+        if len([plr for plr in self.ingame.itervalues() if plr.ready]) == 2:
+            self.countdown()
+        else:
+            msg = proto.Message()
+            msg.type = proto.stateUpdate
+            plr = proto.Player()
+            plr.id = id
+            plr.chat = self.ingame[id].name
+            msg.player.CopyFrom(plr)
+            msg.gameState = proto.isReady
+            msg.gameTime = self.gametime
+            for player in self.all():
+                self.ackman.send_rel(msg, player.address)
+
+    def countdown(self):
+        self.gametime = 10
+        self.gamestate = proto.countDown
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        plr = proto.Player()
+        plr.id = id
+        plr.chat = self.ingame[id].name
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.countDown
+        msg.gameTime = self.gametime
+        for player in self.all():
+            self.ackman.send_rel(msg, player.address)
+
+    def start_game(self):
+        self.gametime = 300
+        self.gamestate = proto.inProgress
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        plr = proto.Player()
+        plr.id = id
+        plr.chat = self.ingame[id].name
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.inProgress
+        msg.gameTime = self.gametime
+        for player in self.all():
+            self.ackman.send_rel(msg, player.address)
+        for player in self.ingame.itervalues():
+            self.spawn(player)
 
 
 class Team(object):
@@ -185,7 +242,7 @@ class GameStateViewer(object):
             self.hudhook(score='-')
 
     def score(self, killed, killer, weapon=False):
-        if self.gamestate == proto.warmUp:
+        if self.gamestate == proto.inProgress:
             for team in (self.a, self.b):
                 if killed in team and killer in team:
                     team.score -= 1
@@ -218,3 +275,10 @@ class GameStateViewer(object):
 
     def set_time(self, time):
         self.gametime = time
+
+    def is_ready(self, id, name):
+        text = ' '.join((name, 'is ready!'))
+        self.hudhook(text=text)
+
+    def start_game(self):
+        self.gamestate == proto.inProgress

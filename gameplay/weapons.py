@@ -429,7 +429,7 @@ class WeaponsManager(object):
                 self.hudhook(text='no ammo')
 
     def update(self, dt, state, input):
-        if state.isDead:
+        if state.isDead or state.frozen:
             return 0
         if input.att:
             self.fire(state.pos, vec2(input.mx, input.my))

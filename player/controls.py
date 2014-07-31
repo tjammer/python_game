@@ -69,6 +69,7 @@ class InputHandler(object):
         self.directns.w0 = self.keys[key._1]
         self.controls['esc'] = self.keys[key.ESCAPE]
         self.controls['f10'] = self.keys[key.F10]
+        self.controls['rdy'] = self.keys[key.F3]
 
         self.send_message('all_input', self.keys)
 

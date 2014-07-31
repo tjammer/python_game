@@ -67,6 +67,7 @@ class state(object):
         self.wall_t = .2
         self.wall = 0
         self.isDead = False
+        self.frozen = False
         if not conds:
             self.conds = proto.MState()
             self.conds.canJump = True
