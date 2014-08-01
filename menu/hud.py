@@ -37,8 +37,7 @@ class Hud(object):
                           bold=True,
                           batch=self.labellist)
         self.killmsg = Label('0:00', font_name='Helvetica', font_size=36,
-                             x=640, y=680, anchor_x='left', anchor_y='center',
-                             batch=self.labellist)
+                             x=640, y=680, anchor_x='left', anchor_y='center')
         self.score = Label('me 0:0 enemy', font_name='Helvetica', font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
@@ -60,14 +59,6 @@ class Hud(object):
             self.set_score(0, 0)
 
     def draw(self):
-        if self.text_active:
-            self.text.batch = self.labellist
-        else:
-            self.text.delete()
-        if self.killmsg_active:
-            self.killmsg.batch = self.labellist
-        else:
-            self.killmsg.delete()
         self.labellist.draw()
 
     def update(self, dt):
@@ -75,10 +66,12 @@ class Hud(object):
             self.text_active -= dt
             if self.text_active <= 0:
                 self.text_active = False
+                self.text.delete()
         if self.killmsg_active:
             self.killmsg_active -= dt
             if self.killmsg_active <= 0:
                 self.killmsg_active = False
+                self.killmsg.delete()
         self.time.text = self.calc_time(self.gametime)
 
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
@@ -102,6 +95,7 @@ class Hud(object):
         if text:
             self.text.text = text
             self.text_active = 2
+            self.text.batch = self.labellist
         if weapon:
             self.weapon.text = weapon
             if weapon == 'melee':
