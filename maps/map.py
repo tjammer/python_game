@@ -4,6 +4,7 @@ from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
 from gameplay.items import Armor, DrawableArmor, ItemManager
+from gameplay.items import armors
 
 
 class Map(object):
@@ -71,11 +72,11 @@ class Map(object):
                     width = int(atr['width'])
                     height = int(atr['height'])
                     avalue = int(atr['armor'])
-                    color = (1., 1., 0.)
+                    color, maxarmor = armors[avalue]
                     armor = self.Armor(x=x, y=-y-height, width=width,
                                        height=height, value=avalue,
                                        bonus=False, respawn=10, color=color,
-                                       ind=self.ind)
+                                       ind=self.ind, maxarmor=maxarmor)
                     self.items.add(armor)
                     self.ind += 1
 

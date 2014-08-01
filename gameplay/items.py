@@ -2,23 +2,29 @@ from collision.aabb import AABB
 from graphics.primitives import Rect
 
 
+armors = {50: ((1., 1., 0.), 100),
+          100: ((1., 0., 0.), 200),
+          10: ((0., 1., 0.), 50)}
+
+
 class Armor(AABB):
     """docstring for Armor"""
-    def __init__(self, value, bonus, respawn, ind, *args, **kwargs):
+    def __init__(self, value, bonus, respawn, ind, maxarmor, *args, **kwargs):
         super(Armor, self).__init__(*args, **kwargs)
         self.inactive = False
         self.value = value
         self.bonus = bonus
         self.respawn = respawn
         self.ind = ind
+        self.maxarmor = maxarmor
 
-    def apply(self, player, maxarmor=200):
-        if player.state.armor == maxarmor and not self.bonus:
+    def apply(self, player):
+        if player.state.armor >= self.maxarmor and not self.bonus:
             return False
         else:
             player.state.armor += self.value
-            if not self.bonus and player.state.armor > maxarmor:
-                player.state.armor = maxarmor
+            if not self.bonus and player.state.armor > self.maxarmor:
+                player.state.armor = self.maxarmor
             self.inactive = self.respawn
             return True
 
