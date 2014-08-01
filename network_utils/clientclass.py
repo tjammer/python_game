@@ -169,7 +169,7 @@ class moves(list):
             index[0] -= self.maximum
 
 
-def correct_client(update_physics, s_move, moves, head, tail):
+def correct_client(update_physics, s_move, moves, head, tail, update_state):
     """update_physics is a function which updates physics and has dt, state
     and input as an argument. state is the state sent from server as in
     player.state.state"""
@@ -180,6 +180,7 @@ def correct_client(update_physics, s_move, moves, head, tail):
 
     if head[0] != tail and s_move.time == moves[head[0]].time:
         if (moves[head[0]].state.pos - s_move.state.pos).mag() > threshold:
+            print True
             c_time = s_move.time
             c_state = s_move.state.copy()
             c_input = moves[head[0]].input
@@ -195,5 +196,5 @@ def correct_client(update_physics, s_move, moves, head, tail):
                 moves[index[0]].state = c_state.copy()
                 moves.advance(index)
         elif moves[head[0]].state.chksm != s_move.state.chksm:
-            c_state = update_physics(0, s_move.state, proto.Input())
-            moves[head[0]].state = c_state.copy()
+            c_state = update_state(s_move.state)
+            #moves[head[0]].state.update(0, s_move.state.copy())

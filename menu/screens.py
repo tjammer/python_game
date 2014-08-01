@@ -62,6 +62,9 @@ class GameScreen(Events):
         self.player.update(dt, rectgen, state, input)
         return self.player.state
 
+    def update_state_only(self, state):
+        self.player.state.update(0, state)
+
     def from_server(self, data):
         typ, data = data
         if typ == proto.playerUpdate:
@@ -70,7 +73,8 @@ class GameScreen(Events):
             if ind == self.player.id:
                 try:
                     correct_client(self.update_physics, smove, self.moves,
-                                   self.head, self.index[0])
+                                   self.head, self.index[0],
+                                   self.update_state_only)
                 except IndexError:
                     pass
             else:
