@@ -94,7 +94,7 @@ class Map(object):
                     color, maxhp = health[hvalue]
                     health_ = self.Health(x=x, y=-y-height, width=width,
                                           height=height, value=hvalue,
-                                          bonus=False, respawn=10, color=color,
+                                          bonus=False, respawn=20, color=color,
                                           ind=self.ind, maxhp=maxhp)
                     self.items.add(health_)
                     self.ind += 1

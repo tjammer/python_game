@@ -26,8 +26,10 @@ class GamestateManager(object):
         for spawn in spawns:
             spawn.active = False
         self.items = items
+        self.ticks = 0
 
     def update(self, dt):
+        self.ticks += dt
         for player in self.ingame.itervalues():
             if player.state.isDead:
                 player.state.isDead -= dt
@@ -38,6 +40,8 @@ class GamestateManager(object):
                 if player.rect.overlaps(item):
                     if self.items.apply(player, item):
                         self.send_mapupdate(item, player)
+            if self.ticks >= 1:
+                self.tick(player)
         for spawn in self.spawns:
             if spawn.active:
                 spawn.active -= dt
@@ -50,6 +54,8 @@ class GamestateManager(object):
         if self.gamestate == proto.countDown and self.gametime <= 0:
             self.start_game()
         self.items.update(dt, self.send_mapupdate)
+        if self.ticks >= 1:
+            self.ticks = 0
 
     def damage_player(self, player, proj):
         #armor absorbs 2/3 of dmg
@@ -237,6 +243,10 @@ class GamestateManager(object):
         msg.input.CopyFrom(input)
         for player in self.all():
             self.ackman.send_rel(msg, player.address)
+
+    def tick(self, player):
+        if player.state.hp > 100:
+            player.state.hp -= 1
 
 
 class Team(object):
