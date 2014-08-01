@@ -11,7 +11,7 @@ class Movement(object):
         self.normal_accel = 1000.
         self.boost_accel = 20.
         self.turn_multplier = 8.
-        self.jump_vel = 1000.
+        self.jump_vel = 900.
         self.max_vel = 500.
         self.wall_boost = 650.
         self.angle = 0
