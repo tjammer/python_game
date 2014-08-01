@@ -13,32 +13,33 @@ class Hud(object):
         self.text_active = 5
         self.killmsg_active = False
         self.labellist = Batch()
-        self.hp = Label(self.hp_t, font_name='Helvetica', font_size=36,
+        font = 'Helvetica'
+        self.hp = Label(self.hp_t, font_name=font, font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
                         anchor_y='bottom',
                         batch=self.labellist)
-        self.armor = Label(self.armor_t, font_name='Helvetica', font_size=36,
+        self.armor = Label(self.armor_t, font_name=font, font_size=36,
                            x=240, y=10, anchor_x='center', anchor_y='bottom',
                            bold=True,
                            batch=self.labellist)
-        self.text = Label(self.text_, font_name='Helvetica', font_size=36,
+        self.text = Label(self.text_, font_name=font, font_size=36,
                           x=640, y=360, anchor_x='center', anchor_y='center',
                           batch=self.labellist)
-        self.weapon = Label('melee', font_name='Helvetica', font_size=32,
+        self.weapon = Label('melee', font_name=font, font_size=32,
                             x=1160, y=80, anchor_x='center', anchor_y='bottom',
                             color=(0, 255, 255, 255),
                             batch=self.labellist)
-        self.ammo = Label('1', font_name='Helvetica', font_size=36,
+        self.ammo = Label('1', font_name=font, font_size=36,
                           x=1160, y=10, anchor_x='center', anchor_y='bottom',
                           bold=True,
                           batch=self.labellist)
-        self.time = Label('0:00', font_name='Helvetica', font_size=36,
+        self.time = Label('0:00', font_name=font, font_size=36,
                           x=640, y=680, anchor_x='center', anchor_y='center',
                           bold=True,
                           batch=self.labellist)
-        self.killmsg = Label('0:00', font_name='Helvetica', font_size=36,
+        self.killmsg = Label('0:00', font_name=font, font_size=36,
                              x=640, y=680, anchor_x='left', anchor_y='center')
-        self.score = Label('me 0:0 enemy', font_name='Helvetica', font_size=24,
+        self.score = Label('me 0:0 enemy', font_name=font, font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
         self.normal_hpcol = (255, 255, 255, 255)
