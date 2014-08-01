@@ -3,8 +3,7 @@ from graphics.primitives import Rect
 from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
-from gameplay.items import Armor, DrawableArmor, ItemManager
-from gameplay.items import armors
+from gameplay.items import *
 
 
 class Map(object):
@@ -18,9 +17,11 @@ class Map(object):
         if server:
             self.Rect = AABB
             self.Armor = Armor
+            self.Health = Health
         else:
             self.Rect = Rect
             self.Armor = DrawableArmor
+            self.Health = DrawableHealth
         self.items = ItemManager()
         self.load(''.join(('maps/', mapname, '.svg')))
 
@@ -64,7 +65,7 @@ class Map(object):
         #armors
         self.ind = 0
         for child in root.getchildren():
-            if child.attrib['id'] == 'layer3':
+            if child.attrib['id'] == 'armors':
                 for rect in child:
                     atr = rect.attrib
                     x = int(atr['x'])
@@ -78,6 +79,24 @@ class Map(object):
                                        bonus=False, respawn=10, color=color,
                                        ind=self.ind, maxarmor=maxarmor)
                     self.items.add(armor)
+                    self.ind += 1
+
+        #healths
+        for child in root.getchildren():
+            if child.attrib['id'] == 'health':
+                for rect in child:
+                    atr = rect.attrib
+                    x = int(atr['x'])
+                    y = int(atr['y'])
+                    width = int(atr['width'])
+                    height = int(atr['height'])
+                    hvalue = int(atr['health'])
+                    color, maxhp = health[hvalue]
+                    health_ = self.Health(x=x, y=-y-height, width=width,
+                                          height=height, value=hvalue,
+                                          bonus=False, respawn=10, color=color,
+                                          ind=self.ind, maxhp=maxhp)
+                    self.items.add(health_)
                     self.ind += 1
 
     def draw(self):

@@ -25,10 +25,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="1072.6807"
+     inkscape:cx="1692.7592"
      inkscape:cy="1732.6496"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="health"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -67,7 +67,7 @@
   </metadata>
   <g
      inkscape:groupmode="layer"
-     id="layer4"
+     id="health"
      inkscape:label="health">
     <rect
        y="-350"
@@ -88,7 +88,7 @@
   </g>
   <g
      inkscape:groupmode="layer"
-     id="layer3"
+     id="armors"
      inkscape:label="armor">
     <rect
        style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
@@ -108,7 +108,7 @@
        armor="50" />
     <rect
        armor="100"
-       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
+       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
        id="rect3840"
        width="50"
        height="50"

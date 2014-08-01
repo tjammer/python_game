@@ -4,7 +4,11 @@ from graphics.primitives import Rect
 
 armors = {50: ((1., 1., 0.), 100),
           100: ((1., 0., 0.), 200),
-          10: ((0., 1., 0.), 50)}
+          10: ((0., .7, 0.), 50)}
+
+health = {25: ((.7, 1., 0.), 100),
+          50: ((1., .5, 0.), 100),
+          100: ((0., 1., 1.), 200)}
 
 
 class Armor(AABB):
@@ -38,6 +42,35 @@ class DrawableArmor(Rect):
         self.bonus = bonus
         self.respawn = respawn
         self.ind = ind
+
+
+class Health(AABB):
+    """docstring for Health"""
+    def __init__(self, value, bonus, respawn, ind, maxhp, *args, **kwargs):
+        super(Health, self).__init__(*args, **kwargs)
+        self.inactive = False
+        self.value = value
+        self.bonus = bonus
+        self.respawn = respawn
+        self.ind = ind
+        self.maxhp = maxhp
+
+    def apply(self, player):
+        if player.state.hp >= self.maxhp and not self.bonus:
+            return False
+        else:
+            player.state.hp += self.value
+            if not self.bonus and player.state.hp > self.maxhp:
+                player.state.hp = self.maxhp
+            self.inactive = self.respawn
+            return True
+
+
+class DrawableHealth(Rect):
+    """docstring for DrawableHealth"""
+    def __init__(self, *args, **kwargs):
+        super(DrawableHealth, self).__init__(*args, **kwargs)
+        self.inactive = False
 
 
 class ItemManager(object):
