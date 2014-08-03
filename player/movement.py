@@ -42,7 +42,10 @@ class Movement(object):
         elif input.left and not input.right:
             sign = -1
         else:
-            self.vel.x -= self.vel.x * dt * self.friction
+            if conds.onGround:
+                self.vel.x -= self.vel.x * dt * self.friction
+            else:
+                self.vel.x -= self.vel.x * dt * self.friction / 5.
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
         if vel.x * sign >= self.max_vel or (conds.onRightWall
