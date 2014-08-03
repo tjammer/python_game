@@ -94,7 +94,7 @@ class Blaster(Weapon):
         rectoffset = vec2(16, 32)
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
-        proj = BlasterProjectile(x=pos.x+16+direc.x*32, y=pos.y+32+direc.y*72,
+        proj = BlasterProjectile(x=pos.x+16, y=pos.y+32,
                                  width=15, height=15, vel=self.vel,
                                  direc=direc, lifetime=self.proj_lifetime,
                                  dmg=40, id=self.id)
@@ -127,12 +127,17 @@ class Projectile(Rectangle):
         self.type = None
         self.offset = offset
         self.ppos = ppos
+        self.canthurt = 0.5
 
     def on_hit(self, player=None):
         pass
 
     def updateproj(self, dt, mapgen, playergen):
         self.lifetime -= dt
+        if self.canthurt:
+            self.canthurt -= dt
+            if self.canthurt <= 0:
+                self.canthurt = False
         return self.collide(dt, mapgen, playergen)
 
     def collide(self, dt, mapgen, playergen):
@@ -172,6 +177,8 @@ class Projectile(Rectangle):
         pos = self.pos + self.vel * dt
         self.update(*pos)
         if not id:
+            return False
+        elif id == self.id and self.canthurt:
             return False
         else:
             return id
@@ -221,7 +228,7 @@ class BlasterProjectile(Projectile):
     def on_hit(self, player=None):
         posx = self.pos.x
         posy = self.pos.y
-        hwidth = 51
+        hwidth = 102
         proj = BlasterExplosion(dmg=10, knockback=400, id=self.id,
                                 x=posx, y=posy,
                                 width=hwidth*2,
@@ -382,7 +389,7 @@ class ProjectileViewer(object):
                                            color=(1., 0., 0.))
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=102, height=102,
+                    self.projs[ind] = Rect(pos.x, pos.y, width=204, height=204,
                                            color=(4., .2, .6))
                     self.projs[ind].vel = vel
                 else:
