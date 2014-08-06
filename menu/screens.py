@@ -1,7 +1,8 @@
 # file for all the screens in the game
+import pyglet
 from graphics.camera import Camera
 from player import player
-from elements import TextBoxFramed as btn
+from elements import TextBoxFramed as btn, TextWidget
 from menu_events import Events, MenuClass
 from pyglet.text import Label
 from graphics.primitives import Box
@@ -44,7 +45,8 @@ class GameScreen(Events):
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
         if self.controls['esc'] and not self.controls_old['esc']:
-            self.send_message('menu_transition_+', GameMenu)
+            #self.send_message('menu_transition_+', GameMenu)
+            self.send_message('options')
 
         if self.controls['rdy'] and not self.controls_old['rdy']:
             if not self.isSpec:
@@ -367,3 +369,76 @@ class LoadScreen(MenuClass):
                 self.send_message('to_main')
         except:
             pass
+
+
+class OptionsScreen(MenuClass):
+    """docstring for OptionsScreen"""
+    def __init__(self, window):
+        super(OptionsScreen, self).__init__()
+        self.window = window
+        self.batch = pyglet.graphics.Batch()
+        self.widget = TextWidget('', 200, 100, window.width - 500, self.batch)
+        self.text_cursor = window.get_system_mouse_cursor('text')
+        self.focus = None
+        self.set_focus(self.widget)
+
+        @self.window.event
+        def on_mouse_motion(x, y, dx, dy):
+            if self.widget.hit_test(x, y):
+                self.window.set_mouse_cursor(self.text_cursor)
+            else:
+                self.window.set_mouse_cursor(None)
+
+        @self.window.event
+        def on_mouse_press(x, y, button, modifiers):
+            if self.widget.hit_test(x, y):
+                self.set_focus(self.widget)
+            else:
+                self.set_focus(None)
+
+            if self.focus:
+                self.focus.caret.on_mouse_press(x, y, button, modifiers)
+
+        @self.window.event
+        def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+            if self.focus:
+                self.focus.caret.on_mouse_drag(x, y, dx, dy, buttons,
+                                               modifiers)
+
+        @self.window.event
+        def on_text(text):
+            if self.focus:
+                self.focus.caret.on_text(text)
+
+        @self.window.event
+        def on_text_motion(motion):
+            if self.focus:
+                self.focus.caret.on_text_motion(motion)
+
+        @self.window.event
+        def on_text_motion_select(motion):
+            if self.focus:
+                self.focus.caret.on_text_motion_select(motion)
+
+        @self.window.event
+        def on_key_press(symbol, modifiers):
+            if symbol == pyglet.window.key.ESCAPE:
+                pyglet.app.exit()
+            elif symbol == pyglet.window.key.ENTER:
+                if self.focus:
+                    print self.widget.document.text
+
+    def draw(self):
+        pyglet.gl.glClearColor(1, 1, 1, 1)
+        self.batch.draw()
+
+    def set_focus(self, focus):
+        if self.focus:
+            self.focus.caret.visible = False
+            self.focus.caret.mark = self.focus.caret.position = 0
+
+        self.focus = focus
+        if self.focus:
+            self.focus.caret.visible = True
+            self.focus.caret.mark = 0
+            self.focus.caret.position = len(self.focus.document.text)

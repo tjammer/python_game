@@ -1,4 +1,4 @@
-from screens import GameScreen, MainMenu, LoadScreen
+from screens import GameScreen, MainMenu, LoadScreen, OptionsScreen
 from player.controls import InputHandler
 from menu_events import Events
 from network_utils import protocol_pb2 as proto
@@ -92,6 +92,10 @@ class WindowManager(Events):
 
         elif event == 'try_join':
             self.stack[0].try_join()
+
+        elif event == 'options':
+            self.current_screen = OptionsScreen(self.window)
+            self.register_screen()
 
     def start_game(self):
         self.current_screen = GameScreen(self.window)
