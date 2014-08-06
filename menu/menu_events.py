@@ -18,10 +18,10 @@ class Events(object):
 
     def send_message(self, event, msg=None):
         for listener, events in self.listeners.iteritems():
-            try:
-                listener(event, msg)
-            except (Exception, ):
-                self.unregister(listener, msg)
+            #try:
+            listener(event, msg)
+            #except (Exception, ):
+            #    self.unregister(listener, msg)
 
     def unregister(self, listener, msg):
         print '%s deleted, %s' % (listener, msg)
@@ -61,11 +61,15 @@ class MenuClass(object):
     def draw(self):
         for key, panel in self.buttons.items() + self.text_boxes.items():
             panel.draw()
+        self.on_draw()
 
     def handle_clicks(self, key):
         pass
 
     def add_update(self, dt):
+        pass
+
+    def on_draw(self):
         pass
 
     # receive events

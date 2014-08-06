@@ -57,16 +57,13 @@ class WindowManager(Events):
             self.saved_mouse = (1280 / 2, 720 / 2)
 
         elif event == 'menu_transition_+':
+            msg, arg = msg
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.mousepos)
                 self.current_screen.player.input = proto.Input()
                 self.InputHandler.unregister(self.current_screen.camera.
                                              receive_m_pos, 'mouse_cam')
-                spec = self.current_screen.isSpec
-                self.current_screen = msg(spec)
-                self.register_screen()
-                return 0
-            self.current_screen = msg()
+            self.current_screen = msg(arg)
             self.register_screen()
 
         elif event == 'menu_transition_-':
@@ -101,7 +98,7 @@ class WindowManager(Events):
         self.current_screen = GameScreen(self.window)
         self.register_screen()
         #get to load screen
-        self.receive_events('menu_transition_+', LoadScreen)
+        self.receive_events('menu_transition_+', (LoadScreen, False))
         self.connect()
 
     def register_screen(self):

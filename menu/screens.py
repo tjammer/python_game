@@ -45,7 +45,7 @@ class GameScreen(Events):
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
         if self.controls['esc'] and not self.controls_old['esc']:
-            self.send_message('menu_transition_+', GameMenu)
+            self.send_message('menu_transition_+', (GameMenu, self.isSpec))
             #self.send_message('options')
 
         if self.controls['rdy'] and not self.controls_old['rdy']:
@@ -277,22 +277,22 @@ class GameScreen(Events):
 
 class MainMenu(MenuClass):
     """docstring for MainMenu"""
-    def __init__(self):
-        super(MainMenu, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(MainMenu, self).__init__(*args, **kwargs)
         self.buttons['start'] = btn([500, 400], 'start game')
         self.buttons['quit'] = btn([500, 200], 'quit game')
 
     def handle_clicks(self, key):
         if key == 'quit':
-            self.send_message('menu_transition_+', QuitScreen)
+            self.send_message('menu_transition_+', (QuitScreen, False))
         if key == 'start':
             self.send_message('start_game')
 
 
 class QuitScreen(MenuClass):
     """docstring for QuitScreen"""
-    def __init__(self):
-        super(QuitScreen, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(QuitScreen, self).__init__(*args, **kwargs)
         self.buttons['quit'] = btn([300, 300], 'yes')
         self.buttons['dont_quit'] = btn([680, 300], 'no')
         self.text = 'do you really want to quit?'
@@ -376,8 +376,8 @@ class LoadScreen(MenuClass):
 
 class OptionsScreen(MenuClass):
     """docstring for OptionsScreen"""
-    def __init__(self, window):
-        super(OptionsScreen, self).__init__()
+    def __init__(self, window, *args, **kwargs):
+        super(OptionsScreen, self).__init__(*args, **kwargs)
         self.window = window
         self.batch = pyglet.graphics.Batch()
         self.widget = TextWidget('', 200, 100, window.width - 500, self.batch,
