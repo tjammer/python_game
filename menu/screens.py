@@ -21,6 +21,7 @@ class GameScreen(Events):
     """docstring for GameScreen"""
     def __init__(self, window):
         super(GameScreen, self).__init__()
+        self.window = window
         self.camera = Camera(window)
         self.player = player.Player()
         self.proj_viewer = ProjectileViewer()
@@ -45,18 +46,19 @@ class GameScreen(Events):
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
         if self.controls['esc'] and not self.controls_old['esc']:
+            self.update_keys()
             self.send_message('menu_transition_+', (GameMenu, self.isSpec))
-            #self.send_message('options')
 
         if self.controls['rdy'] and not self.controls_old['rdy']:
             if not self.isSpec:
                 self.ready_up()
 
         if self.controls['chat'] and not self.controls_old['chat']:
-            self.send_message('options')
+            self.update_keys()
+            self.send_message('menu_transition_+',
+                              (OptionsScreen, self.window))
 
-        for key_, value in self.controls.items():
-            self.controls_old[key_] = value
+        self.update_keys()
         self.on_update(dt)
 
     def update_physics(self, dt, state=False, input=False):
@@ -69,6 +71,10 @@ class GameScreen(Events):
 
     def update_state_only(self, state):
         self.player.state.update(0, state)
+
+    def update_keys(self):
+        for key_, value in self.controls.items():
+            self.controls_old[key_] = value
 
     def from_server(self, data):
         typ, data = data
@@ -345,11 +351,9 @@ class GameMenu(MenuClass):
             self.cd -= dt
             if self.cd < 0:
                 self.cd = 0
-        try:
-            if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
-                self.send_message('menu_transition_-')
-        except:
-            pass
+
+        if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+            self.send_message('menu_transition_-')
 
 
 class LoadScreen(MenuClass):
@@ -385,3 +389,11 @@ class OptionsScreen(MenuClass):
 
     def on_draw(self):
         self.batch.draw()
+
+    def add_update(self, dt):
+        if self.keys[key.ENTER] and (not self.keys_old[key.ENTER] and
+                                     self.widget.focus):
+            pass
+
+        if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+            self.send_message('menu_transition_-')

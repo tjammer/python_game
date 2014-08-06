@@ -99,13 +99,12 @@ class TextWidget(object):
             if self.focus:
                 self.focus.caret.on_text_motion_select(motion)
 
-        @self.window.event
+        """@self.window.event
         def on_key_press(symbol, modifiers):
-            if symbol == pyglet.window.key.ESCAPE:
-                pyglet.app.exit()
-            elif symbol == pyglet.window.key.ENTER:
+            if symbol == pyglet.window.key.ENTER:
                 if self.focus:
-                    print self.document.text
+                    #print self.document.text
+                    pass"""
 
     def hit_test(self, x, y):
         return (0 < x - self.layout.x < self.layout.width and

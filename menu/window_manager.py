@@ -90,10 +90,6 @@ class WindowManager(Events):
         elif event == 'try_join':
             self.stack[0].try_join()
 
-        elif event == 'options':
-            self.current_screen = OptionsScreen(self.window)
-            self.register_screen()
-
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.register_screen()

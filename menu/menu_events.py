@@ -1,3 +1,6 @@
+from pyglet.window import key as key_
+
+
 class Events(object):
     """docstring for Events
     class for menu classes to inherit events"""
@@ -36,10 +39,11 @@ class MenuClass(object):
         self.buttons = {}
         self.text_boxes = {}
         self.m_pos = [0, 0]
-        self.keys = {}
-        self.keys_old = {}
+        self.keys = key_.KeyStateHandler()
+        self.keys_old = key_.KeyStateHandler()
         self.listeners = {}
         self.bool = vool
+        self.keys_old[key_.ESCAPE] = True
 
     def update(self, dt):
         for key, button in self.buttons.items():
@@ -55,8 +59,9 @@ class MenuClass(object):
         self.animate(dt)
         self.add_update(dt)
 
-        for key, value in self.keys.items():
-            self.keys_old[key] = value
+        self.keys_old.update(self.keys)
+        #for key, value in self.keys.items():
+        #    self.keys_old[key] = value
 
     def draw(self):
         for key, panel in self.buttons.items() + self.text_boxes.items():
