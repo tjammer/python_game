@@ -37,7 +37,7 @@ class TextBoxFramed(object):
 
 
 class TextWidget(object):
-    def __init__(self, text, x, y, width, batch):
+    def __init__(self, text, x, y, width, batch, window):
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text),
                                 dict(color=(0, 0, 0, 255))
@@ -56,6 +56,68 @@ class TextWidget(object):
         self.rectangle = Rect(x, y, width, height, batch=batch,
                               color=(.8, .8, .8))
 
+        self.window = window
+        self.text_cursor = window.get_system_mouse_cursor('text')
+        self.focus = None
+        self.set_focus(self)
+
+        @self.window.event
+        def on_mouse_motion(x, y, dx, dy):
+            if self.hit_test(x, y):
+                self.window.set_mouse_cursor(self.text_cursor)
+            else:
+                self.window.set_mouse_cursor(None)
+
+        @self.window.event
+        def on_mouse_press(x, y, button, modifiers):
+            if self.hit_test(x, y):
+                self.set_focus(self)
+            else:
+                self.set_focus(None)
+
+            if self.focus:
+                self.focus.caret.on_mouse_press(x, y, button, modifiers)
+
+        @self.window.event
+        def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+            if self.focus:
+                self.focus.caret.on_mouse_drag(x, y, dx, dy, buttons,
+                                               modifiers)
+
+        @self.window.event
+        def on_text(text):
+            if self.focus:
+                self.focus.caret.on_text(text)
+
+        @self.window.event
+        def on_text_motion(motion):
+            if self.focus:
+                self.focus.caret.on_text_motion(motion)
+
+        @self.window.event
+        def on_text_motion_select(motion):
+            if self.focus:
+                self.focus.caret.on_text_motion_select(motion)
+
+        @self.window.event
+        def on_key_press(symbol, modifiers):
+            if symbol == pyglet.window.key.ESCAPE:
+                pyglet.app.exit()
+            elif symbol == pyglet.window.key.ENTER:
+                if self.focus:
+                    print self.document.text
+
     def hit_test(self, x, y):
         return (0 < x - self.layout.x < self.layout.width and
                 0 < y - self.layout.y < self.layout.height)
+
+    def set_focus(self, focus):
+        if self.focus:
+            self.focus.caret.visible = False
+            self.focus.caret.mark = self.focus.caret.position = 0
+
+        self.focus = focus
+        if self.focus:
+            self.focus.caret.visible = True
+            self.focus.caret.mark = 0
+            self.focus.caret.position = len(self.focus.document.text)
