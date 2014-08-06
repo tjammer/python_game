@@ -1,5 +1,5 @@
 import pyglet
-from graphics.primitives import Box
+from graphics.primitives import Box, Rect
 
 
 class TextBoxFramed(object):
@@ -36,15 +36,6 @@ class TextBoxFramed(object):
         self.Label.y = self.pos[1] + self.size[1] / 2
 
 
-class Rectangle(object):
-    '''Draws a rectangle into a batch.'''
-    def __init__(self, x1, y1, x2, y2, batch):
-        self.vertex_list = batch.add(4, pyglet.gl.GL_QUADS, None,
-            ('v2i', [x1, y1, x2, y1, x2, y2, x1, y2]),
-            ('c4B', [200, 200, 220, 255] * 4)
-        )
-
-
 class TextWidget(object):
     def __init__(self, text, x, y, width, batch):
         self.document = pyglet.text.document.UnformattedDocument(text)
@@ -62,9 +53,8 @@ class TextWidget(object):
         self.layout.y = y
 
         # Rectangular outline
-        pad = 2
-        self.rectangle = Rectangle(x - pad, y - pad,
-                                   x + width + pad, y + height + pad, batch)
+        self.rectangle = Rect(x, y, width, height, batch=batch,
+                              color=(.8, .8, .8))
 
     def hit_test(self, x, y):
         return (0 < x - self.layout.x < self.layout.width and
