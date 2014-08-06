@@ -70,6 +70,7 @@ class InputHandler(object):
         self.controls['esc'] = self.keys[key.ESCAPE]
         self.controls['f10'] = self.keys[key.F10]
         self.controls['rdy'] = self.keys[key.F3]
+        self.controls['chat'] = self.keys[key.ENTER]
 
         self.send_message('all_input', self.keys)
 
