@@ -382,15 +382,15 @@ class ProjectileViewer(object):
             else:
                 if self.data.type == proto.melee:
                     self.projs[ind] = Rect(pos.x, pos.y, width=70, height=70,
-                                           color=(1., 0., 0.))
+                                           color=(255, 0, 0))
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.blaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=15, height=15,
-                                           color=(1., 0., 0.))
+                                           color=(255, 0, 0))
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=204, height=204,
-                                           color=(4., .2, .6))
+                                           color=(255, 0, 150))
                     self.projs[ind].vel = vel
                 else:
                     raise ValueError

@@ -4,7 +4,7 @@ from graphics.primitives import Box, Rect
 
 class TextBoxFramed(object):
     """docstring for Textbox_framed"""
-    def __init__(self, pos, text, size=[300, 100], f_size=2):
+    def __init__(self, pos, text, size=[300, 100], f_size=2, batch=None):
         super(TextBoxFramed, self).__init__()
         self.target_pos = pos
         self.pos = [0, pos[1]]
@@ -15,8 +15,9 @@ class TextBoxFramed(object):
                                        font_size=36, bold=False,
                                        x=self.pos[0] + self.size[0] / 2,
                                        y=self.pos[1] + self.size[1] / 2,
-                                       anchor_x='center', anchor_y='center')
-        self.Box = Box(self.pos, size, f_size)
+                                       anchor_x='center', anchor_y='center',
+                                       batch=batch)
+        self.Box = Box(self.pos, size, f_size, batch=batch)
 
     def in_box(self, m_pos):
         m_x = m_pos[0]
@@ -37,10 +38,10 @@ class TextBoxFramed(object):
 
 
 class TextWidget(object):
-    def __init__(self, text, x, y, width, batch, window):
+    def __init__(self, text, x, y, width, batch, window, **kwargs):
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text),
-                                dict(color=(0, 0, 0, 255))
+                                dict(color=(255, 255, 255, 255), **kwargs)
                                 )
         font = self.document.get_font()
         height = font.ascent - font.descent
@@ -48,13 +49,14 @@ class TextWidget(object):
         self.layout = pyglet.text.layout.IncrementalTextLayout(
             self.document, width, height, multiline=False, batch=batch)
         self.caret = pyglet.text.caret.Caret(self.layout)
+        self.caret.color = [255] * 3
 
         self.layout.x = x
         self.layout.y = y
 
         # Rectangular outline
         self.rectangle = Rect(x, y, width, height, batch=batch,
-                              color=(.8, .8, .8))
+                              color=(25, 25, 25))
 
         self.window = window
         self.text_cursor = window.get_system_mouse_cursor('text')
@@ -98,13 +100,6 @@ class TextWidget(object):
         def on_text_motion_select(motion):
             if self.focus:
                 self.focus.caret.on_text_motion_select(motion)
-
-        """@self.window.event
-        def on_key_press(symbol, modifiers):
-            if symbol == pyglet.window.key.ENTER:
-                if self.focus:
-                    #print self.document.text
-                    pass"""
 
     def hit_test(self, x, y):
         return (0 < x - self.layout.x < self.layout.width and

@@ -7,7 +7,7 @@ class Movement(object):
         super(Movement, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
-        self.gravity = 2500.
+        self.gravity = 2700.
         self.normal_accel = 1000.
         self.boost_accel = 20.
         self.turn_multplier = 8.

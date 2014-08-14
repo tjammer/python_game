@@ -38,7 +38,7 @@ class Map(object):
                     y = int(atr['y'])
                     width = int(atr['width'])
                     height = int(atr['height'])
-                    color = (1, 1, 1)
+                    color = (255, 255, 255)
                     rects.append(self.Rect(x, - y - height, width,
                                  height, color))
 
