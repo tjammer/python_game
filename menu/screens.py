@@ -1,7 +1,7 @@
 # file for all the screens in the game
 import pyglet
 from graphics.camera import Camera
-from player import player
+from player import player, options
 from elements import TextBoxFramed as btn, TextWidget
 from menu_events import Events, MenuClass
 from pyglet.text import Label
@@ -46,7 +46,6 @@ class GameScreen(Events):
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
         if self.controls['esc'] and not self.controls_old['esc']:
-            self.update_keys()
             self.send_message('menu_transition_+', (GameMenu, self.isSpec))
 
         if self.controls['rdy'] and not self.controls_old['rdy']:
@@ -54,9 +53,8 @@ class GameScreen(Events):
                 self.ready_up()
 
         if self.controls['chat'] and not self.controls_old['chat']:
-            self.update_keys()
             self.send_message('menu_transition_+',
-                              (OptionsScreen, self.window))
+                              (ChatScreen, self.window))
 
         self.update_keys()
         self.on_update(dt)
@@ -98,19 +96,21 @@ class GameScreen(Events):
         elif typ == proto.newPlayer:
             gs, data = data
             if gs == proto.goesSpec:
-                ind, name = data
+                ind, name, colstring = data
                 new = player.Player()
                 new.name = name
                 new.id = ind
+                new.set_color(colstring)
                 self.specs[ind] = new
             #if there are existing players on the server
             elif gs == proto.wantsJoin:
-                ind, name, state, time = data
+                ind, name, state, time, colstring = data
                 new = player.Player()
                 new.name = name
                 new.state = state
                 new.time = time
                 new.id = ind
+                new.set_color(colstring)
                 self.players[ind] = new
                 print 'new player: %s' % name
                 self.gs_view.to_team(ind)
@@ -148,10 +148,8 @@ class GameScreen(Events):
                 ind, killer, weapon = ind
                 if ind == self.player.id:
                     self.player.die()
-                    self.player.rect.update_color((.5, .5, .5))
                 else:
                     self.players[ind].die()
-                    self.players[ind].rect.update_color((.5, .5, .5))
                 self.gs_view.score(ind, killer, weapon)
             elif gs == proto.spawns:
                 ind, pos = ind
@@ -175,6 +173,16 @@ class GameScreen(Events):
                 #todo: pickupmsg
                 pass
             self.map.serverupdate(itemid, spawn)
+        elif typ == proto.chat:
+            ind, msg = data
+            if ind == self.player.id:
+                name = self.player.name
+            elif ind in self.players:
+                name = self.players[ind].name
+            else:
+                name = self.specs[ind].name
+            chatdata = ' '.join((name + ':', msg))
+            self.hud.update_prop(chat=chatdata)
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
@@ -192,10 +200,11 @@ class GameScreen(Events):
         self.on_draw()
 
     def on_connect(self, msg):
-        ind, mapname = msg
-        self.player.get_id(ind)
+        ind, mapname, name = msg
+        self.player.get_id(ind, name)
         self.map = Map(mapname)
         print 'connected with id: ' + str(self.player.id)
+        print name
         #self.send_message('input', (self.player.input, 1337))
         self.gs_view.init_self(ind)
         self.trans_to_spec()
@@ -221,6 +230,15 @@ class GameScreen(Events):
         msg.gameState = proto.isReady
         self.send_message('other', msg)
 
+    def send_chat(self, chatmsg):
+        msg = proto.Message()
+        msg.type = proto.chat
+        plr = proto.Player()
+        plr.id = self.player.id
+        plr.chat = chatmsg
+        msg.player.CopyFrom(plr)
+        self.send_message('other', msg)
+
     def on_update(self, dt):
         pass
 
@@ -236,6 +254,8 @@ class GameScreen(Events):
         self.on_update = self.spec_update
         self.on_draw = self.spec_draw
         self.isSpec = True
+        self.player.state.hook_hud(self.hud.update_prop)
+        self.hud.init_spec()
 
     def trans_to_game(self):
         self.on_update = self.game_update
@@ -271,6 +291,7 @@ class GameScreen(Events):
         self.send_to_client(dt)
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
+        self.hud.update(dt)
 
     def spec_draw(self):
         self.camera.set_camera()
@@ -279,20 +300,27 @@ class GameScreen(Events):
         self.proj_viewer.draw()
         self.map.draw()
         self.camera.set_static()
+        self.hud.draw()
 
 
 class MainMenu(MenuClass):
     """docstring for MainMenu"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, window, *args, **kwargs):
+        self.window = window
         super(MainMenu, self).__init__(*args, **kwargs)
-        self.buttons['start'] = btn([500, 400], 'start game')
-        self.buttons['quit'] = btn([500, 200], 'quit game')
+        self.buttons['start'] = btn([500, 450], 'start game')
+        self.buttons['options'] = btn([500, 300], 'options')
+        self.buttons['quit'] = btn([500, 150], 'quit game')
 
     def handle_clicks(self, key):
         if key == 'quit':
-            self.send_message('menu_transition_+', (QuitScreen, False))
+            #self.send_message('menu_transition_+', (QuitScreen, False))
+            self.send_message('kill_self')
         if key == 'start':
             self.send_message('start_game')
+        if key == 'options':
+            self.send_message('menu_transition_+',
+                              (PlayerOptions, self.window))
 
 
 class QuitScreen(MenuClass):
@@ -378,10 +406,10 @@ class LoadScreen(MenuClass):
             pass
 
 
-class OptionsScreen(MenuClass):
-    """docstring for OptionsScreen"""
+class ChatScreen(MenuClass):
+    """docstring for ChatScreen"""
     def __init__(self, window, *args, **kwargs):
-        super(OptionsScreen, self).__init__(*args, **kwargs)
+        super(ChatScreen, self).__init__(*args, **kwargs)
         self.window = window
         self.batch = pyglet.graphics.Batch()
         self.widget = TextWidget('', 200, 100, window.width - 500, self.batch,
@@ -391,9 +419,61 @@ class OptionsScreen(MenuClass):
         self.batch.draw()
 
     def add_update(self, dt):
-        if self.keys[key.ENTER] and (not self.keys_old[key.ENTER] and
-                                     self.widget.focus):
-            pass
+        if (self.keys[key.ENTER]
+                and not self.keys_old[key.ENTER]) and (
+                self.widget.focus and len(self.widget.document.text) > 0):
+            if len(self.widget.document.text.strip()) > 0:
+                self.send_message('chat', self.widget.document.text.strip())
+            self.send_message('menu_transition_-')
 
         if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+            self.send_message('menu_transition_-')
+
+
+class PlayerOptions(MenuClass):
+    """docstring for PlayerOptions"""
+    def __init__(self, window, *args, **kwargs):
+        super(PlayerOptions, self).__init__(*args, **kwargs)
+        self.window = window
+        self.options = options.Options()
+        self.batch = pyglet.graphics.Batch()
+        self.box = Box([100, 100], [1080, 568], batch=self.batch)
+        self.namelabel = Label('name', font_name='Helvetica',
+                               font_size=24, bold=False, x=200, y=600,
+                               anchor_x='left', anchor_y='center',
+                               batch=self.batch)
+        self.widget = TextWidget(self.options['name'], 500, 600 - 20, 200,
+                                 self.batch, self.window,
+                                 font_name='Helvetica', font_size=20,
+                                 bold=False, anchor_x='left',
+                                 anchor_y='center')
+        self.namelabel = Label('name', font_name='Helvetica',
+                               font_size=24, bold=False, x=200, y=600,
+                               anchor_x='left', anchor_y='center',
+                               batch=self.batch)
+        self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
+        self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
+
+    def on_draw(self):
+        self.batch.draw()
+
+    def add_update(self, dt):
+        if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+            self.send_message('menu_transition_-')
+
+        if (self.keys[key.ENTER]
+                and not self.keys_old[key.ENTER]) and (
+                self.widget.focus and len(self.widget.document.text) > 0):
+            if len(self.widget.document.text.strip()) > 0:
+                self.widget.set_focus(None)
+                name = self.widget.document.text.strip()
+                self.options['name'] = name
+
+    def handle_clicks(self, key):
+        if key == 'cancel':
+            self.send_message('menu_transition_-')
+        elif key == 'save':
+            name = self.widget.document.text.strip()
+            self.options['name'] = name
+            self.options.save()
             self.send_message('menu_transition_-')

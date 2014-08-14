@@ -59,7 +59,7 @@ message Player {
 }
 
 message Input {
-    required int32 time = 1;
+    optional int32 time = 1;
     optional int32 id = 7;
     optional bool right = 2;
     optional bool left = 3;

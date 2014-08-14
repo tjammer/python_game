@@ -12,7 +12,10 @@ class Hud(object):
         self.armor_t = '0'
         self.text_active = 5
         self.killmsg_active = False
+        self.chat_active = False
         self.labellist = Batch()
+        self.speclist = Batch()
+        self.active_batch = self.speclist
         font = 'Helvetica'
         self.hp = Label(self.hp_t, font_name=font, font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
@@ -42,6 +45,10 @@ class Hud(object):
         self.score = Label('me 0:0 enemy', font_name=font, font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
+        self.chat = Label('', font_name=font, font_size=16,
+                          x=200, y=130, anchor_x='left',
+                          anchor_y='center', batch=self.labellist,
+                          color=(220, 220, 220, 255), bold=False)
         self.normal_hpcol = (255, 255, 255, 255)
         self.low_hpcol = (255, 128, 0, 255)
         self.high_hpcol = (0, 204, 255, 255)
@@ -58,9 +65,15 @@ class Hud(object):
         else:
             self.enemyname = players.values()[0].name
             self.set_score(0, 0)
+        self.time.batch = self.labellist
+        self.active_batch = self.labellist
+
+    def init_spec(self):
+        self.time.batch = self.speclist
+        self.active_batch = self.speclist
 
     def draw(self):
-        self.labellist.draw()
+        self.active_batch.draw()
 
     def update(self, dt):
         if self.text_active:
@@ -73,10 +86,15 @@ class Hud(object):
             if self.killmsg_active <= 0:
                 self.killmsg_active = False
                 self.killmsg.delete()
+        if self.chat_active:
+            self.chat_active -= dt
+            if self.chat_active <= 0:
+                self.chat_active = False
+                self.chat.delete()
         self.time.text = self.calc_time(self.gametime)
 
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
-                    ammo=False, time=False, score=False, msg=False):
+                    ammo=False, time=False, score=False, msg=False, chat=None):
         if armor:
             self.armor.text = armor
             if int(armor) <= 20:
@@ -96,7 +114,7 @@ class Hud(object):
         if text:
             self.text.text = text
             self.text_active = 2
-            self.text.batch = self.labellist
+            self.text.batch = self.active_batch
         if weapon:
             self.weapon.text = weapon
             if weapon == 'melee':
@@ -110,6 +128,12 @@ class Hud(object):
         if score:
             self.enemyname = score
             self.score.text = '0:0 ' + self.enemyname
+        if chat:
+            self.chat.begin_update()
+            self.chat.text = chat
+            self.chat_active = 4
+            self.chat.batch = self.active_batch
+            self.chat.end_update()
 
     def set_score(self, own, other, msg=False):
         self.score.text = ' '.join((self.ownname,

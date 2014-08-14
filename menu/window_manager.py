@@ -1,4 +1,4 @@
-from screens import GameScreen, MainMenu, LoadScreen, OptionsScreen
+from screens import GameScreen, MainMenu, LoadScreen
 from player.controls import InputHandler
 from menu_events import Events
 from network_utils import protocol_pb2 as proto
@@ -16,7 +16,7 @@ class WindowManager(Events):
         self.saved_mouse = (1280 / 2, 720 / 2)
 
         # set up main menu as starting screen
-        self.current_screen = MainMenu()
+        self.current_screen = MainMenu(self.window)
         self.register_screen()
 
         """@self.window.event
@@ -51,7 +51,7 @@ class WindowManager(Events):
 
         elif event == 'to_main':
             self.stack = []
-            self.current_screen = MainMenu()
+            self.current_screen = MainMenu(self.window)
             self.register_screen()
             self.disconnect()
             self.saved_mouse = (1280 / 2, 720 / 2)
@@ -59,7 +59,7 @@ class WindowManager(Events):
         elif event == 'menu_transition_+':
             msg, arg = msg
             if isinstance(self.current_screen, GameScreen):
-                self.saved_mouse = tuple(self.InputHandler.mousepos)
+                self.saved_mouse = tuple(self.InputHandler.m_cam)
                 self.current_screen.player.input = proto.Input()
                 self.InputHandler.unregister(self.current_screen.camera.
                                              receive_m_pos, 'mouse_cam')
@@ -90,6 +90,9 @@ class WindowManager(Events):
         elif event == 'try_join':
             self.stack[0].try_join()
 
+        elif event == 'chat':
+            self.stack[0].send_chat(msg)
+
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.register_screen()
@@ -118,6 +121,7 @@ class WindowManager(Events):
             # pass by ref bullshit
             self.current_screen.player.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
+            self.current_screen.update_keys()
             # sends player input to lient class
             self.current_screen.register(self.receive_events, 'input')
             self.current_screen.camera.register(self.InputHandler.receive_aim,

@@ -112,7 +112,9 @@ class GamestateManager(object):
             self.a.leave(id)
         else:
             self.b.leave(id)
-        if self.gamestate == proto.countDown or self.gamestate == proto.inProgress:
+        #if self.gamestate == proto.countDown or
+        #self.gamestate == proto.inProgress:
+        if self.gamestate in [proto.countDown, proto.inProgress]:
             self.to_warmup()
 
     def spec(self, data):
@@ -247,6 +249,10 @@ class GamestateManager(object):
     def tick(self, player):
         if player.state.hp > 100:
             player.state.hp -= 1
+
+    def rec_chat(self, data, address):
+        for player in self.all():
+            self.ackman.send_rel(data, player.address)
 
 
 class Team(object):
