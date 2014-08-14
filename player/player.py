@@ -5,6 +5,7 @@ from network_utils import protocol_pb2 as proto
 from state import vec2, state
 from menu.menu_events import Events
 from gameplay.weapons import WeaponsManager
+from options import colors, Options
 
 
 class Player(Events):
@@ -22,7 +23,10 @@ class Player(Events):
         if id:
             self.id = id
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
-        self.rect = self.Rect(0, 0, 32, 72, (0, .8, 1.), isplayer=True)
+        #self.color = Options()['color']  #(0, 204, 255)
+        self.set_color(Options()['color'])
+        print self.color
+        self.rect = self.Rect(0, 0, 32, 72, self.color, isplayer=True)
         #input will be assigned by windowmanager class
         self.input = proto.Input()
         self.listeners = {}
@@ -129,15 +133,21 @@ class Player(Events):
         self.state.isDead = False
         self.state.frozen = False
         if isinstance(self.rect, Rect):
-            self.rect.update_color((0, .8, 1.))
+            self.rect.update_color(self.color)
         self.weapons.reset()
 
-    def get_id(self, id):
+    def get_id(self, id, name):
         self.id = id
+        self.name = name
         self.weapons = WeaponsManager(self.dispatch_proj, self.id)
 
     def die(self):
         self.state.isDead = 5
+        if isinstance(self.rect, Rect):
+            self.rect.update_color([128] * 3)
 
     def freeze(self):
         self.state.frozen = True
+
+    def set_color(self, cstr):
+        self.color = colors[cstr]
