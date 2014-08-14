@@ -22,6 +22,7 @@ client.register(window_manager.receive_events, ('serverdata', 'on_connect'))
 
 def update(dt):
     window_manager.update(dt)
+    client.update(dt)
 pyglet.clock.schedule(update)
 
 

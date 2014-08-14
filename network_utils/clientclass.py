@@ -2,6 +2,7 @@ import protocol_pb2 as proto
 from twisted.internet.protocol import DatagramProtocol
 from player.state import state, vec2
 from reliable import AckManager
+from player.options import Options
 
 
 class Client(DatagramProtocol):
@@ -21,12 +22,17 @@ class Client(DatagramProtocol):
 
     def start_connection(self):
         # self.transport.connect(*self.host)
+        opts = Options()
         self.message.Clear()
         self.message.type = proto.newPlayer
         self.message.input.Clear()
-        self.message.input.name = 'mokapharr'
+        self.message.input.name = opts['color']
         self.message.input.time = 0
-        self.transport.write(self.message.SerializeToString(), self.host)
+        pl = proto.Player()
+        pl.chat = opts['name']
+        self.message.player.CopyFrom(pl)
+        #self.transport.write(self.message.SerializeToString(), self.host)
+        self.ackman.send_rel(self.message, self.host)
 
     def disconnect(self):
         if self.connected:
@@ -63,9 +69,10 @@ class Client(DatagramProtocol):
         if self.message.type == proto.connectResponse and not self.id:
             self.connected = True
             self.id = self.message.player.id
-            mapname = self.message.player.chat
+            name = self.message.player.chat
+            mapname = self.message.input.name
             self.ackman.respond(self.message, address)
-            self.send_message('on_connect', (self.id, mapname))
+            self.send_message('on_connect', (self.id, mapname, name))
         elif self.message.type == proto.playerUpdate and self.connected:
             ind = self.message.player.id
             state = self.server_to_state(self.message.player)
@@ -76,15 +83,17 @@ class Client(DatagramProtocol):
             ind = self.message.player.id
             name = self.message.player.chat
             gs = self.message.gameState
+            colstring = self.message.input.name
             if gs == proto.goesSpec:
                 self.send_message('serverdata',
-                                  (proto.newPlayer, (gs, (ind, name))))
+                                  (proto.newPlayer, (gs,
+                                   (ind, name, colstring))))
             elif gs == proto.wantsJoin:
                 state = self.server_to_state(self.message.player)
                 time = self.message.player.time
                 self.send_message('serverdata',
                                   (proto.newPlayer, (gs, (ind,
-                                   name, state, time))))
+                                   name, state, time, colstring))))
             self.ackman.respond(self.message, address)
         elif self.message.type == proto.disconnect and self.connected:
             ind = self.message.player.id
@@ -120,6 +129,11 @@ class Client(DatagramProtocol):
             self.ackman.respond(self.message, address)
             self.send_message('serverdata', (proto.mapUpdate,
                               (ind, itemid, gt, spawn)))
+        elif self.message.type == proto.chat:
+            self.ackman.respond(self.message, address)
+            ind = self.message.player.id
+            chat = self.message.player.chat
+            self.send_message('serverdata', (proto.chat, (ind, chat)))
 
     def register(self, listener, events=None):
         self.listeners[listener] = events
@@ -146,6 +160,9 @@ class Client(DatagramProtocol):
 
     def register_ack(self):
         self.ackman.receive_send(self.transport.write)
+
+    def update(self, dt):
+        self.ackman.update(dt)
 
 
 class move(object):

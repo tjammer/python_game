@@ -30,7 +30,8 @@ class GameServer(DatagramProtocol):
         data.ParseFromString(datagram)
         if data.type == proto.newPlayer:
             pl_id = self.get_id()
-            self.init_player(data.input, address, pl_id)
+            self.ackman.respond(data, address)
+            self.init_player(data, address, pl_id)
         elif data.type == proto.playerUpdate and self.isplayer(data, address):
             self.players[data.input.id].timer = 0
             self.get_input(data.input)
@@ -44,10 +45,12 @@ class GameServer(DatagramProtocol):
                 self.players[data.input.id].time = data.input.time
                 self.player_to_pack(data.input.id)
         elif data.type == proto.disconnect and self.isonline(data, address):
+            self.ackman.respond(data, address)
             self.disc_player(data.input.id)
         elif data.type == proto.ackResponse:
             self.ackman.receive_ack(data)
         elif data.type == proto.stateUpdate:
+            self.ackman.respond(data, address)
             if data.gameState == proto.wantsJoin:
                 if self.gamestate.join(data):
                     self.join_player(data.player.id)
@@ -56,6 +59,9 @@ class GameServer(DatagramProtocol):
                 self.spec_player(data.player.id)
             elif data.gameState == proto.isReady:
                 self.gamestate.ready_up(data)
+        elif data.type == proto.chat:
+            self.ackman.respond(data, address)
+            self.gamestate.rec_chat(data, address)
 
     def update(self, dt):
         keys = []
@@ -133,16 +139,17 @@ class GameServer(DatagramProtocol):
 
     def init_player(self, data, address, pl_id):
         #check if name already exists
-        name = data.name
+        name = data.player.chat
         i = 1
         namegen = chain(self.players.itervalues(), self.specs.itervalues())
         while name in [p.name for p in namegen]:
-            name = data.name + '_' + str(i)
+            name = data.player.chat + '_' + str(i)
             i += 1
         player = Player(True, self.projectiles.add_projectile, pl_id)
         player.timer = 0
         player.address = address
         player.name = name
+        player.colstring = data.input.name
         print ' '.join((str(datetime.now()),
                         player.name, str(pl_id),
                         'joined the server', str(address)))
@@ -156,7 +163,11 @@ class GameServer(DatagramProtocol):
         player = proto.Player()
         own.type = proto.connectResponse
         player.id = pl_id
-        player.chat = self.map.name
+        player.chat = self.specs[pl_id].name
+        inpt = proto.Input()
+        inpt.time = 0
+        inpt.name = self.map.name
+        own.input.CopyFrom(inpt)
         own.player.CopyFrom(player)
         self.ackman.send_rel(own, address)
         #send other players to player
@@ -169,6 +180,8 @@ class GameServer(DatagramProtocol):
                 other.type = proto.newPlayer
                 other.player.CopyFrom(player)
                 other.gameState = proto.wantsJoin
+                inpt = proto.Input()
+                inpt.name = p.colstring
                 self.ackman.send_rel(other, address)
                 #other.type = proto.playerUpdate
                 new = proto.Message()
@@ -186,6 +199,8 @@ class GameServer(DatagramProtocol):
                 other.type = proto.newPlayer
                 other.player.CopyFrom(player)
                 other.gameState = proto.goesSpec
+                inpt = proto.Input()
+                inpt.name = p.colstring
                 self.ackman.send_rel(other, address)
 
                 new = proto.Message()
