@@ -36,6 +36,55 @@ class TextBoxFramed(object):
         self.Label.x = self.pos[0] + self.size[0] / 2
         self.Label.y = self.pos[1] + self.size[1] / 2
 
+    def restore(self):
+        self.Box.restore()
+
+    def highlight(self):
+        self.Box.highlight()
+
+
+class ColCheckBox(object):
+    """docstring for ColCheckBox"""
+    def __init__(self, pos, batch, color, size=(40, 40), hcolor=(255, 255, 0),
+                 activecolor=(255, 255, 255), inactivecolor=(25, 25, 25)):
+        super(ColCheckBox, self).__init__()
+        self.pos = pos
+        self.target_pos = pos
+        self.size = size
+        self.color = color
+        self.hcolor = hcolor
+        self.activecolor = activecolor
+        self.inactivecolor = inactivecolor
+        self.box = Box(pos, size, color=inactivecolor, hcolor=hcolor,
+                       batch=batch, innercol=color)
+        self.ccolor = self.inactivecolor
+
+    def highlight(self):
+        self.box.outer_box.ver_list.colors = list(self.hcolor) * 4
+
+    def restore(self):
+        self.box.outer_box.ver_list.colors = list(self.ccolor) * 4
+
+    def activate(self):
+        self.ccolor = self.activecolor
+
+    def deactivate(self):
+        self.ccolor = self.inactivecolor
+
+    def draw(self):
+        self.box.draw()
+
+    def update(self):
+        pass
+
+    def in_box(self, mpos):
+        m_x = mpos[0]
+        m_y = mpos[1]
+        if m_x > self.pos[0] and m_x < self.pos[0] + self.size[0]:
+            if m_y > self.pos[1] and m_y < self.pos[1] + self.size[1]:
+                return True
+        return False
+
 
 class TextWidget(object):
     def __init__(self, text, x, y, width, batch, window, **kwargs):

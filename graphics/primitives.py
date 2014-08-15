@@ -97,7 +97,7 @@ class CrossHair(object):
 class Box(object):
     """docstring for Box"""
     def __init__(self, pos, size, f_size=2, color=(0, 255, 255),
-                 hcolor=(255, 255, 0), batch=None):
+                 hcolor=(255, 255, 0), batch=None, innercol=(0, 0, 0)):
         super(Box, self).__init__()
         self.pos = pos
         self.size = size
@@ -108,7 +108,7 @@ class Box(object):
                               batch=batch)
         self.inner_box = Rect(pos[0] + f_size, pos[1] + f_size,
                               size[0] - 2 * f_size, size[1] - 2 * f_size,
-                              (0, 0, 0), batch=batch)
+                              innercol, batch=batch)
 
     def draw(self):
         self.outer_box.draw()

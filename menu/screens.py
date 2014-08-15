@@ -2,7 +2,7 @@
 import pyglet
 from graphics.camera import Camera
 from player import player, options
-from elements import TextBoxFramed as btn, TextWidget
+from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from menu_events import Events, MenuClass
 from pyglet.text import Label
 from graphics.primitives import Box
@@ -447,12 +447,24 @@ class PlayerOptions(MenuClass):
                                  font_name='Helvetica', font_size=20,
                                  bold=False, anchor_x='left',
                                  anchor_y='center')
+        self.widget.set_focus(None)
         self.namelabel = Label('name', font_name='Helvetica',
                                font_size=24, bold=False, x=200, y=600,
                                anchor_x='left', anchor_y='center',
                                batch=self.batch)
+        self.collabel = Label('color', font_name='Helvetica',
+                              font_size=24, bold=False, x=200, y=500,
+                              anchor_x='left', anchor_y='center',
+                              batch=self.batch)
         self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
         self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
+        #color checkboxes
+        for i, a in enumerate(options.colors.iteritems()):
+            key, val = a
+            self.buttons[key] = ccb([i*70 + 500, 480], self.batch, val)
+            if key == self.options['color']:
+                self.buttons[key].activate()
+        self.activecolor = None
 
     def on_draw(self):
         self.batch.draw()
@@ -475,5 +487,13 @@ class PlayerOptions(MenuClass):
         elif key == 'save':
             name = self.widget.document.text.strip()
             self.options['name'] = name
+            if self.activecolor:
+                self.options['color'] = self.activecolor
             self.options.save()
             self.send_message('menu_transition_-')
+        elif key in options.colors:
+            self.buttons[key].activate()
+            self.activecolor = key
+            for key_ in self.buttons:
+                if key_ in options.colors and not key == key_:
+                    self.buttons[key_].deactivate()

@@ -48,14 +48,14 @@ class MenuClass(object):
     def update(self, dt):
         for key, button in self.buttons.items():
             if button.in_box(self.m_pos):
-                button.Box.highlight()
+                button.highlight()
                 try:
                     if self.keys[1338]:
                         self.handle_clicks(key)
                 except KeyError:
                     continue
             else:
-                button.Box.restore()
+                button.restore()
         self.animate(dt)
         self.add_update(dt)
 
