@@ -108,3 +108,11 @@ class QuadTree(object):
         for rect in self.objects:
             lst.append(rect)
         return lst
+
+    def retrieve_bound(self, rect):
+        if self.nodes[0] is not None:
+            index = self.get_index(rect)
+            if index != -1:
+                return self.nodes[index].retrieve_bound(rect)
+
+        return self.bounds
