@@ -85,6 +85,7 @@ class Client(DatagramProtocol):
             name = self.message.player.chat
             gs = self.message.gameState
             colstring = self.message.input.name
+            self.ackman.respond(self.message, address)
             if gs == proto.goesSpec:
                 self.send_message('serverdata',
                                   (proto.newPlayer, (gs,
@@ -95,7 +96,6 @@ class Client(DatagramProtocol):
                 self.send_message('serverdata',
                                   (proto.newPlayer, (gs, (ind,
                                    name, state, time, colstring))))
-            self.ackman.respond(self.message, address)
         elif self.message.type == proto.disconnect and self.connected:
             ind = self.message.player.id
             self.ackman.respond(self.message, address)
