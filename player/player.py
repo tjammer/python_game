@@ -151,5 +151,3 @@ class Player(Events):
 
     def set_color(self, cstr):
         self.color = colors[cstr]
-        if isinstance(self.rect, Rect):
-            self.rect.update_color(self.color)

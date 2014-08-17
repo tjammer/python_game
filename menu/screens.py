@@ -113,6 +113,7 @@ class GameScreen(Events):
                 new.time = time
                 new.id = ind
                 new.set_color(colstring)
+                new.rect.update_color(self.color)
                 self.players[ind] = new
                 print 'new player: %s' % name
                 self.gs_view.to_team(ind)
