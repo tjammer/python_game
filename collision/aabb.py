@@ -184,7 +184,6 @@ class Line(object):
         elif mapcoll < playercoll:
             return mapcoll, False
         else:
-            print [r[1] for r in p_resp if r[0][0] == playercoll][0]
             return playercoll, [r[1]
                                 for r in p_resp if r[0][0] == playercoll][0]
 

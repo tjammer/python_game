@@ -416,9 +416,9 @@ class ProjectileManager(object):
         proj.type = line.type
         proj.playerId = line.id
         proj.projId = line.projId
-        #posx: length, toDelete: isplayerhit
+        #posx: length, posy: isplayerhit
         proj.posx = length
-        proj.toDelete = pl
+        proj.posy = pl
         self.message.projectile.CopyFrom(proj)
         for player in self.allgen():
             self.send_(self.message.SerializeToString(), player.address)
@@ -458,7 +458,7 @@ class ProjectileViewer(object):
                 elif self.data.type == proto.lg:
                     id = self.data.playerId
                     length = self.data.posx
-                    playerhit = self.data.toDelete
+                    playerhit = self.data.posy
                     center, mpos = self.get_center(id)
                     mpos = vec2(*mpos)
                     dr = mpos - center
@@ -504,11 +504,14 @@ class WeaponsManager(object):
         super(WeaponsManager, self).__init__()
         self.dispatch_proj = dispatch_proj
         self.id = id
-        self._allweapos = {'w0': Melee, 'w1': Blaster}
-        self._stringweaps = {'w0': 'melee', 'w1': 'blaster'}
+        self._allweapos = {'w0': Melee, 'w1': Blaster, 'w2': LightningGun}
+        self._stringweaps = {'w0': 'melee', 'w1': 'blaster',
+                             'w2': 'lightning gun'}
         #start only with melee
-        self.weapons = {'w0': Melee(dispatch_proj, id),
-                        'w1': Blaster(dispatch_proj, id)}
+        self.starting_weapons = ('w0', 'w2')
+        self.weapons = {}
+        for k in self.starting_weapons:
+            self.weapons[k] = self._allweapos[k](self.dispatch_proj, self.id)
         self.current_w = self.weapons['w0']
         self.current_s = self._stringweaps['w0']
         self.wli = 0
@@ -531,7 +534,7 @@ class WeaponsManager(object):
         if input.w0:
             self.switch_to('w0')
         elif input.w1:
-            self.switch_to('w1')
+            self.switch_to('w2')
         self.current_w.update(dt)
 
     def switch_to(self, key):
@@ -547,8 +550,9 @@ class WeaponsManager(object):
         self.hudhook = hudhook
 
     def reset(self):
-        self.weapons = {'w0': Melee(self.dispatch_proj, self.id),
-                        'w1': Blaster(self.dispatch_proj, self.id)}
+        self.weapons = {}
+        for k in self.starting_weapons:
+            self.weapons[k] = self._allweapos[k](self.dispatch_proj, self.id)
         self.current_w = self.weapons['w0']
         self.current_s = self._stringweaps['w0']
         if self.hudhook:

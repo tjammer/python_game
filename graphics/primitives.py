@@ -62,7 +62,7 @@ class DrawaAbleLine(Line):
                                       ('v2f/stream', (x, y,
                                        x + self.unit.x * self.length,
                                        y + self.unit.y * self.length)),
-                                      ('c3B', [255] * 6))
+                                      ('c3B', [255, 255, 0] * 2))
 
     def on_update(self):
         self.ver_list.vertices = [self.pos.x, self.pos.y,
