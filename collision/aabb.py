@@ -145,7 +145,7 @@ class Line(object):
 
         return enter, exit
 
-    def collide(self, quadtree, playergen):
+    def collide(self, quadtree, playergen, id):
         mapcolls = []
         rect = AABB(*self.pos, width=0, height=0)
         bnd = quadtree.retrieve_bound(rect)
@@ -168,7 +168,22 @@ class Line(object):
                 if bound.pos.x == bnd.pos.x:
                     break
                 bnd = bound
-        return mapcolls
+        if mapcolls:
+            mapcoll = min(mapcolls)
+        else:
+            mapcoll = float('Inf')
+        p_response = [self.sweep(pl.rect) for pl in playergen if pl.id != id]
+        try:
+            playercoll = min((p for p in p_response if p is not False))
+        except ValueError:
+            playercoll = float('Inf')
+        coll = min(mapcoll, playercoll)
+        if coll == float('Inf'):
+            return False
+        elif mapcoll < playercoll:
+            return mapcoll, False
+        else:
+            return playercoll, True
 
     def update(self, x, y, mx, my):
         dx = mx - x
