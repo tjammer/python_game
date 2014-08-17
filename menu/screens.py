@@ -158,7 +158,7 @@ class GameScreen(Events):
                 if ind == self.player.id:
                     self.player.spawn(*pos)
                 else:
-                    self.players[ind].spawn(*pos)
+                    self.players[ind].spawn(*pos, other=True)
             elif gs == proto.isReady:
                 ind, name = ind
                 self.gs_view.is_ready(ind, name)
