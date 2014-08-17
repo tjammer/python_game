@@ -30,9 +30,10 @@ class GameServer(DatagramProtocol):
         data = proto.Message()
         data.ParseFromString(datagram)
         if data.type == proto.newPlayer:
-            pl_id = self.get_id()
             self.ackman.respond(data, address)
-            self.init_player(data, address, pl_id)
+            if self.not_online(address):
+                pl_id = self.get_id()
+                self.init_player(data, address, pl_id)
         elif data.type == proto.playerUpdate and self.isplayer(data, address):
             self.players[data.input.id].timer = 0
             self.get_input(data.input)
@@ -265,3 +266,9 @@ class GameServer(DatagramProtocol):
         playergen = (player for player in self.players.itervalues())
         specgen = (spec for spec in self.specs.itervalues())
         return chain(playergen, specgen)
+
+    def not_online(self, address):
+        for p in self.allgen():
+            if address == p.address:
+                return False
+        return True
