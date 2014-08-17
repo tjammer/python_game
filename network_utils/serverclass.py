@@ -87,6 +87,7 @@ class GameServer(DatagramProtocol):
                 msg = proto.Message()
                 msg.type = proto.playerUpdate
                 msg.player.CopyFrom(pack)
+                msg.input.CopyFrom(self.players[idx_].input)
                 self.transport.write(msg.SerializeToString(), player_.address)
 
     #find next available id

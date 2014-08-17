@@ -5,7 +5,7 @@ from player import player, options
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from menu_events import Events, MenuClass
 from pyglet.text import Label
-from graphics.primitives import Box
+from graphics.primitives import Box, DrawaAbleLine
 from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
@@ -24,7 +24,7 @@ class GameScreen(Events):
         self.window = window
         self.camera = Camera(window)
         self.player = player.Player()
-        self.proj_viewer = ProjectileViewer()
+        self.proj_viewer = ProjectileViewer(self.send_center)
         self.controls = {}
         self.controls_old = {}
         self.map = Map('newtest')
@@ -42,6 +42,7 @@ class GameScreen(Events):
         self.hud = Hud()
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
+        self.line = DrawaAbleLine(*self.player.state.pos, dx=1, dy=1, length=500)
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
@@ -58,6 +59,14 @@ class GameScreen(Events):
 
         self.update_keys()
         self.on_update(dt)
+        di = self.camera.aimpos
+        self.line.update(self.player.rect.center.x, self.player.rect.center.y,
+                         di.x, di.y)
+        lst = self.line.collide(self.map.quad_tree, (), 0)
+        if lst:
+            self.line.update_color((255, 0, 0))
+        else:
+            self.line.update_color((255, 255, 255))
 
     def update_physics(self, dt, state=False, input=False):
         playergen = (player.rect for player in self.players.itervalues())
@@ -77,7 +86,7 @@ class GameScreen(Events):
     def from_server(self, data):
         typ, data = data
         if typ == proto.playerUpdate:
-            ind, time, s_state = data
+            ind, time, s_state, inpt = data
             smove = move(time, None, s_state)
             if ind == self.player.id:
                 try:
@@ -89,6 +98,7 @@ class GameScreen(Events):
             else:
                 #try:
                 self.players[ind].client_update(s_state)
+                self.players[ind].input = inpt
                 #except KeyError:
                 #    pass
         elif typ == proto.projectile:
@@ -204,7 +214,6 @@ class GameScreen(Events):
         self.player.get_id(ind, name)
         self.map = Map(mapname)
         print 'connected with id: ' + str(self.player.id)
-        print name
         #self.send_message('input', (self.player.input, 1337))
         self.gs_view.init_self(ind)
         self.trans_to_spec()
@@ -281,6 +290,7 @@ class GameScreen(Events):
         self.player.draw()
         self.proj_viewer.draw()
         self.map.draw()
+        self.line.draw()
         self.camera.set_static()
         self.hud.draw()
         self.cross.draw(*self.camera.mpos)
@@ -301,6 +311,14 @@ class GameScreen(Events):
         self.map.draw()
         self.camera.set_static()
         self.hud.draw()
+
+    def send_center(self, ind):
+        if ind == self.player.id:
+            pl = self.player
+            return pl.rect.center, (pl.input.mx, pl.input.my)
+        else:
+            pl = self.players[ind]
+            return pl.rect.center, (pl.input.mx, pl.input.my)
 
 
 class MainMenu(MenuClass):

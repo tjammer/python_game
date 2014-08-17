@@ -77,8 +77,9 @@ class Client(DatagramProtocol):
             ind = self.message.player.id
             state = self.server_to_state(self.message.player)
             time = self.message.player.time
+            inpt = self.message.input
             self.send_message('serverdata',
-                              (proto.playerUpdate, (ind, time, state)))
+                              (proto.playerUpdate, (ind, time, state, inpt)))
         elif self.message.type == proto.newPlayer and self.connected:
             ind = self.message.player.id
             name = self.message.player.chat
