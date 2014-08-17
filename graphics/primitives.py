@@ -9,21 +9,22 @@ class Rect(AABB):
     def __init__(self, x, y, width, height, color=(255, 255, 255),
                  isplayer=False, batch=None, **kwargs):
         super(Rect, self).__init__(x, y, width, height, color)
-        self.ver_list = graphics.vertex_list(4,
-            ('v2f/stream', (x, y, x, y + height,
-             x + width, y + height, x + width, y)),
-            ('c3B', (self.color[0], self.color[1], self.color[2],
-             self.color[0], self.color[1], self.color[2],
-             self.color[0], self.color[1], self.color[2],
-             self.color[0], self.color[1], self.color[2])))
-        self.isplayer = isplayer
-        if batch:
+        if not batch:
+            self.ver_list = graphics.vertex_list(4,
+                ('v2f/stream', (x, y, x, y + height,
+                 x + width, y + height, x + width, y)),
+                ('c3B', (self.color[0], self.color[1], self.color[2],
+                 self.color[0], self.color[1], self.color[2],
+                 self.color[0], self.color[1], self.color[2],
+                 self.color[0], self.color[1], self.color[2])))
+        else:
             self.ver_list = batch.add(4, gl.GL_QUADS, None,
                                      ('v2f/stream', (x, y, x, y + height,
                                       x + width, y + height, x + width, y)),
                                      ('c3B', [self.color[0],
                                               self.color[1],
                                               self.color[2]] * 4))
+        self.isplayer = isplayer
 
     def draw(self):
         self.ver_list.draw(gl.GL_QUADS)
@@ -38,20 +39,29 @@ class Rect(AABB):
     def update_color(self, color):
         self.ver_list.colors = list(color) * 4
 
+    def remove(self):
+        self.ver_list.delete()
+
 
 class DrawaAbleLine(Line):
     """docstring for DrawaAbleLine"""
-    def __init__(self, x, y, dx, dy, length=0, **kwargs):
+    def __init__(self, x, y, dx, dy, length=0, batch=None, **kwargs):
         super(DrawaAbleLine, self).__init__(x, y, dx, dy, length)
         if length == 0:
             self.a = 1000
         else:
             self.a = length
-        self.ver_list = graphics.vertex_list(2,
-                                             ('v2f/stream', (x, y,
-                                              x + dx * self.a,
-                                              y + dy * self.a)),
-                                             ('c3B', [255] * 6))
+        if not batch:
+            self.ver_list = graphics.vertex_list(2,
+                                                 ('v2f/stream', (x, y,
+                                                  x + dx * self.a,
+                                                  y + dy * self.a)),
+                                                 ('c3B', [255] * 6))
+        else:
+            self.ver_list = batch.add(2, gl.GL_LINES, None,
+                                      ('v2f/stream', (x, y,
+                                       x + dx * self.a, y + dy * self.a)),
+                                      ('c3B', [255] * 6))
 
     def on_update(self):
         self.ver_list.vertices = [self.pos.x, self.pos.y,
@@ -63,6 +73,9 @@ class DrawaAbleLine(Line):
 
     def update_color(self, color):
         self.ver_list.colors = list(color) * 2
+
+    def remove(self):
+        self.ver_list.delete()
 
 
 class CrossHair(object):
