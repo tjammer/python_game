@@ -184,6 +184,7 @@ class GameServer(DatagramProtocol):
                 other.gameState = proto.wantsJoin
                 inpt = proto.Input()
                 inpt.name = p.colstring
+                other.input.CopyFrom(inpt)
                 self.ackman.send_rel(other, address)
                 #other.type = proto.playerUpdate
                 new = proto.Message()
@@ -191,6 +192,9 @@ class GameServer(DatagramProtocol):
                 #player = self.players_pack[pl_id]
                 new.gameState = proto.goesSpec
                 new.player.CopyFrom(tosendplayer)
+                inpt = proto.Input()
+                inpt.name = self.specs[pl_id].colstring
+                new.input.CopyFrom(inpt)
                 self.ackman.send_rel(new, p.address)
         for idx, p in self.specs.iteritems():
             if idx != pl_id:
@@ -203,6 +207,7 @@ class GameServer(DatagramProtocol):
                 other.gameState = proto.goesSpec
                 inpt = proto.Input()
                 inpt.name = p.colstring
+                other.input.CopyFrom(inpt)
                 self.ackman.send_rel(other, address)
 
                 new = proto.Message()
@@ -210,6 +215,9 @@ class GameServer(DatagramProtocol):
                 #player = self.players_pack[pl_id]
                 new.gameState = proto.goesSpec
                 new.player.CopyFrom(tosendplayer)
+                inpt = proto.Input()
+                inpt.name = self.specs[pl_id].colstring
+                new.input.CopyFrom(inpt)
                 self.ackman.send_rel(new, p.address)
 
     def disc_player(self, id):
