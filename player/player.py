@@ -124,7 +124,7 @@ class Player(Events):
         if self.state.vel.y < 0:
             self.state.set_cond('descending')
 
-    def spawn(self, x, y):
+    def spawn(self, x, y, other=False):
         self.state.pos = vec2(x, y)
         self.state.vel = vec2(0, 0)
         self.state.hp = 100
@@ -133,7 +133,8 @@ class Player(Events):
         self.state.frozen = False
         if isinstance(self.rect, Rect):
             self.rect.update_color(self.color)
-        self.weapons.reset()
+        if not other:
+            self.weapons.reset()
 
     def get_id(self, id, name):
         self.id = id
