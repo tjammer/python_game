@@ -86,7 +86,7 @@ class Blaster(Weapon):
         self.id = id
         self.reload_t = 1000
         self.ammo = 1
-        self.vel = 1000
+        self.vel = 1600
         self.selfhit = True
         self.proj_lifetime = 10
 
@@ -112,7 +112,7 @@ class LightningGun(Weapon):
         self.reload_t = 50
         self.ammo = 100
         self.length = 800
-        self.dmg = 7
+        self.dmg = 8
         self.knockback = 10
 
     def on_fire(self, pos, aim_pos):
@@ -246,8 +246,8 @@ class BlasterProjectile(Projectile):
         self.type = proto.blaster
 
     def on_hit(self, player=None):
-        posx = self.pos.x
-        posy = self.pos.y
+        posx = self.center.x
+        posy = self.center.y
         hwidth = 102
         proj = BlasterExplosion(dmg=10, knockback=400, id=self.id,
                                 x=posx, y=posy,
@@ -508,7 +508,7 @@ class WeaponsManager(object):
         self._stringweaps = {'w0': 'melee', 'w1': 'blaster'}
         #start only with melee
         self.weapons = {'w0': Melee(dispatch_proj, id),
-                        'w1': LightningGun(dispatch_proj, id)}
+                        'w1': Blaster(dispatch_proj, id)}
         self.current_w = self.weapons['w0']
         self.current_s = self._stringweaps['w0']
         self.wli = 0
@@ -547,6 +547,8 @@ class WeaponsManager(object):
         self.hudhook = hudhook
 
     def reset(self):
+        self.weapons = {'w0': Melee(self.dispatch_proj, self.id),
+                        'w1': Blaster(self.dispatch_proj, self.id)}
         self.current_w = self.weapons['w0']
         self.current_s = self._stringweaps['w0']
         if self.hudhook:
