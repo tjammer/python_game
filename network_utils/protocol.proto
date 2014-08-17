@@ -22,6 +22,7 @@ enum ProjectileType {
     explBlaster = 4;
     explRocket = 5;
     explNade = 6;
+    lg = 7;
 }
 
 enum GameState {

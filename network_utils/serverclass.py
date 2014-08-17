@@ -22,7 +22,8 @@ class GameServer(DatagramProtocol):
                                           self.players, self.map.spawns,
                                           self.map.items)
         self.projectiles = ProjectileManager(self.players, self.map,
-                                             self.gamestate.damage_player)
+                                             self.gamestate.damage_player,
+                                             self.allgen)
         self.mxdt = .03
 
     def datagramReceived(self, datagram, address):

@@ -1,7 +1,8 @@
-from collision.aabb import AABB as Rectangle
+from collision.aabb import AABB as Rectangle, Line
 from player.state import vec2
 from network_utils import protocol_pb2 as proto
-from graphics.primitives import Rect
+from graphics.primitives import Rect, DrawaAbleLine
+from pyglet.graphics import Batch
 
 
 class Weapon(object):
@@ -100,6 +101,25 @@ class Blaster(Weapon):
                                  dmg=40, id=self.id)
         proj.dispatch_proj = self.dispatch_proj
         self.dispatch_proj(proj)
+
+
+class LightningGun(Weapon):
+    """docstring for LightningGun"""
+    def __init__(self, dispatch_proj, id):
+        super(LightningGun, self).__init__()
+        self.dispatch_proj = dispatch_proj
+        self.id = id
+        self.reload_t = 50
+        self.ammo = 100
+        self.length = 800
+        self.dmg = 7
+        self.knockback = 10
+
+    def on_fire(self, pos, aim_pos):
+        dr = aim_pos - pos
+        line = HitScanLine(pos.x + 16, pos.y + 36, dr.x, dr.y, self.length,
+                           self.dmg, self.knockback, self.id, proto.lg)
+        self.dispatch_proj(line)
 
 
 class NoAmmoError(Exception):
@@ -267,9 +287,24 @@ class BlasterExplosion(Explosion):
         self.type = proto.explBlaster
 
 
+class HitScanLine(Line):
+    """docstring for HitScanLine"""
+    def __init__(self, x, y, dx, dy, length, dmg, knockback, id, typ):
+        super(HitScanLine, self).__init__(x, y, dx - 16, dy - 36,
+                                          length)
+        self.dmg = dmg
+        self.knockback = knockback
+        self.id = id
+        self.type = typ
+
+    def on_hit(self, dmg_func, player):
+        dmg_func(player, self)
+        player.state.vel += self.unit * self.knockback
+
+
 class ProjectileManager(object):
     """docstring for ProjectileManager"""
-    def __init__(self, players, _map, dmg_func):
+    def __init__(self, players, _map, dmg_func, allgen):
         super(ProjectileManager, self).__init__()
         self.projs = []
         self.todelete = []
@@ -280,6 +315,7 @@ class ProjectileManager(object):
         #for collisions
         self.players = players
         self.map = _map
+        self.allgen = allgen
         self.damage_player = dmg_func
 
     def __iter__(self):
@@ -342,8 +378,11 @@ class ProjectileManager(object):
     def add_projectile(self, proj):
         self.proj_num += 1
         proj.projId = self.proj_num
-        proj.damage_player = self.damage_player
-        self.projs.append(proj)
+        if isinstance(proj, Projectile):
+            proj.damage_player = self.damage_player
+            self.projs.append(proj)
+        elif isinstance(proj, HitScanLine):
+            self.process_hitscan(proj)
 
     def send(self, proj, toDelete=False):
         projectile = proto.Projectile()
@@ -353,7 +392,7 @@ class ProjectileManager(object):
         projectile.velx, projectile.vely = proj.vel.x, proj.vel.y
         projectile.toDelete = toDelete
         self.message.projectile.CopyFrom(projectile)
-        for player in self.players.itervalues():
+        for player in self.allgen():
             self.send_(self.message.SerializeToString(), player.address)
 
     def send_all(self):
@@ -363,13 +402,36 @@ class ProjectileManager(object):
     def receive_send(self, func):
         self.send_ = func
 
+    def process_hitscan(self, line):
+        playergen = (player for player in self.players.itervalues())
+        coll = line.collide(self.map.quad_tree, playergen, line.id)
+        if not coll:
+            length, pl = line.length, False
+        else:
+            length, pl = coll
+        #TODO: hitting players
+        if pl:
+            line.on_hit(self.damage_player, self.players[pl])
+        proj = proto.Projectile()
+        proj.type = line.type
+        proj.playerId = line.id
+        proj.projId = line.projId
+        #posx: length, toDelete: isplayerhit
+        proj.posx = length
+        proj.toDelete = pl
+        self.message.projectile.CopyFrom(proj)
+        for player in self.allgen():
+            self.send_(self.message.SerializeToString(), player.address)
+
 
 class ProjectileViewer(object):
     """docstring for ProjectileViewer"""
-    def __init__(self):
+    def __init__(self, get_cent):
         super(ProjectileViewer, self).__init__()
         self.projs = {}
         self.data = proto.Projectile()
+        self.batch = Batch()
+        self.get_center = get_cent
 
     def process_proj(self, datagram):
         self.data.CopyFrom(datagram)
@@ -382,32 +444,58 @@ class ProjectileViewer(object):
             else:
                 if self.data.type == proto.melee:
                     self.projs[ind] = Rect(pos.x, pos.y, width=70, height=70,
-                                           color=(255, 0, 0))
+                                           color=(255, 0, 0), batch=self.batch)
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.blaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=15, height=15,
-                                           color=(255, 0, 0))
+                                           color=(255, 0, 0), batch=self.batch)
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=204, height=204,
-                                           color=(255, 0, 150))
+                                           color=(255, 0, 150),
+                                           batch=self.batch)
                     self.projs[ind].vel = vel
+                elif self.data.type == proto.lg:
+                    id = self.data.playerId
+                    length = self.data.posx
+                    playerhit = self.data.toDelete
+                    center, mpos = self.get_center(id)
+                    mpos = vec2(*mpos)
+                    dr = mpos - center
+                    line = DrawaAbleLine(center.x, center.y, dr.x, dr.y,
+                                         length=length, batch=self.batch)
+                    if playerhit:
+                        line.update_color((255, 0, 0))
+                    line.time = 0.05
+                    line.id = id
+                    self.projs[ind] = line
                 else:
                     raise ValueError
         else:
             try:
+                self.projs[ind].remove()
                 del self.projs[ind]
             except KeyError:
                 pass
 
     def update(self, dt):
-        for proj in self.projs.itervalues():
-            pos = proj.pos + proj.vel * dt
-            proj.update(*pos)
+        todelete = []
+        for key, proj in self.projs.iteritems():
+            if isinstance(proj, Rect):
+                pos = proj.pos + proj.vel * dt
+                proj.update(*pos)
+            elif isinstance(proj, Line):
+                proj.time -= dt
+                if proj.time <= 0:
+                    proj.remove()
+                    todelete.append(key)
+                center, mpos = self.get_center(proj.id)
+                proj.update(center.x, center.y, mpos[0], mpos[1])
+        for key in todelete:
+            del self.projs[key]
 
     def draw(self):
-        for proj in self.projs.itervalues():
-            proj.draw()
+        self.batch.draw()
 
 
 class WeaponsManager(object):
@@ -420,7 +508,7 @@ class WeaponsManager(object):
         self._stringweaps = {'w0': 'melee', 'w1': 'blaster'}
         #start only with melee
         self.weapons = {'w0': Melee(dispatch_proj, id),
-                        'w1': Blaster(dispatch_proj, id)}
+                        'w1': LightningGun(dispatch_proj, id)}
         self.current_w = self.weapons['w0']
         self.current_s = self._stringweaps['w0']
         self.wli = 0

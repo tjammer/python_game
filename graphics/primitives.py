@@ -48,25 +48,26 @@ class DrawaAbleLine(Line):
     def __init__(self, x, y, dx, dy, length=0, batch=None, **kwargs):
         super(DrawaAbleLine, self).__init__(x, y, dx, dy, length)
         if length == 0:
-            self.a = 1000
+            self.length = 1000
         else:
-            self.a = length
+            self.length = length
         if not batch:
             self.ver_list = graphics.vertex_list(2,
                                                  ('v2f/stream', (x, y,
-                                                  x + dx * self.a,
-                                                  y + dy * self.a)),
+                                                  x + dx * self.length,
+                                                  y + dy * self.length)),
                                                  ('c3B', [255] * 6))
         else:
             self.ver_list = batch.add(2, gl.GL_LINES, None,
                                       ('v2f/stream', (x, y,
-                                       x + dx * self.a, y + dy * self.a)),
+                                       x + self.unit.x * self.length,
+                                       y + self.unit.y * self.length)),
                                       ('c3B', [255] * 6))
 
     def on_update(self):
         self.ver_list.vertices = [self.pos.x, self.pos.y,
-                                  self.pos.x + self.unit.x * self.a,
-                                  self.pos.y + self.unit.y * self.a]
+                                  self.pos.x + self.unit.x * self.length,
+                                  self.pos.y + self.unit.y * self.length]
 
     def draw(self):
         self.ver_list.draw(gl.GL_LINES)

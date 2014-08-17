@@ -5,7 +5,7 @@ from player import player, options
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from menu_events import Events, MenuClass
 from pyglet.text import Label
-from graphics.primitives import Box, DrawaAbleLine
+from graphics.primitives import Box
 from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
@@ -42,7 +42,6 @@ class GameScreen(Events):
         self.hud = Hud()
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
-        self.line = DrawaAbleLine(*self.player.state.pos, dx=1, dy=1, length=500)
 
     def update(self, dt):
         dt = int(dt * 10000) / 10000.
@@ -60,13 +59,6 @@ class GameScreen(Events):
         self.update_keys()
         self.on_update(dt)
         di = self.camera.aimpos
-        self.line.update(self.player.rect.center.x, self.player.rect.center.y,
-                         di.x, di.y)
-        lst = self.line.collide(self.map.quad_tree, (), 0)
-        if lst:
-            self.line.update_color((255, 0, 0))
-        else:
-            self.line.update_color((255, 255, 255))
 
     def update_physics(self, dt, state=False, input=False):
         playergen = (player.rect for player in self.players.itervalues())
@@ -290,7 +282,6 @@ class GameScreen(Events):
         self.player.draw()
         self.proj_viewer.draw()
         self.map.draw()
-        self.line.draw()
         self.camera.set_static()
         self.hud.draw()
         self.cross.draw(*self.camera.mpos)

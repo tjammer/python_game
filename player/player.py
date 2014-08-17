@@ -25,7 +25,6 @@ class Player(Events):
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
         #self.color = Options()['color']  #(0, 204, 255)
         self.set_color(Options()['color'])
-        print self.color
         self.rect = self.Rect(0, 0, 32, 72, self.color, isplayer=True)
         #input will be assigned by windowmanager class
         self.input = proto.Input()
