@@ -172,10 +172,10 @@ class Line(object):
             mapcoll = min(mapcolls)
         else:
             mapcoll = float('Inf')
-        p_response = [(self.sweep(pl.rect), pl.id)
-                      for pl in playergen if pl.id != id]
+        p_resp = [(self.sweep(pl.rect), pl.id)
+                  for pl in playergen if pl.id != id]
         try:
-            playercoll = min((p[0] for p in p_response if p[0] is not False))
+            playercoll = min((p[0][0] for p in p_resp if p[0] is not False))
         except ValueError:
             playercoll = float('Inf')
         coll = min(mapcoll, playercoll)
@@ -184,8 +184,9 @@ class Line(object):
         elif mapcoll < playercoll:
             return mapcoll, False
         else:
+            print [r[1] for r in p_resp if r[0][0] == playercoll][0]
             return playercoll, [r[1]
-                                for r in p_response if r[0] == playercoll][0]
+                                for r in p_resp if r[0][0] == playercoll][0]
 
     def update(self, x, y, mx, my):
         dx = mx - x
