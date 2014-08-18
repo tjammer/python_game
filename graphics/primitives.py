@@ -41,6 +41,16 @@ class Rect(AABB):
     def remove(self):
         self.ver_list.delete()
 
+    def add(self, batch):
+        self.ver_list = batch.add(4, gl.GL_QUADS, None,
+                                 ('v2f/stream', (self.pos.x, self.pos.y,
+                                  self.pos.x, self.pos.y + self.height,
+                                  self.pos.x + self.width,
+                                  self.pos.y + self.height,
+                                  self.pos.x + self.width, self.pos.y)),
+                                  ('c3B', [self.color[0], self.color[1],
+                                   self.color[2]] * 4))
+
 
 class DrawaAbleLine(Line):
     """docstring for DrawaAbleLine"""
@@ -77,6 +87,13 @@ class DrawaAbleLine(Line):
 
     def remove(self):
         self.ver_list.delete()
+
+    def add(self, batch):
+        self.ver_list = batch.add(2, gl.GL_LINES, None,
+                                  ('v2f/stream', (self.pos.x, self.pos.y,
+                                   self.pos.x + self.unit.x * self.length,
+                                   self.pos.y + self.unit.y * self.length)),
+                                  ('c3B', self.color * 2))
 
 
 class CrossHair(object):

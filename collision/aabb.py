@@ -4,7 +4,7 @@ from player.state import vec2
 class AABB(object):
     """docstring for AABB"""
     def __init__(self, x, y, width, height, color=(1., 1., 1.),
-                 isplayer=False):
+                 isplayer=False, batch=None):
         super(AABB, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
@@ -107,7 +107,8 @@ class AABB(object):
 
 class Line(object):
     """line is in principle aabb with width = 0"""
-    def __init__(self, x, y, dx, dy, length=0, color=(255, 255, 255)):
+    def __init__(self, x, y, dx, dy, length=0, color=(255, 255, 255),
+                 batch=None):
         super(Line, self).__init__()
         self.pos = vec2(x, y)
         self.dir = vec2(dx, dy)

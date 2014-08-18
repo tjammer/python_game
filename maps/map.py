@@ -4,6 +4,7 @@ from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
 from gameplay.items import *
+from pyglet.graphics import Batch
 
 
 class Map(object):
@@ -18,11 +19,13 @@ class Map(object):
             self.Rect = AABB
             self.Armor = Armor
             self.Health = Health
+            self.batch = None
         else:
             self.Rect = Rect
             self.Armor = DrawableArmor
             self.Health = DrawableHealth
-        self.items = ItemManager()
+            self.batch = Batch()
+        self.items = ItemManager(self.batch)
         self.load(''.join(('maps/', mapname, '.svg')))
 
     def load(self, mapname):
@@ -40,7 +43,7 @@ class Map(object):
                     height = int(atr['height'])
                     color = (255, 255, 255)
                     rects.append(self.Rect(x, - y - height, width,
-                                 height, color))
+                                 height, color, batch=self.batch))
 
         max_x = max(rect.pos.x + rect.width for rect in rects)
         max_y = max(rect.pos.y + rect.height for rect in rects)
@@ -77,7 +80,8 @@ class Map(object):
                     armor = self.Armor(x=x, y=-y-height, width=width,
                                        height=height, value=avalue,
                                        bonus=False, respawn=10, color=color,
-                                       ind=self.ind, maxarmor=maxarmor)
+                                       ind=self.ind, maxarmor=maxarmor,
+                                       batch=self.batch)
                     self.items.add(armor)
                     self.ind += 1
 
@@ -95,15 +99,13 @@ class Map(object):
                     health_ = self.Health(x=x, y=-y-height, width=width,
                                           height=height, value=hvalue,
                                           bonus=False, respawn=20, color=color,
-                                          ind=self.ind, maxhp=maxhp)
+                                          ind=self.ind, maxhp=maxhp,
+                                          batch=self.batch)
                     self.items.add(health_)
                     self.ind += 1
 
     def draw(self):
-        for rect in self.rects:
-            rect.draw()
-        for item in self.items:
-            item.draw()
+        self.batch.draw()
 
     def serverupdate(self, itemid, spawn):
         self.items.fromserver(itemid, spawn)

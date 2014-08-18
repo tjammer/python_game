@@ -75,9 +75,10 @@ class DrawableHealth(Rect):
 
 class ItemManager(object):
     """docstring for ItemManager"""
-    def __init__(self):
+    def __init__(self, batch):
         super(ItemManager, self).__init__()
         self.items = []
+        self.batch = batch
 
     def __iter__(self):
         return self.get_items()
@@ -104,5 +105,7 @@ class ItemManager(object):
         id = itemid
         if spawn:
             self.items[id].inactive = False
+            self.items[id].add(self.batch)
         else:
             self.items[id].inactive = True
+            self.items[id].remove()
