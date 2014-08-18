@@ -111,20 +111,16 @@ class GameServer(DatagramProtocol):
 
     def isonline(self, data, address):
         id = data.input.id
-        if id in self.players or id in self.specs:
-            return True
+        if id in self.players:
+            if self.players[id].address == address:
+                return True
+        elif id in self.specs:
+            if self.specs[id].address == address:
+                return True
         return False
 
     def player_to_pack(self, idx):
         pp = self.players_pack[idx]
-        """self.players_pack[idx].posx = self.players[idx].state.pos.x
-        self.players_pack[idx].posy = self.players[idx].state.pos.y
-        self.players_pack[idx].velx = self.players[idx].state.vel.x
-        self.players_pack[idx].vely = self.players[idx].state.vel.y
-        self.players_pack[idx].hp = self.players[idx].state.hp
-        self.players_pack[idx].armor = self.players[idx].state.armor
-        self.players_pack[idx].time = self.players[idx].time
-        self.players_pack[idx].mState.CopyFrom(self.players[idx].state.conds)"""
         pp.posx = self.players[idx].state.pos.x
         pp.posy = self.players[idx].state.pos.y
         pp.velx = self.players[idx].state.vel.x
