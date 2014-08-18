@@ -593,7 +593,8 @@ class ProjectileViewer(object):
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.blaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=15, height=15,
-                                           color=(255, 0, 0), batch=self.batch)
+                                           color=weaponcolors['w3'],
+                                           batch=self.batch)
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=204, height=204,
@@ -608,7 +609,8 @@ class ProjectileViewer(object):
                     mpos = vec2(*mpos)
                     dr = mpos - center
                     line = DrawaAbleLine(center.x, center.y, dr.x, dr.y,
-                                         length=length, batch=self.batch)
+                                         length=length, batch=self.batch,
+                                         color=weaponcolors['w2'])
                     if playerhit:
                         line.update_color((255, 0, 0))
                     line.time = 0.05
@@ -621,14 +623,14 @@ class ProjectileViewer(object):
                     mpos = vec2(*mpos)
                     dr = mpos - center
                     dys = spread(dr.x, dr.y, angle=0.2, num=6)
-                    cont = ProjContainer(0.01, id)
+                    cont = ProjContainer(0.05, id)
                     for dy in dys:
                         un = vec2(dr.x, dy)
                         un = un / un.mag()
                         line = DrawaAbleLine(center.x + un.x * 40,
                                              center.y + un.y * 40, dr.x, dy,
                                              length=100, batch=self.batch,
-                                             color=(255, 255, 255))
+                                             color=weaponcolors['w1'])
                         if playerhit:
                             line.update_color((255, 0, 0))
                         cont.append(line)
@@ -661,6 +663,10 @@ class ProjectileViewer(object):
                     for p in proj:
                         p.remove()
                     todelete.append(key)
+                for p in proj:
+                    u = p.unit
+                    m = p.pos + u + u*50
+                    p.update(p.pos.x + u.x*50, p.pos.y + u.y*50, m.x, m.y)
         for key in todelete:
             del self.projs[key]
 
@@ -688,8 +694,6 @@ class WeaponsManager(object):
     def fire(self, pos, aim_pos):
         try:
             self.current_w.fire(pos, aim_pos)
-            if self.hudhook:
-                self.hudhook(ammo=str(self.current_w.ammo))
         except NoAmmoError:
             if self.hudhook:
                 self.hudhook(text='no ammo')
@@ -749,6 +753,7 @@ class WeaponsManager(object):
         key = 'w' + str(weap - 1)
         if self.current_w == self.weapons[key]:
             self.current_w.ammo = ammo
+            self.hudhook(ammo=str(self.current_w.ammo))
 
 allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
               'w1': ShotGun}
