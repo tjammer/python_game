@@ -7,11 +7,11 @@ class Movement(object):
         super(Movement, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
-        self.gravity = 2700.
+        self.gravity = 2300.
         self.normal_accel = 1000.
         self.boost_accel = 20.
         self.turn_multplier = 8.
-        self.jump_vel = 900.
+        self.jump_vel = 750.
         self.max_vel = 500.
         self.wall_boost = 650.
         self.angle = 0
@@ -69,7 +69,7 @@ class Movement(object):
         if not state.isDead:
             if (conds.landing or
                     conds.onGround) and conds.canJump and input.up:
-                self.jump(state)
+                self.jump(state, sign)
             elif (conds.onRightWall
                   or conds.onLeftWall) and conds.canJump and input.up:
                 self.walljump(state, conds)
@@ -78,8 +78,9 @@ class Movement(object):
             if self.vel.y > 0:
                 self.vel.y -= self.vel.y * dt * self.friction * 2
 
-    def jump(self, state):
+    def jump(self, state, sign):
         self.vel.y = self.jump_vel
+        self.vel.x += (sign * 900 - self.vel.x) * 0.2
         state.set_cond('ascending')
 
     def walljump(self, state, conds):
