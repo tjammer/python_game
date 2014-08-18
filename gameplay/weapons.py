@@ -129,7 +129,6 @@ class Blaster(Weapon):
         self.keystr = 'w3'
 
     def on_fire(self, pos, aim_pos):
-        self.ammo += 1
         rectoffset = vec2(16, 32)
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
