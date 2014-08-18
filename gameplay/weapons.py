@@ -734,6 +734,11 @@ class WeaponsManager(object):
             self.weapons[keystr] = allweapons[keystr](self.dispatch_proj,
                                                       self.id)
 
+    def apply(self, keystr, player):
+        self.weapons[keystr].apply(player)
+        if self.weapons[keystr] == self.current_w:
+            self.hudhook(ammo=str(self.current_w.ammo))
+
 allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
               'w1': ShotGun}
 

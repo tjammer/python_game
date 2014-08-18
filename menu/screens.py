@@ -174,7 +174,10 @@ class GameScreen(Events):
             if ind == self.player.id:
                 if isinstance(self.map.items[itemid], Triangle):
                     st = self.map.items[itemid].keystr
-                    self.player.weapons.pickup(st)
+                    if not st in self.player.weapons.weapons:
+                        self.player.weapons.pickup(st)
+                    else:
+                        self.player.weapons.apply(st, self.player)
             self.map.serverupdate(itemid, spawn)
         elif typ == proto.chat:
             ind, msg = data
