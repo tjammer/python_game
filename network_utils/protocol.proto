@@ -16,13 +16,10 @@ enum MessageType {
 
 enum ProjectileType {
     melee = 0;
-    rocket = 1;
-    nade = 2;
-    blaster = 3;
-    explBlaster = 4;
-    explRocket = 5;
-    explNade = 6;
-    lg = 7;
+    blaster = 1;
+    explBlaster = 2;
+    lg = 3;
+    sg = 4;
 }
 
 enum GameState {

@@ -3,6 +3,16 @@ from player.state import vec2
 from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect, DrawaAbleLine
 from pyglet.graphics import Batch
+import math
+
+
+def spread(dx, dy, angle, num):
+    vec_angle = math.atan2(dy, dx)
+    div_angle = float(angle) / num
+    a = num // 2
+    dys = [dx * math.tan(vec_angle - a * div_angle + i * div_angle)
+           for i in range(num)]
+    return dys
 
 
 class Weapon(object):
@@ -17,7 +27,6 @@ class Weapon(object):
         self.reload_t = reload_t
         self.ammo = ammo
         self.max_ammo = max_ammo
-        self.start_ammo = start_ammo
         self.active = False
 
     def on_fire(self, pos, aim_pos):
@@ -85,7 +94,8 @@ class Blaster(Weapon):
         self.dispatch_proj = dispatch_proj
         self.id = id
         self.reload_t = 1000
-        self.ammo = 1
+        self.ammo = 10
+        self.max_ammo = 15
         self.vel = 1600
         self.selfhit = True
         self.proj_lifetime = 10
@@ -111,9 +121,10 @@ class LightningGun(Weapon):
         self.id = id
         self.reload_t = 50
         self.ammo = 100
+        self.max_ammo = 100
         self.length = 800
         self.dmg = 8
-        self.knockback = 10
+        self.knockback = 30
 
     def on_fire(self, pos, aim_pos):
         dr = aim_pos - pos
@@ -122,9 +133,39 @@ class LightningGun(Weapon):
         self.dispatch_proj(line)
 
 
+class ShotGun(Weapon):
+    """docstring for ShotGun"""
+    def __init__(self, dispatch_proj, id):
+        super(ShotGun, self).__init__()
+        self.dispatch_proj = dispatch_proj
+        self.id = id
+        self.reload_t = 500
+        self.ammo = 25
+        self.pellets = 6
+        self.pelletdmg = 4
+        self.pelletknockback = 30
+        self.pelletlength = 3000
+
+    def on_fire(self, pos, aim_pos):
+        dr = aim_pos - pos
+        pellets = ShotGunPellets(pos.x + 16, pos.y + 36, dr.x, dr.y,
+                                 self.pelletdmg, self.pellets,
+                                 self.pelletknockback, self.pelletlength,
+                                 self.id, proto.sg)
+        self.dispatch_proj(pellets)
+
+
 class NoAmmoError(Exception):
     def __init__(self):
         pass
+
+
+class ProjContainer(list):
+    """docstring for ProjContainer"""
+    def __init__(self, time, ind):
+        super(ProjContainer, self).__init__()
+        self.time = time
+        self.ind = ind
 
 
 class Projectile(Rectangle):
@@ -278,7 +319,7 @@ class Explosion(Projectile):
                 direc = self.center - player.rect.center
                 mag = direc.mag()
                 hw = self.width * 0.5
-                dmg = int((hw - mag) * self.dmg * 0.01)
+                dmg = int((hw - mag) / hw * self.dmg)
                 if dmg < 10:
                     dmg = 10
                 self.dmg = dmg
@@ -309,6 +350,45 @@ class HitScanLine(Line):
     def on_hit(self, dmg_func, player):
         dmg_func(player, self)
         player.state.vel += self.unit * self.knockback
+
+
+class ShotGunPellets(object):
+    """docstring for ShotGunPellets"""
+    def __init__(self, x, y, dx, dy, pdmg, pnum, pkb, plength, id, typ):
+        super(ShotGunPellets, self).__init__()
+        self.pdmg = pdmg
+        self.pnum = pnum
+        self.pkb = pkb
+        self.plength = plength
+        self.id = id
+        self.type = typ
+        spread_dy = spread(dx, dy, angle=0.2, num=pnum)
+        self.pellets = [HitScanLine(x, y, dx, spread_dy[i], plength, pdmg, pkb,
+                        id, 0) for i in range(pnum)]
+        self.dir = vec2(dx, dy)
+        self.unit = self.dir / self.dir.mag()
+
+    def collide(self, quadtree, playergen, id):
+        colls = [line.collide(quadtree, playergen(), id)
+                 for line in self.pellets]
+        colls = [coll for coll in colls if coll is not False]
+        playerids = [coll[1] for coll in colls if coll[1] is not False]
+        if len(playerids) == 0:
+            return False
+        dct = {}
+        for id in set(playerids):
+            count = 0
+            for ind in playerids:
+                if ind == id:
+                    count += 1
+            dct[id] = count
+        return dct
+
+    def on_hit(self, dmg_func, players):
+        for player in players:
+            self.dmg = self.pdmg * player.hitcount
+            dmg_func(player, self)
+            player.state.vel += self.unit * self.pkb * player.hitcount
 
 
 class ProjectileManager(object):
@@ -392,6 +472,8 @@ class ProjectileManager(object):
             self.projs.append(proj)
         elif isinstance(proj, HitScanLine):
             self.process_hitscan(proj)
+        elif isinstance(proj, ShotGunPellets):
+            self.process_hitscan_mul(proj)
 
     def send(self, proj, toDelete=False):
         projectile = proto.Projectile()
@@ -427,6 +509,28 @@ class ProjectileManager(object):
         proj.projId = line.projId
         #posx: length, posy: isplayerhit
         proj.posx = length
+        proj.posy = pl
+        self.message.projectile.CopyFrom(proj)
+        for player in self.allgen():
+            self.send_(self.message.SerializeToString(), player.address)
+
+    def process_hitscan_mul(self, pellets):
+        def pgen():
+            return (player for player in self.players.itervalues())
+        coldict = pellets.collide(self.map.quad_tree, pgen, pellets.id)
+        if not coldict:
+            pl = False
+        else:
+            players = []
+            pl = True
+            for id, count in coldict.iteritems():
+                self.players[id].hitcount = count
+                players.append(self.players[id])
+            pellets.on_hit(self.damage_player, players)
+        proj = proto.Projectile()
+        proj.type = pellets.type
+        proj.playerId = pellets.id
+        proj.projId = pellets.projId
         proj.posy = pl
         self.message.projectile.CopyFrom(proj)
         for player in self.allgen():
@@ -478,6 +582,24 @@ class ProjectileViewer(object):
                     line.time = 0.05
                     line.id = id
                     self.projs[ind] = line
+                elif self.data.type == proto.sg:
+                    id = self.data.playerId
+                    playerhit = self.data.posy
+                    center, mpos = self.get_center(id)
+                    mpos = vec2(*mpos)
+                    dr = mpos - center
+                    dys = spread(dr.x, dr.y, angle=0.2, num=6)
+                    cont = ProjContainer(0.01, id)
+                    for dy in dys:
+                        un = vec2(dr.x, dy)
+                        un = un / un.mag()
+                        line = DrawaAbleLine(center.x + un.x * 40,
+                                             center.y + un.y * 40, dr.x, dy,
+                                             length=100, batch=self.batch)
+                        if playerhit:
+                            line.update_color((255, 0, 0))
+                        cont.append(line)
+                    self.projs[ind] = cont
                 else:
                     raise ValueError
         else:
@@ -500,6 +622,12 @@ class ProjectileViewer(object):
                     todelete.append(key)
                 center, mpos = self.get_center(proj.id)
                 proj.update(center.x, center.y, mpos[0], mpos[1])
+            elif isinstance(proj, ProjContainer):
+                proj.time -= dt
+                if proj.time <= 0:
+                    for p in proj:
+                        p.remove()
+                    todelete.append(key)
         for key in todelete:
             del self.projs[key]
 
@@ -513,9 +641,10 @@ class WeaponsManager(object):
         super(WeaponsManager, self).__init__()
         self.dispatch_proj = dispatch_proj
         self.id = id
-        self._allweapos = {'w0': Melee, 'w1': Blaster, 'w2': LightningGun}
-        self._stringweaps = {'w0': 'melee', 'w1': 'blaster',
-                             'w2': 'lightning gun'}
+        self._allweapos = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
+                           'w1': ShotGun}
+        self._stringweaps = {'w0': 'melee', 'w3': 'blaster',
+                             'w2': 'lightning gun', 'w1': 'shotgun'}
         #start only with melee
         self.starting_weapons = ('w0', 'w1')
         self.weapons = {}
