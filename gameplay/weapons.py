@@ -98,7 +98,7 @@ class Blaster(Weapon):
         proj = BlasterProjectile(x=pos.x+16, y=pos.y+32,
                                  width=15, height=15, vel=self.vel,
                                  direc=direc, lifetime=self.proj_lifetime,
-                                 dmg=40, id=self.id)
+                                 dmg=110, id=self.id)
         proj.dispatch_proj = self.dispatch_proj
         self.dispatch_proj(proj)
 
@@ -249,15 +249,16 @@ class BlasterProjectile(Projectile):
         posx = self.center.x
         posy = self.center.y
         hwidth = 102
-        proj = BlasterExplosion(dmg=10, knockback=400, id=self.id,
+        proj = BlasterExplosion(dmg=100, knockback=400, id=self.id,
                                 x=posx, y=posy,
                                 width=hwidth*2,
                                 height=hwidth*2, vel=0, direc=vec2(0, 0),
                                 lifetime=0.05)
-        self.dispatch_proj(proj)
-        #direct dmg
         if player:
             self.damage_player(player, self)
+            proj.players.append(player)
+        self.dispatch_proj(proj)
+        #direct dmg
         return True
 
 
@@ -266,6 +267,7 @@ class Explosion(Projectile):
     def __init__(self, *args, **kwargs):
         super(Explosion, self).__init__(*args, **kwargs)
         self.players = []
+        self.orig_dmg = self.dmg
 
     def collide(self, dt, mapgen, playergen):
         return [player for player in playergen if self.overlaps(player.rect)]
@@ -273,9 +275,16 @@ class Explosion(Projectile):
     def on_hit(self, players):
         for player in players:
             if player not in self.players:
-                self.damage_player(player, self)
                 direc = self.center - player.rect.center
-                player.state.vel -= direc / direc.mag() * self.knockback
+                mag = direc.mag()
+                hw = self.width * 0.5
+                dmg = int((hw - mag) * self.dmg * 0.01)
+                if dmg < 10:
+                    dmg = 10
+                self.dmg = dmg
+                player.state.vel -= direc / mag * self.knockback
+                self.damage_player(player, self)
+                self.dmg = self.orig_dmg
             self.players.append(player)
         return False
 
@@ -508,7 +517,7 @@ class WeaponsManager(object):
         self._stringweaps = {'w0': 'melee', 'w1': 'blaster',
                              'w2': 'lightning gun'}
         #start only with melee
-        self.starting_weapons = ('w0', 'w2')
+        self.starting_weapons = ('w0', 'w1')
         self.weapons = {}
         for k in self.starting_weapons:
             self.weapons[k] = self._allweapos[k](self.dispatch_proj, self.id)
@@ -534,7 +543,7 @@ class WeaponsManager(object):
         if input.w0:
             self.switch_to('w0')
         elif input.w1:
-            self.switch_to('w2')
+            self.switch_to('w1')
         self.current_w.update(dt)
 
     def switch_to(self, key):
