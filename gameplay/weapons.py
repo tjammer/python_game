@@ -595,7 +595,8 @@ class ProjectileViewer(object):
                         un = un / un.mag()
                         line = DrawaAbleLine(center.x + un.x * 40,
                                              center.y + un.y * 40, dr.x, dy,
-                                             length=100, batch=self.batch)
+                                             length=100, batch=self.batch,
+                                             color=(255, 255, 255))
                         if playerhit:
                             line.update_color((255, 0, 0))
                         cont.append(line)
@@ -682,7 +683,8 @@ class WeaponsManager(object):
             self.current_w.active = active
             self.current_s = self._stringweaps[key]
             if self.hudhook:
-                self.hudhook(weapon=self.current_s)
+                self.hudhook(weapon=self.current_s,
+                             ammo=str(self.current_w.ammo))
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
