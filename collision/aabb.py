@@ -131,11 +131,19 @@ class Line(object):
             ydist_ent = obj.pos.y + obj.height - self.pos.y
             ydist_ext = obj.pos.y - self.pos.y
         #find time for entry and exit
-        xt_ent = xdist_ent / self.unit.x
-        xt_ext = xdist_ext / self.unit.x
+        try:
+            xt_ent = xdist_ent / self.unit.x
+            xt_ext = xdist_ext / self.unit.x
+        except ZeroDivisionError:
+            xt_ent = -float('Inf')
+            xt_ext = float('Inf')
 
-        yt_ent = ydist_ent / self.unit.y
-        yt_ext = ydist_ext / self.unit.y
+        try:
+            yt_ent = ydist_ent / self.unit.y
+            yt_ext = ydist_ext / self.unit.y
+        except ZeroDivisionError:
+            yt_ent = -float('Inf')
+            yt_ext = float('Inf')
 
         enter = max(xt_ent, yt_ent)
         exit = min(xt_ext, yt_ext)
