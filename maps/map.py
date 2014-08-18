@@ -1,10 +1,11 @@
 from xml.etree import ElementTree as ET
-from graphics.primitives import Rect
+from graphics.primitives import Rect, Triangle
 from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
 from gameplay.items import *
 from pyglet.graphics import Batch
+from gameplay.weapons import *
 
 
 class Map(object):
@@ -26,7 +27,10 @@ class Map(object):
             self.Health = DrawableHealth
             self.batch = Batch()
         self.items = ItemManager(self.batch)
-        self.load(''.join(('maps/', mapname, '.svg')))
+        try:
+            self.load(''.join(('maps/', mapname, '.svg')))
+        except ET.ParseError:
+            pass
 
     def load(self, mapname):
         tree = ET.parse(mapname)
@@ -102,6 +106,30 @@ class Map(object):
                                           ind=self.ind, maxhp=maxhp,
                                           batch=self.batch)
                     self.items.add(health_)
+                    self.ind += 1
+
+        #weapons
+        for child in root.getchildren():
+            if child.attrib['id'] == 'weapons':
+                for rect in child:
+                    atr = rect.attrib
+                    x = int(atr['x'])
+                    y = int(atr['y'])
+                    width = int(atr['width'])
+                    height = int(atr['height'])
+                    weapstr = atr['weapon']
+                    color = weaponcolors[weapstr]
+                    if self.server:
+                        w = allweapons[weapstr]
+                        w_ = w(0, 0, x=x, y=-y-height, width=width,
+                               height=height, respawn=20, color=color,
+                               ind=self.ind, batch=self.batch)
+                        self.items.add(w_)
+                    else:
+                        w_ = Triangle(x=x, y=-y-height, width=width,
+                                      height=height, color=color, ind=self.ind,
+                                      batch=self.batch, keystr=weapstr)
+                        self.items.add(w_)
                     self.ind += 1
 
     def draw(self):

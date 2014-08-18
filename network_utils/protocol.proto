@@ -15,11 +15,12 @@ enum MessageType {
 }
 
 enum ProjectileType {
-    melee = 0;
-    blaster = 1;
-    explBlaster = 2;
+    no_switch = 0;
+    melee = 1;
+    blaster = 4;
+    explBlaster = 11;
     lg = 3;
-    sg = 4;
+    sg = 2;
 }
 
 enum GameState {
@@ -67,9 +68,7 @@ message Input {
     optional float my = 9;
     optional bool att = 10;
     optional bool down = 11;
-    optional bool switch = 12;
-    optional bool w0 = 13;
-    optional bool w1 = 14;
+    optional ProjectileType switch = 12;
 }
 
 message MState {

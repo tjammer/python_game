@@ -14,12 +14,16 @@ def spread(dx, dy, angle, num):
            for i in range(num)]
     return dys
 
+weaponcolors = {'w0': (255, 255, 255), 'w3': (149, 17, 70),
+                'w2': (255, 152, 0), 'w1': (126, 138, 162)}
 
-class Weapon(object):
+
+class Weapon(Rectangle):
     """BaseWeapon class for other to inherit from"""
     def __init__(self, dmg=1, knockback=0, reload_t=0,
-                 ammo=0, max_ammo=100, start_ammo=5):
-        super(Weapon, self).__init__()
+                 ammo=0, max_ammo=100, ammoval=5, respawn=10, ind=None, *args,
+                 **kwargs):
+        super(Weapon, self).__init__(*args, **kwargs)
         #dmg per hit
         self.dmg = dmg
         self.knockback = knockback
@@ -27,7 +31,14 @@ class Weapon(object):
         self.reload_t = reload_t
         self.ammo = ammo
         self.max_ammo = max_ammo
+        self.ammoval = ammoval
+        #for reloading
         self.active = False
+        self.keystr = ''
+        self.respawn = respawn
+        #for spawning
+        self.inactive = False
+        self.ind = ind
 
     def on_fire(self, pos, aim_pos):
         pass
@@ -53,6 +64,20 @@ class Weapon(object):
             if self.active < 0:
                 self.active = 0
 
+    #pickup weapon
+    def apply(self, player):
+        if self.keystr not in player.weapons.weapons:
+            player.weapons.pickup(self.keystr)
+            self.inactive = self.respawn
+            return True
+        elif player.weapons.weapons[self.keystr].ammo < self.max_ammo:
+            player.weapons.weapons[self.keystr].ammo += self.ammoval
+            if player.weapons.weapons[self.keystr].ammo > self.max_ammo:
+                player.weapons.weapons[self.keystr].ammo = self.max_ammo
+            self.inactive = self.respawn
+            return True
+        return False
+
 
 class Melee(Weapon):
     """docstring for Melee"""
@@ -68,6 +93,7 @@ class Melee(Weapon):
         self.selfhit = False
         self.proj_lifetime = 1. / 12
         self.reach = 40
+        self.keystr = 'w0'
 
     def on_fire(self, pos, aim_pos):
         self.ammo += 1
@@ -89,16 +115,18 @@ class Melee(Weapon):
 
 class Blaster(Weapon):
     """docstring for Blaster"""
-    def __init__(self, dispatch_proj, id):
-        super(Blaster, self).__init__()
+    def __init__(self, dispatch_proj, id, *args, **kwargs):
+        super(Blaster, self).__init__(*args, **kwargs)
         self.dispatch_proj = dispatch_proj
         self.id = id
         self.reload_t = 1000
         self.ammo = 10
         self.max_ammo = 15
+        self.ammoval = 5
         self.vel = 1600
         self.selfhit = True
         self.proj_lifetime = 10
+        self.keystr = 'w3'
 
     def on_fire(self, pos, aim_pos):
         self.ammo += 1
@@ -115,16 +143,18 @@ class Blaster(Weapon):
 
 class LightningGun(Weapon):
     """docstring for LightningGun"""
-    def __init__(self, dispatch_proj, id):
-        super(LightningGun, self).__init__()
+    def __init__(self, dispatch_proj, id, *args, **kwargs):
+        super(LightningGun, self).__init__(*args, **kwargs)
         self.dispatch_proj = dispatch_proj
         self.id = id
         self.reload_t = 50
         self.ammo = 100
         self.max_ammo = 100
+        self.ammoval = 50
         self.length = 800
         self.dmg = 8
         self.knockback = 30
+        self.keystr = 'w2'
 
     def on_fire(self, pos, aim_pos):
         dr = aim_pos - pos
@@ -135,16 +165,19 @@ class LightningGun(Weapon):
 
 class ShotGun(Weapon):
     """docstring for ShotGun"""
-    def __init__(self, dispatch_proj, id):
-        super(ShotGun, self).__init__()
+    def __init__(self, dispatch_proj, id, *args, **kwargs):
+        super(ShotGun, self).__init__(*args, **kwargs)
         self.dispatch_proj = dispatch_proj
         self.id = id
         self.reload_t = 500
         self.ammo = 25
+        self.max_ammo = 50
+        self.ammoval = 25
         self.pellets = 6
         self.pelletdmg = 4
         self.pelletknockback = 30
         self.pelletlength = 3000
+        self.keystr = 'w1'
 
     def on_fire(self, pos, aim_pos):
         dr = aim_pos - pos
@@ -642,19 +675,16 @@ class WeaponsManager(object):
         super(WeaponsManager, self).__init__()
         self.dispatch_proj = dispatch_proj
         self.id = id
-        self._allweapos = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
-                           'w1': ShotGun}
-        self._stringweaps = {'w0': 'melee', 'w3': 'blaster',
-                             'w2': 'lightning gun', 'w1': 'shotgun'}
         #start only with melee
         self.starting_weapons = ('w0', 'w1')
         self.weapons = {}
         for k in self.starting_weapons:
-            self.weapons[k] = self._allweapos[k](self.dispatch_proj, self.id)
-        self.current_w = self.weapons['w0']
-        self.current_s = self._stringweaps['w0']
+            self.weapons[k] = allweapons[k](self.dispatch_proj, self.id)
+        self.current_w = self.weapons['w1']
+        self.current_s = allstrings['w1']
         self.wli = 0
         self.hudhook = False
+        self.switch_time = 0.5
 
     def fire(self, pos, aim_pos):
         try:
@@ -670,30 +700,43 @@ class WeaponsManager(object):
             return 0
         if input.att:
             self.fire(state.pos, vec2(input.mx, input.my))
-        if input.w0:
-            self.switch_to('w0')
-        elif input.w1:
-            self.switch_to('w1')
+        if input.switch != proto.no_switch:
+            self.switch_to('w' + str(input.switch-1))
         self.current_w.update(dt)
 
     def switch_to(self, key):
-        if self.current_w != self.weapons[key]:
-            active = self.current_w.active
-            self.current_w = self.weapons[key]
-            self.current_w.active = active
-            self.current_s = self._stringweaps[key]
-            if self.hudhook:
-                self.hudhook(weapon=self.current_s,
-                             ammo=str(self.current_w.ammo))
+        try:
+            if self.current_w != self.weapons[key]:
+                active = self.current_w.active + self.switch_time
+                self.current_w = self.weapons[key]
+                self.current_w.active = active
+                self.current_s = allstrings[key]
+                if self.hudhook:
+                    self.hudhook(weapon=self.current_s,
+                                 ammo=str(self.current_w.ammo))
+        except KeyError:
+            pass
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
+        self.hudhook(ammo=str(self.current_w.ammo))
 
     def reset(self):
         self.weapons = {}
         for k in self.starting_weapons:
-            self.weapons[k] = self._allweapos[k](self.dispatch_proj, self.id)
-        self.current_w = self.weapons['w0']
-        self.current_s = self._stringweaps['w0']
+            self.weapons[k] = allweapons[k](self.dispatch_proj, self.id)
+        self.current_w = self.weapons['w1']
+        self.current_s = allstrings['w1']
         if self.hudhook:
                 self.hudhook(weapon=self.current_s)
+
+    def pickup(self, keystr):
+        if keystr in allweapons:
+            self.weapons[keystr] = allweapons[keystr](self.dispatch_proj,
+                                                      self.id)
+
+allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
+              'w1': ShotGun}
+
+allstrings = {'w0': 'melee', 'w3': 'blaster',
+              'w2': 'lightning gun', 'w1': 'shotgun'}

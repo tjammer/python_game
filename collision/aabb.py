@@ -3,7 +3,7 @@ from player.state import vec2
 
 class AABB(object):
     """docstring for AABB"""
-    def __init__(self, x, y, width, height, color=(1., 1., 1.),
+    def __init__(self, x=0, y=0, width=0, height=0, color=(1., 1., 1.),
                  isplayer=False, batch=None):
         super(AABB, self).__init__()
         self.pos = vec2(x, y)

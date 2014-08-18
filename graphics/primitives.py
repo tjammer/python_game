@@ -96,6 +96,31 @@ class DrawaAbleLine(Line):
                                   ('c3B', self.color * 2))
 
 
+class Triangle(object):
+    """docstring for Triangle"""
+    def __init__(self, x, y, width, height, color, batch, ind, keystr):
+        super(Triangle, self).__init__()
+        self.ind = ind
+        self.x, self.y, self.width, self.height = x, y, width, height
+        self.color = color
+        self.keystr = keystr
+        self.ver_list = batch.add(3, gl.GL_TRIANGLES, None,
+                                  ('v2f', (self.x, self.y, self.x + self.width,
+                                   self.y, self.x + self.width / 2,
+                                   self.y + self.height)),
+                                  ('c3B', self.color * 3))
+
+    def add(self, batch):
+        self.ver_list = batch.add(3, gl.GL_TRIANGLES, None,
+                                  ('v2f', (self.x, self.y, self.x + self.width,
+                                   self.y, self.x + self.width / 2,
+                                   self.y + self.height)),
+                                  ('c3B', self.color * 3))
+
+    def remove(self):
+        self.ver_list.delete()
+
+
 class CrossHair(object):
     """docstring for CrossHair"""
     def __init__(self, pos=[0, 0], size=10):

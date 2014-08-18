@@ -5,7 +5,7 @@ from player import player, options
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from menu_events import Events, MenuClass
 from pyglet.text import Label
-from graphics.primitives import Box
+from graphics.primitives import Box, Triangle
 from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
@@ -27,7 +27,7 @@ class GameScreen(Events):
         self.proj_viewer = ProjectileViewer(self.send_center)
         self.controls = {}
         self.controls_old = {}
-        self.map = Map('newtest')
+        self.map = Map('blank')
         #self.player.spawn(100, 100)
         self.time = 0
         self.moves = moves(1024)
@@ -58,7 +58,6 @@ class GameScreen(Events):
 
         self.update_keys()
         self.on_update(dt)
-        di = self.camera.aimpos
 
     def update_physics(self, dt, state=False, input=False):
         playergen = (player.rect for player in self.players.itervalues())
@@ -173,8 +172,9 @@ class GameScreen(Events):
             ind, itemid, gt, spawn = data
             self.gs_view.set_time(gt)
             if ind == self.player.id:
-                #todo: pickupmsg
-                pass
+                if isinstance(self.map.items[itemid], Triangle):
+                    st = self.map.items[itemid].keystr
+                    self.player.weapons.pickup(st)
             self.map.serverupdate(itemid, spawn)
         elif typ == proto.chat:
             ind, msg = data

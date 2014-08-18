@@ -83,6 +83,9 @@ class ItemManager(object):
     def __iter__(self):
         return self.get_items()
 
+    def __getitem__(self, key):
+        return self.items[key]
+
     def add(self, item):
         self.items.append(item)
 
