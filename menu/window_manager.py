@@ -118,6 +118,7 @@ class WindowManager(Events):
             # set mouse on same position as it was before opening menu
             self.InputHandler.send_message('mouse_cam',
                                            self.InputHandler.m_cam)
+            self.InputHandler.keys[1 + self.InputHandler.mouse_offset] = False
             # pass by ref bullshit
             self.current_screen.player.input = self.InputHandler.directns
             self.current_screen.controls = self.InputHandler.controls
