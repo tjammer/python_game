@@ -1,6 +1,5 @@
 from pyglet import graphics
 from pyglet import gl
-from collision.rectangle import Rectangle
 from collision.aabb import AABB, Line
 
 
@@ -45,7 +44,8 @@ class Rect(AABB):
 
 class DrawaAbleLine(Line):
     """docstring for DrawaAbleLine"""
-    def __init__(self, x, y, dx, dy, length=0, batch=None, **kwargs):
+    def __init__(self, x, y, dx, dy, length=0, batch=None, color=(255, 255, 0),
+                 **kwargs):
         super(DrawaAbleLine, self).__init__(x, y, dx, dy, length)
         if length == 0:
             self.length = 1000
@@ -56,13 +56,13 @@ class DrawaAbleLine(Line):
                                                  ('v2f/stream', (x, y,
                                                   x + dx * self.length,
                                                   y + dy * self.length)),
-                                                 ('c3B', [255] * 6))
+                                                 ('c3B', color * 2))
         else:
             self.ver_list = batch.add(2, gl.GL_LINES, None,
                                       ('v2f/stream', (x, y,
                                        x + self.unit.x * self.length,
                                        y + self.unit.y * self.length)),
-                                      ('c3B', [255, 255, 0] * 2))
+                                      ('c3B', color * 2))
 
     def on_update(self):
         self.ver_list.vertices = [self.pos.x, self.pos.y,
