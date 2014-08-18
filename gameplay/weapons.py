@@ -14,8 +14,8 @@ def spread(dx, dy, angle, num):
            for i in range(num)]
     return dys
 
-weaponcolors = {'w0': (255, 255, 255), 'w3': (149, 17, 70),
-                'w2': (255, 152, 0), 'w1': (126, 138, 162)}
+weaponcolors = {'w0': [255, 255, 255], 'w3': [149, 17, 70],
+                'w2': [255, 152, 0], 'w1': [126, 138, 162]}
 
 
 class Weapon(Rectangle):

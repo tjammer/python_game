@@ -1,6 +1,7 @@
 from pyglet.text import Label
 from network_utils import protocol_pb2 as proto
 from pyglet.graphics import Batch
+from gameplay.weapons import weaponcolors, allstrings
 
 
 class Hud(object):
@@ -117,10 +118,14 @@ class Hud(object):
             self.text.batch = self.active_batch
         if weapon:
             self.weapon.text = weapon
-            if weapon == 'melee':
-                self.weapon.color = (0, 255, 255, 255)
-            elif weapon == 'blaster':
-                self.weapon.color = (255, 255, 0, 255)
+            if weapon == allstrings['w0']:
+                self.weapon.color = weaponcolors['w0'] + [255]
+            if weapon == allstrings['w1']:
+                self.weapon.color = weaponcolors['w1'] + [255]
+            if weapon == allstrings['w2']:
+                self.weapon.color = weaponcolors['w2'] + [255]
+            if weapon == allstrings['w3']:
+                self.weapon.color = weaponcolors['w3'] + [255]
         if ammo:
             self.ammo.text = ammo
         if isinstance(time, float):
