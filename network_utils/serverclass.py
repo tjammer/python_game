@@ -116,14 +116,24 @@ class GameServer(DatagramProtocol):
         return False
 
     def player_to_pack(self, idx):
-        self.players_pack[idx].posx = self.players[idx].state.pos.x
+        pp = self.players_pack[idx]
+        """self.players_pack[idx].posx = self.players[idx].state.pos.x
         self.players_pack[idx].posy = self.players[idx].state.pos.y
         self.players_pack[idx].velx = self.players[idx].state.vel.x
         self.players_pack[idx].vely = self.players[idx].state.vel.y
         self.players_pack[idx].hp = self.players[idx].state.hp
         self.players_pack[idx].armor = self.players[idx].state.armor
         self.players_pack[idx].time = self.players[idx].time
-        self.players_pack[idx].mState.CopyFrom(self.players[idx].state.conds)
+        self.players_pack[idx].mState.CopyFrom(self.players[idx].state.conds)"""
+        pp.posx = self.players[idx].state.pos.x
+        pp.posy = self.players[idx].state.pos.y
+        pp.velx = self.players[idx].state.vel.x
+        pp.vely = self.players[idx].state.vel.y
+        pp.hp = self.players[idx].state.hp
+        pp.armor = self.players[idx].state.armor
+        pp.time = self.players[idx].time
+        pp.mState.CopyFrom(self.players[idx].state.conds)
+        pp.ammo, pp.weapon = self.players[idx].weapons.pack_ammo_weapon()
 
     def get_input(self, data):
         self.players[data.id].input = data

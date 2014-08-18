@@ -77,7 +77,7 @@ class GameScreen(Events):
     def from_server(self, data):
         typ, data = data
         if typ == proto.playerUpdate:
-            ind, time, s_state, inpt = data
+            ind, time, s_state, inpt, weaponinfo = data
             smove = move(time, None, s_state)
             if ind == self.player.id:
                 try:
@@ -86,6 +86,7 @@ class GameScreen(Events):
                                    self.update_state_only)
                 except IndexError:
                     pass
+                self.player.weapons.from_server(weaponinfo)
             else:
                 #try:
                 self.players[ind].client_update(s_state)

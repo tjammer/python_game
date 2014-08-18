@@ -48,9 +48,9 @@ class Weapon(Rectangle):
             self.active = self.reload_t
             try:
                 self.on_fire(pos, aim_pos)
+                self.ammo -= 1
             except TypeError:
                 pass
-            self.ammo -= 1
         elif not self.ammo:
             raise NoAmmoError
 
@@ -738,6 +738,17 @@ class WeaponsManager(object):
         self.weapons[keystr].apply(player)
         if self.weapons[keystr] == self.current_w:
             self.hudhook(ammo=str(self.current_w.ammo))
+
+    def pack_ammo_weapon(self):
+        key = [key for key, val in self.weapons.iteritems()
+               if val == self.current_w][0]
+        return self.current_w.ammo, int(key[-1]) + 1
+
+    def from_server(self, weapinfo):
+        ammo, weap = weapinfo
+        key = 'w' + str(weap - 1)
+        if self.current_w == self.weapons[key]:
+            self.current_w.ammo = ammo
 
 allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
               'w1': ShotGun}

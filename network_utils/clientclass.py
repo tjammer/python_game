@@ -78,8 +78,10 @@ class Client(DatagramProtocol):
             state = self.server_to_state(self.message.player)
             time = self.message.player.time
             inpt = self.message.input
+            weaponinfo = (self.message.player.ammo, self.message.player.weapon)
             self.send_message('serverdata',
-                              (proto.playerUpdate, (ind, time, state, inpt)))
+                              (proto.playerUpdate, (ind, time, state, inpt,
+                               weaponinfo)))
         elif self.message.type == proto.newPlayer and self.connected:
             ind = self.message.player.id
             name = self.message.player.chat
