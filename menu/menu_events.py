@@ -1,6 +1,3 @@
-from pyglet.window import key as key_
-
-
 class Events(object):
     """docstring for Events
     class for menu classes to inherit events"""
@@ -36,6 +33,7 @@ class MenuClass(object):
     base class for other menus to inherit from"""
     def __init__(self, vool=False):
         super(MenuClass, self).__init__()
+        from pyglet.window import key as key_
         self.buttons = {}
         self.text_boxes = {}
         self.m_pos = [0, 0]

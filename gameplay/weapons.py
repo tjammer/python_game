@@ -2,7 +2,6 @@ from collision.aabb import AABB as Rectangle, Line
 from player.state import vec2
 from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect, DrawaAbleLine
-from pyglet.graphics import Batch
 import math
 
 
@@ -575,6 +574,7 @@ class ProjectileViewer(object):
         super(ProjectileViewer, self).__init__()
         self.projs = {}
         self.data = proto.Projectile()
+        from pyglet.graphics import Batch
         self.batch = Batch()
         self.get_center = get_cent
 

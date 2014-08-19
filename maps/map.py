@@ -4,7 +4,6 @@ from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
 from gameplay.items import *
-from pyglet.graphics import Batch
 from gameplay.weapons import *
 
 
@@ -25,6 +24,7 @@ class Map(object):
             self.Rect = Rect
             self.Armor = DrawableArmor
             self.Health = DrawableHealth
+            from pyglet.graphics import Batch
             self.batch = Batch()
         self.items = ItemManager(self.batch)
         try:
