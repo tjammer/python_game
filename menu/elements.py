@@ -1,23 +1,34 @@
 import pyglet
 from graphics.primitives import Box, Rect
+from network_utils import protocol_pb2 as proto
+
+inpt = proto.Input()
+inputdict = {'left': 'left', 'right': 'right', 'up': 'jump'}
+weaponsdict = {'melee': 'melee', 'sg': 'shotgun',
+               'lg': 'lightning gun', 'blaster': 'blaster'}
 
 
 class TextBoxFramed(object):
     """docstring for Textbox_framed"""
-    def __init__(self, pos, text, size=[300, 100], f_size=2, batch=None):
+    def __init__(self, pos, text, size=[300, 100], f_size=2, batch=None,
+                 font_size=36, animate=True, **kwargs):
         super(TextBoxFramed, self).__init__()
         self.target_pos = pos
-        self.pos = [0, pos[1]]
+        if animate:
+            self.pos = [0, pos[1]]
+        else:
+            self.pos = pos
+        self.animate = animate
         self.size = size
         self.f_size = f_size
         # code for text here
         self.Label = pyglet.text.Label(text, font_name='Helvetica',
-                                       font_size=36, bold=False,
+                                       font_size=font_size, bold=False,
                                        x=self.pos[0] + self.size[0] / 2,
                                        y=self.pos[1] + self.size[1] / 2,
                                        anchor_x='center', anchor_y='center',
                                        batch=batch)
-        self.Box = Box(self.pos, size, f_size, batch=batch)
+        self.Box = Box(self.pos, size, f_size, batch=batch, **kwargs)
 
     def in_box(self, m_pos):
         m_x = m_pos[0]
@@ -33,8 +44,9 @@ class TextBoxFramed(object):
 
     def update(self):
         self.Box.update()
-        self.Label.x = self.pos[0] + self.size[0] / 2
-        self.Label.y = self.pos[1] + self.size[1] / 2
+        if self.animate:
+            self.Label.x = self.pos[0] + self.size[0] / 2
+            self.Label.y = self.pos[1] + self.size[1] / 2
 
     def restore(self):
         self.Box.restore()
@@ -164,3 +176,42 @@ class TextWidget(object):
             self.focus.caret.visible = True
             self.focus.caret.mark = 0
             self.focus.caret.position = len(self.focus.document.text)
+
+
+class KeyBox(TextBoxFramed):
+    """docstring for KeyBox"""
+    def __init__(self, pos, size, key, val, batch, actcolor=(255, 255, 255),
+                 inactcolor=(0, 0, 0), weapon=False):
+        super(KeyBox, self).__init__([pos[0] + 300, pos[1]], val,
+                                     [25 + len(val) * 22, size[1]],
+                                     batch=batch, color=inactcolor,
+                                     font_size=24, animate=False)
+        self.pos = pos
+        self.actcolor = actcolor
+        self.inactcolor = inactcolor
+        self.key = key
+        if not weapon:
+            self.keystr = inputdict[key]
+        else:
+            self.keystr = weaponsdict[key]
+        self.val = val
+        self.label = pyglet.text.Label(self.keystr, font_name='Helvetica',
+                                       font_size=24, bold=False, x=self.pos[0],
+                                       y=self.pos[1] + self.size[1] / 2,
+                                       anchor_x='left',
+                                       anchor_y='center', batch=batch)
+        self.active = False
+
+    def activate(self):
+        self.Box.color = self.actcolor
+        self.active = True
+
+    def deactivate(self):
+        self.Box.color = self.inactcolor
+        self.active = False
+
+    def get_key_val(self):
+        return self.key, self.val
+
+    def set_val(self, val):
+        self.val = val

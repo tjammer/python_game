@@ -3,6 +3,7 @@ import pyglet
 from graphics.camera import Camera
 from player import player, options
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
+from elements import KeyBox, inputdict, weaponsdict
 from menu_events import Events, MenuClass
 from pyglet.text import Label
 from graphics.primitives import Box, Triangle
@@ -334,7 +335,7 @@ class MainMenu(MenuClass):
             self.send_message('start_game')
         if key == 'options':
             self.send_message('menu_transition_+',
-                              (PlayerOptions, self.window))
+                              (KeyMapMenu, self.window))
 
 
 class QuitScreen(MenuClass):
@@ -452,21 +453,18 @@ class PlayerOptions(MenuClass):
         self.options = options.Options()
         self.batch = pyglet.graphics.Batch()
         self.box = Box([100, 100], [1080, 568], batch=self.batch)
-        self.namelabel = Label('name', font_name='Helvetica',
+        self.font = 'Helvetica'
+        self.namelabel = Label('name', font_name=self.font,
                                font_size=24, bold=False, x=200, y=600,
                                anchor_x='left', anchor_y='center',
                                batch=self.batch)
         self.widget = TextWidget(self.options['name'], 500, 600 - 20, 200,
                                  self.batch, self.window,
-                                 font_name='Helvetica', font_size=20,
+                                 font_name=self.font, font_size=20,
                                  bold=False, anchor_x='left',
                                  anchor_y='center')
         self.widget.set_focus(None)
-        self.namelabel = Label('name', font_name='Helvetica',
-                               font_size=24, bold=False, x=200, y=600,
-                               anchor_x='left', anchor_y='center',
-                               batch=self.batch)
-        self.collabel = Label('color', font_name='Helvetica',
+        self.collabel = Label('color', font_name=self.font,
                               font_size=24, bold=False, x=200, y=500,
                               anchor_x='left', anchor_y='center',
                               batch=self.batch)
@@ -511,3 +509,30 @@ class PlayerOptions(MenuClass):
             for key_ in self.buttons:
                 if key_ in options.colors and not key == key_:
                     self.buttons[key_].deactivate()
+
+
+class KeyMapMenu(MenuClass):
+    """docstring for KeyMapMenu"""
+    def __init__(self, window, *args, **kwargs):
+        super(KeyMapMenu, self).__init__(*args, **kwargs)
+        self.window = window
+        self.batch = pyglet.graphics.Batch()
+        self.box = Box([100, 100], [1080, 568], batch=self.batch)
+        self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
+        self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
+        self.options = options.Options()
+        for i, a in enumerate(inputdict.iteritems()):
+            ke, val = a
+            try:
+                key = self.options[ke]
+                self.buttons[ke] = KeyBox([460, 600 - i * 50], [50, 40], ke,
+                                          key, batch=self.batch)
+            except KeyError:
+                pass
+
+    def handle_clicks(self, key):
+        if key == 'cancel':
+            self.send_message('menu_transition_-')
+
+    def draw(self):
+        self.batch.draw()

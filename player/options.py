@@ -6,7 +6,10 @@ colors = {'blue': (102, 217, 239),
           'green': (166, 226, 46)}
 
 standards = {'name': 'UnnamedPlayer',
-             'color': 'blue'}
+             'color': 'blue',
+             'right': 'D',
+             'left': 'A',
+             'up': 'SPACE'}
 
 
 class Options(object):
@@ -19,7 +22,7 @@ class Options(object):
         except IOError:
             self.odict = standards
             with open('.config', 'w') as f:
-                json.dump(self.odict, f, sort_keys=True, indent=4)
+                json.dump(self.odict, f, indent=4)
 
     def __getitem__(self, key):
         return self.odict[key]
@@ -29,4 +32,4 @@ class Options(object):
 
     def save(self):
         with open('.config', 'w') as f:
-            json.dump(self.odict, f, sort_keys=True, indent=4)
+            json.dump(self.odict, f, indent=4)
