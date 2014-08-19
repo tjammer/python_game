@@ -223,7 +223,7 @@ class GamestateManager(object):
         for player in self.all():
             self.ackman.send_rel(msg, player.address)
 
-    def send_mapupdate(self, item, player_=False):
+    def send_mapupdate(self, item, player_=False, address=None):
         msg = proto.Message()
         msg.type = proto.mapUpdate
         plr = proto.Player()
@@ -243,8 +243,11 @@ class GamestateManager(object):
         else:
             input.right = True
         msg.input.CopyFrom(input)
-        for player in self.all():
-            self.ackman.send_rel(msg, player.address)
+        if not address:
+            for player in self.all():
+                self.ackman.send_rel(msg, player.address)
+        else:
+            self.ackman.send_rel(msg, address)
 
     def tick(self, player):
         if player.state.hp > 100:

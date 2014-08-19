@@ -226,6 +226,8 @@ class GameServer(DatagramProtocol):
                 inpt.name = self.specs[pl_id].colstring
                 new.input.CopyFrom(inpt)
                 self.ackman.send_rel(new, p.address)
+        #TODO: send map status
+        self.map.items.send_mapstate(self.gamestate.send_mapupdate, address)
 
     def disc_player(self, id):
         if id in self.players:

@@ -94,8 +94,7 @@ class ItemManager(object):
         return self.items[id].apply(player)
 
     def update(self, dt, func):
-        inactivegen = (it for it in self.items if it.inactive)
-        for item in inactivegen:
+        for item in self.get_inactive():
             item.inactive -= dt
             if item.inactive <= 0:
                 item.inactive = False
@@ -103,6 +102,14 @@ class ItemManager(object):
 
     def get_items(self):
         return (item for item in self.items if not item.inactive)
+
+    def get_inactive(self):
+        return (item for item in self.items if item.inactive)
+
+    def send_mapstate(self, func, address):
+        pl = IdDump(-1)
+        for item in self.get_inactive():
+            func(item, pl, address)
 
     def fromserver(self, itemid, spawn):
         id = itemid
@@ -112,3 +119,10 @@ class ItemManager(object):
         else:
             self.items[id].inactive = True
             self.items[id].remove()
+
+
+class IdDump(object):
+    """docstring for IdDump"""
+    def __init__(self, id):
+        super(IdDump, self).__init__()
+        self.id = id
