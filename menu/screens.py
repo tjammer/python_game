@@ -3,7 +3,7 @@ import pyglet
 from graphics.camera import Camera
 from player import player, options
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
-from elements import KeyBox, inputdict, weaponsdict
+from elements import inputdict, weaponsdict, KeysFrame
 from menu_events import Events, MenuClass
 from pyglet.text import Label
 from graphics.primitives import Box, Triangle
@@ -185,11 +185,15 @@ class GameScreen(Events):
             ind, msg = data
             if ind == self.player.id:
                 name = self.player.name
+                color = self.player.color
             elif ind in self.players:
                 name = self.players[ind].name
+                color = self.players[ind].color
             else:
                 name = self.specs[ind].name
-            chatdata = ' '.join((name + ':', msg))
+                color = self.specs[ind].color
+            #chatdata = ' '.join((name + ':', '\t', msg))
+            chatdata = (name, color, msg)
             self.hud.update_prop(chat=chatdata)
 
     def send_to_client(self, dt):
@@ -335,7 +339,7 @@ class MainMenu(MenuClass):
             self.send_message('start_game')
         if key == 'options':
             self.send_message('menu_transition_+',
-                              (KeyMapMenu, self.window))
+                              (PlayerOptions, self.window))
 
 
 class QuitScreen(MenuClass):
@@ -470,6 +474,11 @@ class PlayerOptions(MenuClass):
                               batch=self.batch)
         self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
         self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
+        self.buttons['this'] = btn([1050, 540], 'player', [200, 100],
+                                   batch=self.batch, animate=False,
+                                   color=(255, 255, 0))
+        self.buttons['keys'] = btn([1050, 420], 'controls', [200, 100],
+                                   batch=self.batch, animate=False)
         #color checkboxes
         for i, a in enumerate(options.colors.iteritems()):
             key, val = a
@@ -478,7 +487,7 @@ class PlayerOptions(MenuClass):
                 self.buttons[key].activate()
         self.activecolor = None
 
-    def on_draw(self):
+    def draw(self):
         self.batch.draw()
 
     def add_update(self, dt):
@@ -509,6 +518,8 @@ class PlayerOptions(MenuClass):
             for key_ in self.buttons:
                 if key_ in options.colors and not key == key_:
                     self.buttons[key_].deactivate()
+        elif key == 'keys':
+            self.send_message('switch_to', (KeyMapMenu, self.window))
 
 
 class KeyMapMenu(MenuClass):
@@ -521,18 +532,73 @@ class KeyMapMenu(MenuClass):
         self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
         self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
         self.options = options.Options()
-        for i, a in enumerate(inputdict.iteritems()):
+        self.buttons['test'] = KeysFrame([390, 600], 500, 330, self.window,
+                                         self.batch, line_space=15)
+        self.buttons['player'] = btn([1050, 540], 'player', [200, 100],
+                                     batch=self.batch, animate=False)
+        self.buttons['keys'] = btn([1050, 420], 'controls', [200, 100],
+                                   batch=self.batch, animate=False,
+                                   color=(255, 255, 0))
+        for i, a in enumerate(chain(*(inputdict.iteritems(),
+                              weaponsdict.iteritems()))):
             ke, val = a
-            try:
-                key = self.options[ke]
-                self.buttons[ke] = KeyBox([460, 600 - i * 50], [50, 40], ke,
-                                          key, batch=self.batch)
-            except KeyError:
-                pass
+            key = self.options[ke]
+            self.buttons['test'].insert(ke, key)
 
     def handle_clicks(self, key):
         if key == 'cancel':
+            self.buttons['test'].remove_handler()
             self.send_message('menu_transition_-')
+        elif key == 'test':
+            if not self.buttons['test'].active_line:
+                self.keys_old[1338] = True
+            self.buttons['test'].activate()
+        if key == 'save':
+            self.options.save()
+            self.send_message('options')
+            self.buttons['test'].remove_handler()
+            self.send_message('menu_transition_-')
+        elif key == 'player':
+            self.buttons['test'].remove_handler()
+            self.send_message('switch_to', (PlayerOptions, self.window))
+
+    def add_update(self, dt):
+        if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
+            self.buttons['test'].deactivate()
+        else:
+            if self.buttons['test'].active_line:
+                keys = [ky for ky, val in self.keys.iteritems() if val is
+                        True and self.keys_old[ky] is not True]
+                if keys:
+                    k = keys[0]
+                    if k != 1338:
+                        newkey = key.symbol_string(k)
+                    else:
+                        newkey = 'M1'
+                    if newkey in self.options:
+                        self.buttons['test'].deactivate()
+                        return
+                    val = self.buttons['test'].get_action()
+                    gen = chain(*(inputdict.iteritems(),
+                                weaponsdict.iteritems()))
+                    try:
+                        corr_key = [k for k, va in gen if va == val][0]
+                    except:
+                        print val
+                    self.options[corr_key] = newkey
+                    gen = chain(*(inputdict.iteritems(),
+                                weaponsdict.iteritems()))
+
+                    view = self.buttons['test'].layout.view_y
+                    self.buttons['test'] = KeysFrame([390, 600], 500, 330,
+                                                     self.window,
+                                                     self.batch, line_space=15)
+                    for i, a in enumerate(chain(*(inputdict.iteritems(),
+                                          weaponsdict.iteritems()))):
+                        ke, val = a
+                        ky = self.options[ke]
+                        self.buttons['test'].insert(ke, ky)
+                    self.buttons['test'].layout.view_y = view
 
     def draw(self):
         self.batch.draw()

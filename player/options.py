@@ -9,7 +9,14 @@ standards = {'name': 'UnnamedPlayer',
              'color': 'blue',
              'right': 'D',
              'left': 'A',
-             'up': 'SPACE'}
+             'up': 'SPACE',
+             'att': 'M1',
+             'rdy': 'F3',
+             'melee': '_1',
+             'sg': '_2',
+             'lg': 'E',
+             'blaster': 'Q',
+             'chat': 'ENTER'}
 
 
 class Options(object):
@@ -29,6 +36,12 @@ class Options(object):
 
     def __setitem__(self, key, value):
         self.odict[key] = value
+
+    def __iter__(self):
+        return self.odict.itervalues()
+
+    def iteritems(self):
+        return self.odict.iteritems()
 
     def save(self):
         with open('.config', 'w') as f:

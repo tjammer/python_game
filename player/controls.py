@@ -1,6 +1,7 @@
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 from network_utils import protocol_pb2 as proto
+from options import Options
 
 
 class InputHandler(object):
@@ -22,6 +23,7 @@ class InputHandler(object):
         self.width = window.width
         self.height = window.height
         self.keys[key.ESCAPE] = False
+        self.load_options()
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
@@ -59,27 +61,38 @@ class InputHandler(object):
             if symbol == key.ESCAPE:
                 return EVENT_HANDLED
 
+    def load_options(self):
+        #realkeydict
+        self.rkd = {}
+        options = Options()
+        for dkey, rkey in options.iteritems():
+            try:
+                self.rkd[dkey] = key.__getattribute__(rkey)
+            except AttributeError:
+                if rkey == 'M1':
+                    self.rkd[dkey] = 1 + self.mouse_offset
+
     def process_keys(self, dt):
        # register pressed keys for movement
-        self.directns.up = self.keys[key.SPACE]
-        self.directns.left = self.keys[key.A]
-        self.directns.right = self.keys[key.D]
+        self.directns.up = self.keys[self.rkd['up']]
+        self.directns.left = self.keys[self.rkd['left']]
+        self.directns.right = self.keys[self.rkd['right']]
         self.directns.down = self.keys[key.S]
-        self.directns.att = self.keys[1 + self.mouse_offset]
-        if self.keys[key.Q]:
+        self.directns.att = self.keys[self.rkd['att']]
+        if self.keys[self.rkd['blaster']]:
             self.directns.switch = proto.blaster
-        elif self.keys[key.E]:
+        elif self.keys[self.rkd['lg']]:
             self.directns.switch = proto.lg
-        elif self.keys[key._2]:
+        elif self.keys[self.rkd['sg']]:
             self.directns.switch = proto.sg
-        elif self.keys[key._1]:
+        elif self.keys[self.rkd['melee']]:
             self.directns.switch = proto.melee
         else:
             self.directns.switch = proto.no_switch
         self.controls['esc'] = self.keys[key.ESCAPE]
         self.controls['f10'] = self.keys[key.F10]
-        self.controls['rdy'] = self.keys[key.F3]
-        self.controls['chat'] = self.keys[key.ENTER]
+        self.controls['rdy'] = self.keys[self.rkd['rdy']]
+        self.controls['chat'] = self.keys[self.rkd['chat']]
 
         self.send_message('all_input', self.keys)
 

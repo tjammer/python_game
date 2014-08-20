@@ -1,9 +1,12 @@
 import pyglet
 from graphics.primitives import Box, Rect
 from network_utils import protocol_pb2 as proto
+from pyglet.text.document import FormattedDocument as Doc
+from pyglet.text.layout import ScrollableTextLayout as Layout
 
 inpt = proto.Input()
-inputdict = {'left': 'left', 'right': 'right', 'up': 'jump'}
+inputdict = {'left': 'left', 'right': 'right', 'up': 'jump', 'att': 'attack',
+             'rdy': 'ready up', 'chat': 'chat'}
 weaponsdict = {'melee': 'melee', 'sg': 'shotgun',
                'lg': 'lightning gun', 'blaster': 'blaster'}
 
@@ -102,8 +105,7 @@ class TextWidget(object):
     def __init__(self, text, x, y, width, batch, window, **kwargs):
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text),
-                                dict(color=(255, 255, 255, 255), **kwargs)
-                                )
+                                dict(color=(255, 255, 255, 255), **kwargs))
         font = self.document.get_font()
         height = font.ascent - font.descent
 
@@ -178,40 +180,119 @@ class TextWidget(object):
             self.focus.caret.position = len(self.focus.document.text)
 
 
-class KeyBox(TextBoxFramed):
-    """docstring for KeyBox"""
-    def __init__(self, pos, size, key, val, batch, actcolor=(255, 255, 255),
-                 inactcolor=(0, 0, 0), weapon=False):
-        super(KeyBox, self).__init__([pos[0] + 300, pos[1]], val,
-                                     [25 + len(val) * 22, size[1]],
-                                     batch=batch, color=inactcolor,
-                                     font_size=24, animate=False)
+class KeysFrame(object):
+    """docstring for KeysFrame"""
+    def __init__(self, pos, width, height, window, batch,
+                 line_space=None, font_size=24, hcolor=(25, 25, 25)):
+        super(KeysFrame, self).__init__()
         self.pos = pos
-        self.actcolor = actcolor
-        self.inactcolor = inactcolor
-        self.key = key
-        if not weapon:
-            self.keystr = inputdict[key]
-        else:
-            self.keystr = weaponsdict[key]
-        self.val = val
-        self.label = pyglet.text.Label(self.keystr, font_name='Helvetica',
-                                       font_size=24, bold=False, x=self.pos[0],
-                                       y=self.pos[1] + self.size[1] / 2,
-                                       anchor_x='left',
-                                       anchor_y='center', batch=batch)
-        self.active = False
+        self.target_pos = pos
+        self.window = window
+        self.line_space = line_space + font_size
+        self.font_size = font_size
+        self.width = width
+        self.height = height
+        self.hcolor = hcolor
+
+        self.doc = Doc('\n')
+        self.layout = Layout(self.doc, width=width, height=height,
+                             multiline=True, batch=batch)
+        self.doc.set_paragraph_style(0, 0, dict(indent=None,
+                                     line_spacing=line_space,
+                                     font_size=self.font_size))
+
+        self.layout.anchor_x = 'left'
+        self.layout.anchor_y = 'top'
+        self.layout.x = pos[0]
+        self.layout.y = pos[1]
+
+        self.even = 0
+        self.active_i = []
+        self.curr_line = None
+        self.active_line = None
+
+        @self.window.event
+        def on_mouse_scroll(x, y, scroll_x, scroll_y):
+            self.layout.view_y = scroll_y * self.layout.content_height
+        self.handler = on_mouse_scroll
+
+    def remove_handler(self):
+        self.window.remove_handler('on_mouse_scroll', self.handler)
+
+    def insert(self, action, key):
+        self.even += 1
+        iseven = self.even % 2
+        action = dict(weaponsdict.items() + inputdict.items())[action]
+        text = action + '\t' + key
+        #i have no clue how to calculate the width properly
+        length = pyglet.text.Label(key, font_size=self.font_size)
+        length = length.content_width
+        stop = self.width - length
+        text += ' ' * 6
+        self.doc.insert_text(len(self.doc.text),
+                             text + '\n',
+                             dict(font_size=self.font_size, color=[255] * 4,
+                                  background_color=[50 * iseven] * 3 + [255]))
+        ln = len(self.doc.text) - 3
+        self.doc.set_paragraph_style(ln, ln,
+                                     dict(tab_stops=[stop],
+                                          indent=None,
+                                          line_spacing=self.line_space,
+                                          wrap=False))
+
+    def in_box(self, mpos):
+        x, y = mpos
+        self.mpos = mpos
+        return (0 < x - self.layout.x < self.layout.width and
+                0 < self.layout.y - y < self.layout.height)
+
+    def highlight(self):
+        y = self.layout.y - self.mpos[1] - self.layout.view_y
+        lines = self.doc.text.split('\n')
+        num = int(float(y) / self.line_space + 0.45)
+        try:
+            if not self.active_line:
+                action, key = lines[num].split('\t')
+                ind = self.doc.text.find(action) + 1
+                if (ind, num) not in self.active_i:
+                    self.curr_line = (ind, num)
+                    self.restore()
+                    self.doc.set_paragraph_style(ind, ind, dict(
+                                                 background_color=
+                                                 self.hcolor + (255,)))
+                    self.active_i.append((ind, num))
+        except (IndexError, ValueError):
+            self.restore()
+
+    def restore(self):
+        if len(self.active_i) > 0:
+            for a in self.active_i:
+                ind, num = a
+                if not a == self.active_line:
+                    self.doc.set_paragraph_style(ind, ind, dict(
+                                                 background_color=
+                                                 [50 * (num % 2)] * 3 + [255]))
+            self.active_i = []
+            if (ind, num) == self.curr_line:
+                self.curr_line = None
 
     def activate(self):
-        self.Box.color = self.actcolor
-        self.active = True
+        if not self.curr_line:
+            return
+        self.active_line = self.curr_line
+        ind, num = self.active_line
+        self.doc.set_paragraph_style(ind, ind, dict(background_color=
+                                                    (255, 128, 0) + (255,)))
 
     def deactivate(self):
-        self.Box.color = self.inactcolor
-        self.active = False
+        self.active_line = None
+        self.restore()
 
-    def get_key_val(self):
-        return self.key, self.val
+    def get_action(self):
+        ind, num = self.active_line
+        action, key = self.doc.text.split('\n')[num].split('\t')
+        self.layout.delete()
+        return action
 
-    def set_val(self, val):
-        self.val = val
+    def update(self):
+        pass

@@ -93,6 +93,15 @@ class WindowManager(Events):
         elif event == 'chat':
             self.stack[0].send_chat(msg)
 
+        elif event == 'options':
+            self.InputHandler.load_options()
+
+        elif event == 'switch_to':
+            msg, arg = msg
+            self.stack.pop()
+            self.current_screen = msg(arg)
+            self.register_screen()
+
     def start_game(self):
         self.current_screen = GameScreen(self.window)
         self.register_screen()

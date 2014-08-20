@@ -1,4 +1,4 @@
-from pyglet.text import Label
+from pyglet.text import Label, document, layout
 from network_utils import protocol_pb2 as proto
 from pyglet.graphics import Batch
 from gameplay.weapons import weaponcolors, allstrings
@@ -46,10 +46,14 @@ class Hud(object):
         self.score = Label('me 0:0 enemy', font_name=font, font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
-        self.chat = Label('', font_name=font, font_size=16,
-                          x=200, y=130, anchor_x='left',
-                          anchor_y='center', batch=self.labellist,
-                          color=(220, 220, 220, 255), bold=False)
+        self.chatdoc = document.FormattedDocument('\n' * 20)
+        self.chat = layout.ScrollableTextLayout(self.chatdoc, width=500,
+                                                height=300, multiline=True,
+                                                batch=self.labellist)
+        self.chat.x = 130
+        self.chat.y = 130
+        self.chat.content_valign = 'bottom'
+
         self.normal_hpcol = (255, 255, 255, 255)
         self.low_hpcol = (255, 128, 0, 255)
         self.high_hpcol = (0, 204, 255, 255)
@@ -136,8 +140,15 @@ class Hud(object):
             self.enemyname = score
             self.score.text = '0:0 ' + self.enemyname
         if chat:
+            name, color, msg = chat
             self.chat.begin_update()
-            self.chat.text = chat
+            #self.chat.text = chat
+            self.chatdoc.insert_text(len(self.chatdoc.text), name,
+                                     dict(color=list(color) + [255],
+                                          bold=True))
+            self.chatdoc.insert_text(len(self.chatdoc.text), '\t' + msg + '\n',
+                                     dict(color=[255] * 4, bold=False))
+            self.chat.view_y = -self.chat.content_height
             self.chat_active = 4
             self.chat.batch = self.active_batch
             self.chat.end_update()
