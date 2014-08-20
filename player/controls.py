@@ -21,6 +21,7 @@ class InputHandler(object):
         self.controls = {}
         self.width = window.width
         self.height = window.height
+        self.keys[key.ESCAPE] = False
 
         @self.window.event
         def on_mouse_motion(x, y, dx, dy):
