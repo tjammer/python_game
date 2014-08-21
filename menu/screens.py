@@ -6,7 +6,7 @@ from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from elements import inputdict, weaponsdict, KeysFrame
 from menu_events import Events, MenuClass
 from pyglet.text import Label
-from graphics.primitives import Box, Triangle
+from graphics.primitives import Box, Triangle, font
 from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
@@ -349,7 +349,7 @@ class QuitScreen(MenuClass):
         self.buttons['quit'] = btn([300, 300], 'yes')
         self.buttons['dont_quit'] = btn([680, 300], 'no')
         self.text = 'do you really want to quit?'
-        self.Label = Label(self.text, font_name='Helvetica',
+        self.Label = Label(self.text, font_name=font,
                            font_size=36, bold=False,
                            x=640,
                            y=500,
@@ -407,7 +407,7 @@ class LoadScreen(MenuClass):
     """docstring for LoadScreen"""
     def __init__(self, *args, **kwargs):
         super(LoadScreen, self).__init__(*args, **kwargs)
-        self.label = Label('connecting to server', font_name='Helvetica',
+        self.label = Label('connecting to server', font_name=font,
                            font_size=36, bold=False, x=200, y=550,
                            anchor_x='left', anchor_y='baseline')
 
@@ -460,18 +460,17 @@ class PlayerOptions(MenuClass):
             self.options = options.Options()
         self.batch = pyglet.graphics.Batch()
         self.box = Box([100, 100], [1080, 568], batch=self.batch)
-        self.font = 'Helvetica'
-        self.namelabel = Label('name', font_name=self.font,
+        self.namelabel = Label('name', font_name=font,
                                font_size=24, bold=False, x=200, y=600,
                                anchor_x='left', anchor_y='center',
                                batch=self.batch)
         self.widget = TextWidget(self.options['name'], 500, 600 - 20, 200,
                                  self.batch, self.window,
-                                 font_name=self.font, font_size=20,
+                                 font_name=font, font_size=20,
                                  bold=False, anchor_x='left',
                                  anchor_y='center')
         self.widget.set_focus(None)
-        self.collabel = Label('color', font_name=self.font,
+        self.collabel = Label('color', font_name=font,
                               font_size=24, bold=False, x=200, y=500,
                               anchor_x='left', anchor_y='center',
                               batch=self.batch)

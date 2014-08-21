@@ -2,6 +2,7 @@ from pyglet.text import Label, document, layout
 from network_utils import protocol_pb2 as proto
 from pyglet.graphics import Batch
 from gameplay.weapons import weaponcolors, allstrings
+from graphics.primitives import font
 
 
 class Hud(object):
@@ -17,7 +18,6 @@ class Hud(object):
         self.labellist = Batch()
         self.speclist = Batch()
         self.active_batch = self.speclist
-        font = 'Helvetica'
         self.hp = Label(self.hp_t, font_name=font, font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
                         anchor_y='bottom',

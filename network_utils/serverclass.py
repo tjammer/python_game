@@ -260,6 +260,7 @@ class GameServer(DatagramProtocol):
 
     def spec_player(self, id):
         self.specs[id] = self.players[id]
+        self.specs[id].ready = False
         self.gamestate.leave(id)
         del self.players[id], self.players_pack[id]
 

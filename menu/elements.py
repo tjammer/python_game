@@ -1,5 +1,5 @@
 import pyglet
-from graphics.primitives import Box, Rect
+from graphics.primitives import Box, Rect, font
 from network_utils import protocol_pb2 as proto
 from pyglet.text.document import FormattedDocument as Doc
 from pyglet.text.layout import ScrollableTextLayout as Layout
@@ -25,7 +25,7 @@ class TextBoxFramed(object):
         self.size = size
         self.f_size = f_size
         # code for text here
-        self.Label = pyglet.text.Label(text, font_name='Helvetica',
+        self.Label = pyglet.text.Label(text, font_name=font,
                                        font_size=font_size, bold=False,
                                        x=self.pos[0] + self.size[0] / 2,
                                        y=self.pos[1] + self.size[1] / 2,
