@@ -2,6 +2,8 @@ from pyglet import graphics
 from pyglet import gl
 from collision.aabb import AABB, Line
 
+font = 'Helvetica'
+
 
 class Rect(AABB):
     """docstring for Rect"""
@@ -121,6 +123,63 @@ class Triangle(object):
         self.ver_list.delete()
 
 
+class AmmoTriangle(Triangle):
+    """docstring for AmmoTriangle"""
+    def __init__(self, x, y, width, height, color, batch, ind, keystr, f_s=3):
+        super(AmmoTriangle, self).__init__(x, y, width, height, color, batch,
+                                           ind, keystr)
+        self.fs = f_s
+        self.ver_list.delete()
+        self.ver_list = batch.add(6, gl.GL_LINES, None,
+                                  ('v2f', (self.x, self.y, self.x + self.width,
+                                   self.y, self.x + self.width / 2,
+                                   self.y + self.height, self.x + self.width,
+                                   self.y, self.x + self.width / 2,
+                                   self.y + self.height, self.x, self.y)),
+                                  ('c3B', self.color * 6))
+
+    def add(self, batch):
+        self.ver_list = batch.add(6, gl.GL_LINES, None,
+                                  ('v2f', (self.x, self.y, self.x + self.width,
+                                   self.y, self.x + self.width / 2,
+                                   self.y + self.height, self.x + self.width,
+                                   self.y, self.x + self.width / 2,
+                                   self.y + self.height, self.x, self.y)),
+                                  ('c3B', self.color * 6))
+
+    def remove(self):
+        self.ver_list.delete()
+        #self.inner.delete()
+
+
+class HealthBox(object):
+    """docstring for HealthBox"""
+    def __init__(self, x, y, width, height, color, batch, ind):
+        super(HealthBox, self).__init__()
+        self.ind = ind
+        self.x, self.y, self.width, self.height = x, y, width, height
+        self.x = self.x + self.width / 2
+        self.color = color
+        self.a = self.width / 2**(0.5)
+        self.ver_list = batch.add(4, gl.GL_QUADS, None,
+                                  ('v2f', (self.x, self.y,
+                                   self.x + self.a, self.y + self.a,
+                                   self.x, self.y + 2 * self.a,
+                                   self.x - self.a, self.y + self.a)),
+                                  ('c3B', self.color * 4))
+
+    def add(self, batch):
+        self.ver_list = batch.add(4, gl.GL_QUADS, None,
+                                  ('v2f', (self.x, self.y,
+                                   self.x + self.a, self.y + self.a,
+                                   self.x, self.y + 2 * self.a,
+                                   self.x - self.a, self.y + self.a)),
+                                  ('c3B', self.color * 4))
+
+    def remove(self):
+        self.ver_list.delete()
+
+
 class CrossHair(object):
     """docstring for CrossHair"""
     def __init__(self, pos=[0, 0], size=10):
@@ -130,7 +189,7 @@ class CrossHair(object):
         self.y = pos[1]
         self.size = size
         self.cross = graphics.vertex_list(4,
-                                         ('v2i/stream', (self.x - self.size,
+                                         ('v2f/stream', (self.x - self.size,
                                           self.y, self.x + self.size, self.y,
                                           self.x, self.y - self.size,
                                           self.x, self.y + self.size)))

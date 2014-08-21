@@ -16,6 +16,9 @@ def spread(dx, dy, angle, num):
 weaponcolors = {'w0': [255, 255, 255], 'w3': [149, 17, 70],
                 'w2': [255, 152, 0], 'w1': [126, 138, 162]}
 
+#values for ammo_boxes. (max_ammo, ammoval)
+ammo_values = {'w1': (50, 25), 'w2': (150, 100), 'w3': (25, 10)}
+
 
 class Weapon(Rectangle):
     """BaseWeapon class for other to inherit from"""
@@ -730,6 +733,7 @@ class WeaponsManager(object):
             self.weapons[k] = allweapons[k](self.dispatch_proj, self.id)
         self.current_w = self.weapons['w1']
         self.current_s = allstrings['w1']
+        self.current_w.active = 300
         if self.hudhook:
                 self.hudhook(weapon=self.current_s)
 
@@ -751,9 +755,12 @@ class WeaponsManager(object):
     def from_server(self, weapinfo):
         ammo, weap = weapinfo
         key = 'w' + str(weap - 1)
-        if self.current_w == self.weapons[key]:
-            self.current_w.ammo = ammo
-            self.hudhook(ammo=str(self.current_w.ammo))
+        try:
+            if self.current_w == self.weapons[key]:
+                self.current_w.ammo = ammo
+                self.hudhook(ammo=str(self.current_w.ammo))
+        except KeyError:
+            pass
 
 allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
               'w1': ShotGun}

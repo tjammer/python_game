@@ -1,5 +1,5 @@
 from xml.etree import ElementTree as ET
-from graphics.primitives import Rect, Triangle
+from graphics.primitives import Rect, Triangle, AmmoTriangle, HealthBox
 from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
@@ -18,12 +18,10 @@ class Map(object):
         if server:
             self.Rect = AABB
             self.Armor = Armor
-            self.Health = Health
             self.batch = None
         else:
             self.Rect = Rect
             self.Armor = DrawableArmor
-            self.Health = DrawableHealth
             from pyglet.graphics import Batch
             self.batch = Batch()
         self.items = ItemManager(self.batch)
@@ -100,11 +98,16 @@ class Map(object):
                     height = int(atr['height'])
                     hvalue = int(atr['health'])
                     color, maxhp = health[hvalue]
-                    health_ = self.Health(x=x, y=-y-height, width=width,
-                                          height=height, value=hvalue,
-                                          bonus=False, respawn=20, color=color,
-                                          ind=self.ind, maxhp=maxhp,
-                                          batch=self.batch)
+                    if self.server:
+                        health_ = Health(x=x, y=-y-height, width=width,
+                                         height=height, value=hvalue,
+                                         bonus=False, respawn=20,
+                                         color=color, ind=self.ind,
+                                         maxhp=maxhp, batch=self.batch)
+                    else:
+                        health_ = HealthBox(x, -y - height, width, height,
+                                            color=color, batch=self.batch,
+                                            ind=self.ind)
                     self.items.add(health_)
                     self.ind += 1
 
@@ -122,13 +125,40 @@ class Map(object):
                     if self.server:
                         w = allweapons[weapstr]
                         w_ = w(0, 0, x=x, y=-y-height, width=width,
-                               height=height, respawn=20, color=color,
+                               height=height, respawn=15, color=color,
                                ind=self.ind, batch=self.batch)
                         self.items.add(w_)
                     else:
                         w_ = Triangle(x=x, y=-y-height, width=width,
                                       height=height, color=color, ind=self.ind,
                                       batch=self.batch, keystr=weapstr)
+                        self.items.add(w_)
+                    self.ind += 1
+
+        #ammo
+        for child in root.getchildren():
+            if child.attrib['id'] == 'ammo':
+                for rect in child:
+                    atr = rect.attrib
+                    x = int(atr['x'])
+                    y = int(atr['y'])
+                    width = int(atr['width'])
+                    height = int(atr['height'])
+                    weapstr = atr['weapon']
+                    color = weaponcolors[weapstr]
+                    max_ammo, ammoval = ammo_values[weapstr]
+                    if self.server:
+                        w_ = Ammo(x=x, y=-y-height, width=width,
+                                  height=height, respawn=15, color=color,
+                                  ind=self.ind, batch=self.batch,
+                                  max_ammo=max_ammo, ammoval=ammoval,
+                                  keystring=weapstr)
+                        self.items.add(w_)
+                    else:
+                        w_ = AmmoTriangle(x=x, y=-y-height, width=width,
+                                          height=height, color=color,
+                                          ind=self.ind,
+                                          batch=self.batch, keystr=weapstr)
                         self.items.add(w_)
                     self.ind += 1
 

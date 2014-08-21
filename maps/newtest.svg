@@ -24,11 +24,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.24748737"
-     inkscape:cx="730.23164"
-     inkscape:cy="695.08623"
+     inkscape:zoom="3.9597979"
+     inkscape:cx="2320.8965"
+     inkscape:cy="1597.549"
      inkscape:document-units="px"
-     inkscape:current-layer="weapons"
+     inkscape:current-layer="ammo"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -65,6 +65,27 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="ammo"
+     inkscape:label="ammo">
+    <rect
+       weapon="w3"
+       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
+       id="rect3016"
+       width="50"
+       height="50"
+       x="925"
+       y="-700" />
+    <rect
+       y="-550"
+       x="2420"
+       height="50"
+       width="50"
+       id="rect3021"
+       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
+       weapon="w1" />
+  </g>
   <g
      inkscape:groupmode="layer"
      id="weapons"

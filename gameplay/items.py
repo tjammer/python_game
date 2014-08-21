@@ -73,6 +73,28 @@ class DrawableHealth(Rect):
         self.inactive = False
 
 
+class Ammo(AABB):
+    """docstring for Ammo"""
+    def __init__(self, max_ammo, ammoval, keystring, respawn, ind,
+                 *args, **kwargs):
+        super(Ammo, self).__init__(*args, **kwargs)
+        self.max_ammo = max_ammo
+        self.ammoval = ammoval
+        self.keystr = keystring
+        self.respawn = respawn
+        self.ind = ind
+        self.inactive = False
+
+    def apply(self, player):
+        if player.weapons.weapons[self.keystr].ammo < self.max_ammo:
+            player.weapons.weapons[self.keystr].ammo += self.ammoval
+            if player.weapons.weapons[self.keystr].ammo > self.max_ammo:
+                player.weapons.weapons[self.keystr].ammo = self.max_ammo
+            self.inactive = self.respawn
+            return True
+        return False
+
+
 class ItemManager(object):
     """docstring for ItemManager"""
     def __init__(self, batch):
