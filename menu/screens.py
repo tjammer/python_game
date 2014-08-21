@@ -451,10 +451,13 @@ class ChatScreen(MenuClass):
 
 class PlayerOptions(MenuClass):
     """docstring for PlayerOptions"""
-    def __init__(self, window, *args, **kwargs):
+    def __init__(self, arg, *args, **kwargs):
         super(PlayerOptions, self).__init__(*args, **kwargs)
-        self.window = window
-        self.options = options.Options()
+        try:
+            self.window, self.options = arg
+        except TypeError:
+            self.window = arg
+            self.options = options.Options()
         self.batch = pyglet.graphics.Batch()
         self.box = Box([100, 100], [1080, 568], batch=self.batch)
         self.font = 'Helvetica'
@@ -502,6 +505,10 @@ class PlayerOptions(MenuClass):
                 name = self.widget.document.text.strip()
                 self.options['name'] = name
 
+        if self.widget.focus:
+                name = self.widget.document.text.strip()
+                self.options['name'] = name
+
     def handle_clicks(self, key):
         if key == 'cancel':
             self.send_message('menu_transition_-')
@@ -511,27 +518,33 @@ class PlayerOptions(MenuClass):
             if self.activecolor:
                 self.options['color'] = self.activecolor
             self.options.save()
+            self.send_message('options')
             self.send_message('menu_transition_-')
         elif key in options.colors:
             self.buttons[key].activate()
             self.activecolor = key
+            self.options['color'] = self.activecolor
             for key_ in self.buttons:
                 if key_ in options.colors and not key == key_:
                     self.buttons[key_].deactivate()
         elif key == 'keys':
-            self.send_message('switch_to', (KeyMapMenu, self.window))
+            self.send_message('switch_to', (KeyMapMenu,
+                              (self.window, self.options)))
 
 
 class KeyMapMenu(MenuClass):
     """docstring for KeyMapMenu"""
-    def __init__(self, window, *args, **kwargs):
+    def __init__(self, arg, *args, **kwargs):
         super(KeyMapMenu, self).__init__(*args, **kwargs)
-        self.window = window
+        try:
+            self.window, self.options = arg
+        except TypeError:
+            self.window = arg
+            self.options = options.Options()
         self.batch = pyglet.graphics.Batch()
         self.box = Box([100, 100], [1080, 568], batch=self.batch)
         self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
         self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
-        self.options = options.Options()
         self.buttons['test'] = KeysFrame([390, 600], 500, 330, self.window,
                                          self.batch, line_space=15)
         self.buttons['player'] = btn([1050, 540], 'player', [200, 100],
@@ -560,7 +573,8 @@ class KeyMapMenu(MenuClass):
             self.send_message('menu_transition_-')
         elif key == 'player':
             self.buttons['test'].remove_handler()
-            self.send_message('switch_to', (PlayerOptions, self.window))
+            self.send_message('switch_to', (PlayerOptions,
+                              (self.window, self.options)))
 
     def add_update(self, dt):
         if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
