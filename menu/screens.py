@@ -45,7 +45,7 @@ class GameScreen(Events):
                                        self.hud.set_score)
 
     def update(self, dt):
-        dt = int(dt * 10000) / 10000.
+        dt = int(dt * 1000000) / 1000000.
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', (GameMenu, self.isSpec))
 
@@ -79,7 +79,7 @@ class GameScreen(Events):
         typ, data = data
         if typ == proto.playerUpdate:
             ind, time, s_state, inpt, weaponinfo = data
-            smove = move(time, None, s_state)
+            smove = move(time, inpt, s_state)
             if ind == self.player.id:
                 try:
                     correct_client(self.update_physics, smove, self.moves,
@@ -198,7 +198,7 @@ class GameScreen(Events):
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
-        self.time += int(dt * 10000)
+        self.time += int(dt * 1000000)
         temp_input.CopyFrom(self.player.input)
         c_move = move(self.time, temp_input, self.player.state.copy())
         try:

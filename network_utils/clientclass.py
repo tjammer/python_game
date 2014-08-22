@@ -199,15 +199,16 @@ def correct_client(update_physics, s_move, moves, head, tail, update_state):
         moves.advance(head)
 
     if head[0] != tail and s_move.time == moves[head[0]].time:
+        print (moves[head[0]].state.pos - s_move.state.pos).mag()
         if (moves[head[0]].state.pos - s_move.state.pos).mag() > threshold:
             c_time = s_move.time
             c_state = s_move.state.copy()
-            c_input = moves[head[0]].input
+            c_input = s_move.input
 
             moves.advance(head)
             index = [head[0]]
             while index[0] != tail:
-                dt = (moves[index[0]].time - c_time) / 10000.
+                dt = (moves[index[0]].time - c_time) / 1000000.
                 c_state = update_physics(dt, c_state, c_input)
 
                 c_time = moves[index[0]].time

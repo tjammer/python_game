@@ -39,8 +39,8 @@ class GameServer(DatagramProtocol):
             self.get_input(data.input)
             dt = data.input.time - self.players[data.input.id].time
             if dt > 0:
-                dt = (dt / 10000.)
-                dt = dt if dt < self.mxdt else self.mxdt
+                dt = (dt / 1000000.)
+                #dt = dt if dt < self.mxdt else self.mxdt
                 # update movement
                 self.players[data.input.id].update(dt,
                                                    self.rectgen(data.input.id))
