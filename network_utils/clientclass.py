@@ -199,7 +199,6 @@ def correct_client(update_physics, s_move, moves, head, tail, update_state):
         moves.advance(head)
 
     if head[0] != tail and s_move.time == moves[head[0]].time:
-        print (moves[head[0]].state.pos - s_move.state.pos).mag()
         if (moves[head[0]].state.pos - s_move.state.pos).mag() > threshold:
             c_time = s_move.time
             c_state = s_move.state.copy()
