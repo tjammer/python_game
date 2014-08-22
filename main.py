@@ -5,7 +5,7 @@ from twisted.internet import reactor
 from menu.window_manager import WindowManager
 from network_utils.clientclass import Client
 
-window = pyglet.window.Window(1280, 720, vsync=True)
+window = pyglet.window.Window(1280, 720, vsync=False)
 #window.set_mouse_visible(True)
 window.set_exclusive_mouse(True)
 window_manager = WindowManager(window)
