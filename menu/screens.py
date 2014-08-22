@@ -81,12 +81,9 @@ class GameScreen(Events):
             ind, time, s_state, inpt, weaponinfo = data
             smove = move(time, inpt, s_state)
             if ind == self.player.id:
-                try:
-                    correct_client(self.update_physics, smove, self.moves,
-                                   self.head, self.index[0],
-                                   self.update_state_only)
-                except IndexError:
-                    pass
+                correct_client(self.update_physics, smove, self.moves,
+                               self.head, self.index[0],
+                               self.update_state_only)
                 self.player.weapons.from_server(weaponinfo)
             else:
                 #try:
@@ -208,6 +205,9 @@ class GameScreen(Events):
         self.moves.advance(self.index)
         self.send_message('input', (self.player.input, self.time))
 
+    def spec_send(self, dt):
+        self.send_message('input', (proto.Input(), self.time))
+
     def draw(self):
         self.on_draw()
 
@@ -299,7 +299,8 @@ class GameScreen(Events):
     def spec_update(self, dt):
         self.player.specupdate(dt)
         self.camera.update(dt, self.player.state)
-        self.send_to_client(dt)
+        #self.send_to_client(dt)
+        self.spec_send(dt)
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
         self.hud.update(dt)

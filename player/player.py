@@ -37,6 +37,7 @@ class Player(Events):
         if not input:
             input = self.input
         self.rect.vel = self.move.get_vel(dt, state, input)
+        self.rect.update(*state.pos)
         self.collide(dt, rectgen, state)
         self.weapons.update(dt, state, input)
         self.state.update(dt, state)

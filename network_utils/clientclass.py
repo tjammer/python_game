@@ -51,11 +51,12 @@ class Client(DatagramProtocol):
     def get_input(self, event, msg):
         #self.input, dt = msg
         if event == 'input':
-            self.input, self.time = msg
+            self.input, time = msg
+            self.time = time
             if self.connected:
-                self.message.Clear()
+                self.message = proto.Message()
                 self.message.type = proto.playerUpdate
-                self.input.time = self.time
+                self.input.time = time
                 self.input.id = self.id
                 self.message.input.CopyFrom(self.input)
                 msg_ = self.message.SerializeToString()
@@ -185,18 +186,21 @@ class moves(list):
 
     def advance(self, index):
         index[0] += 1
-        if index[0] >= self.maximum:
-            index[0] -= self.maximum
+        #if index[0] >= self.maximum:
+        #    index[0] -= self.maximum
 
 
 def correct_client(update_physics, s_move, moves, head, tail, update_state):
     """update_physics is a function which updates physics and has dt, state
     and input as an argument. state is the state sent from server as in
     player.state.state"""
-    threshold = 5
+    threshold = 2
 
-    while s_move.time > moves[head[0]].time and head[0] != tail:
-        moves.advance(head)
+    try:
+        while s_move.time > moves[head[0]].time and head[0] != tail:
+            moves.advance(head)
+    except IndexError:
+        pass
 
     if head[0] != tail and s_move.time == moves[head[0]].time:
         if (moves[head[0]].state.pos - s_move.state.pos).mag() > threshold:
@@ -215,5 +219,7 @@ def correct_client(update_physics, s_move, moves, head, tail, update_state):
                 moves[index[0]].state = c_state.copy()
                 moves.advance(index)
         elif moves[head[0]].state.chksm != s_move.state.chksm:
-            c_state = update_state(s_move.state)
-            #moves[head[0]].state.update(0, s_move.state.copy())
+            update_state(s_move.state)
+
+    elif s_move.time < moves[head[0]].time:
+        print True

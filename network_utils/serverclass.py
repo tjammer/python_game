@@ -36,11 +36,12 @@ class GameServer(DatagramProtocol):
                 self.init_player(data, address, pl_id)
         elif data.type == proto.playerUpdate and self.isplayer(data, address):
             self.players[data.input.id].timer = 0
-            self.get_input(data.input)
+            #self.get_input(data.input)
+            self.players[data.input.id].input = data.input
             dt = data.input.time - self.players[data.input.id].time
             if dt > 0:
                 dt = (dt / 1000000.)
-                #dt = dt if dt < self.mxdt else self.mxdt
+                dt = dt if dt < self.mxdt else self.mxdt
                 # update movement
                 self.players[data.input.id].update(dt,
                                                    self.rectgen(data.input.id))
