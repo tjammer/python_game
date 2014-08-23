@@ -45,7 +45,7 @@ class Movement(object):
             if conds.onGround:
                 self.vel.x -= self.vel.x * dt * self.friction
             else:
-                self.vel.x -= self.vel.x * dt * self.friction / 5.
+                self.vel.x -= self.vel.x * dt * self.friction / 5. * 0
             sign = 0
         self.curr_sign = self.sign_of(vel.x)
         if vel.x * sign >= self.max_vel or (conds.onRightWall
@@ -54,7 +54,7 @@ class Movement(object):
             v = 0
         else:
             v = self.normal_accel
-        if conds.onGround and self.curr_sign * sign < 0:
+        if self.curr_sign * sign < 0:
             v *= self.turn_multplier
         if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
@@ -69,7 +69,7 @@ class Movement(object):
         if not state.isDead:
             if (conds.landing or
                     conds.onGround) and conds.canJump and input.up:
-                self.jump(state, sign)
+                self.jump(state, self.curr_sign)
             elif (conds.onRightWall
                   or conds.onLeftWall) and conds.canJump and input.up:
                 self.walljump(state, conds)
@@ -80,7 +80,7 @@ class Movement(object):
 
     def jump(self, state, sign):
         self.vel.y = self.jump_vel
-        self.vel.x += (sign * 900 - self.vel.x) * 0.2
+        self.vel.x += sign * (900 - abs(self.vel.x)) * 0.2
         state.set_cond('ascending')
 
     def walljump(self, state, conds):
