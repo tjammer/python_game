@@ -83,6 +83,7 @@ message MState {
     optional bool onRightWall = 7;
     optional bool onLeftWall = 8;
     optional bool isDead = 9;
+    optional bool hold = 10;
 }
 
 message Projectile {

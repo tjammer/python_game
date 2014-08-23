@@ -5,6 +5,7 @@ from collision.quadtree import QuadTree
 from player.state import vec2
 from gameplay.items import *
 from gameplay.weapons import *
+from elements import Teleporter
 
 
 class Map(object):
@@ -39,10 +40,10 @@ class Map(object):
             if child.attrib['id'] == 'layer1':
                 for rect in child:
                     atr = rect.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    width = int(atr['width'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    width = float(atr['width'])
+                    height = float(atr['height'])
                     color = (255, 255, 255)
                     rects.append(self.Rect(x, - y - height, width,
                                  height, color, batch=self.batch))
@@ -160,6 +161,31 @@ class Map(object):
                                           ind=self.ind,
                                           batch=self.batch, keystr=weapstr)
                         self.items.add(w_)
+                    self.ind += 1
+
+        #tele
+        for child in root.getchildren():
+            if child.attrib['id'] == 'teles':
+                for rect in child:
+                    atr = rect.attrib
+                    x = int(atr['x'])
+                    y = int(atr['y'])
+                    width = int(atr['width'])
+                    height = int(atr['height'])
+                    destination = vec2(float(atr['dest_x']),
+                                       float(atr['dest_y']))
+                    dest_sign = int(atr['dest_sign'])
+                    color = (100, 100, 100)
+                    max_ammo, ammoval = ammo_values[weapstr]
+                    if self.server:
+                        w_ = Teleporter(x=x, y=-y-height, width=width,
+                                        height=height, color=color,
+                                        ind=self.ind, destination=destination,
+                                        dest_sign=dest_sign)
+                        self.items.add(w_)
+                    else:
+                        pass
+                        #self.items.add(w_)
                     self.ind += 1
 
     def draw(self):

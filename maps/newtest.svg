@@ -24,11 +24,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.9597979"
-     inkscape:cx="2320.8965"
-     inkscape:cy="1597.549"
+     inkscape:zoom="0.69999999"
+     inkscape:cx="1984.2857"
+     inkscape:cy="1399.6352"
      inkscape:document-units="px"
-     inkscape:current-layer="ammo"
+     inkscape:current-layer="teles"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -67,8 +67,24 @@
   </metadata>
   <g
      inkscape:groupmode="layer"
+     id="teles"
+     inkscape:label="teles">
+    <rect
+       y="-100"
+       x="1905"
+       height="100"
+       width="45"
+       id="rect3019"
+       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       dest_x="2900"
+       dest_y="800"
+       dest_sign="-1" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="ammo"
-     inkscape:label="ammo">
+     inkscape:label="ammo"
+     sodipodi:insensitive="true">
     <rect
        weapon="w3"
        style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
@@ -135,7 +151,8 @@
      inkscape:groupmode="layer"
      id="armors"
      inkscape:label="armor"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <rect
        style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
        id="rect3038"

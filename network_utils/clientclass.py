@@ -194,7 +194,7 @@ def correct_client(update_physics, s_move, moves, head, tail, update_state):
     """update_physics is a function which updates physics and has dt, state
     and input as an argument. state is the state sent from server as in
     player.state.state"""
-    threshold = 2
+    threshold = 5
 
     try:
         while s_move.time > moves[head[0]].time and head[0] != tail:
@@ -220,6 +220,3 @@ def correct_client(update_physics, s_move, moves, head, tail, update_state):
                 moves.advance(index)
         elif moves[head[0]].state.chksm != s_move.state.chksm:
             update_state(s_move.state)
-
-    elif s_move.time < moves[head[0]].time:
-        print True

@@ -35,7 +35,10 @@ class Movement(object):
         self.vel = vel
         avel = abs(vel.x)
         if state.isDead:
-            self.vel.x -= self.vel.x * dt * self.friction
+            conds.hold = True
+            if conds.onGround:
+                self.vel.x -= self.vel.x * dt * self.friction * 0.1
+            conds.hold = False
             sign = 0
         elif input.right and not input.left:
             sign = 1
@@ -47,6 +50,8 @@ class Movement(object):
             else:
                 self.vel.x -= self.vel.x * dt * self.friction / 5. * 0
             sign = 0
+            conds.hold = False
+            self.turn_multplier = 8.
         self.curr_sign = self.sign_of(vel.x)
         if vel.x * sign >= self.max_vel or (conds.onRightWall
                                             and sign < 0) or (conds.onLeftWall
@@ -58,6 +63,7 @@ class Movement(object):
             v *= self.turn_multplier
         if conds.onGround and avel > self.max_vel:
             self.vel.x = self.max_vel * self.curr_sign
+        v *= not conds.hold
         self.vel.x = self.vel.x + v * sign * dt
         #wallsliding
         if (conds.onLeftWall or conds.onRightWall) and self.vel.y < 0:
@@ -69,7 +75,7 @@ class Movement(object):
         if not state.isDead:
             if (conds.landing or
                     conds.onGround) and conds.canJump and input.up:
-                self.jump(state, self.curr_sign)
+                self.jump(state, sign)
             elif (conds.onRightWall
                   or conds.onLeftWall) and conds.canJump and input.up:
                 self.walljump(state, conds)
@@ -89,6 +95,7 @@ class Movement(object):
             self.vel.x = self.wall_boost
         elif conds.onRightWall:
             self.vel.x = -self.wall_boost
+        self.turn_multplier = 1
         state.set_cond('ascending')
 
     def sign_of(self, num):

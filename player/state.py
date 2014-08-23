@@ -99,8 +99,6 @@ class state(object):
         elif condname == 'descending':
             self.conds.ascending = False
             self.conds.descending = True
-            #self.conds.onRightWall = False
-            #self.conds.onLeftWall = False
             self.conds.onGround = False
             self.conds.landing = False
         elif condname == 'onRightWall':
@@ -117,6 +115,8 @@ class state(object):
             self.conds.ascending = False
             self.conds.descending = False
             self.wall = self.wall_t
+        elif condname == 'hold':
+            self.conds.hold = True
 
     def update(self, dt, stat):
         self.wall -= dt
@@ -124,13 +124,12 @@ class state(object):
             self.wall = 0
             self.conds.onRightWall = False
             self.conds.onLeftWall = False
-        if stat.hp != self.hp:
-            pass
         self.hp = stat.hp
         self.armor = stat.armor
         if self.hudhook:
             self.hudhook(hp=str(self.hp), armor=str(self.armor))
         self.chksm = self.hp + self.armor
+        self.conds.hold = stat.conds.hold
 
     def copy(self):
         return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.armor,
