@@ -74,7 +74,7 @@ class InputHandler(object):
 
     def process_keys(self, dt):
        # register pressed keys for movement
-       try:
+        try:
             self.directns.up = self.keys[self.rkd['up']]
             self.directns.left = self.keys[self.rkd['left']]
             self.directns.right = self.keys[self.rkd['right']]
