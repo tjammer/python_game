@@ -54,6 +54,15 @@ class vec2(object):
         else:
             raise TypeError
 
+    def __eq__(self, other):
+        if isinstance(other, vec2):
+            if other.x == self.x:
+                if other.y == self.y:
+                    return True
+            return False
+        else:
+            raise TypeError
+
     def mag(self):
         """magnitude of the vector"""
         return sqrt(self.x**2 + self.y**2)

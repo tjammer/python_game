@@ -16,6 +16,15 @@ class AABB(object):
         self.color = color
         self.isplayer = isplayer
 
+    def __eq__(self, other):
+        if isinstance(other, AABB):
+            if other.pos == self.pos:
+                if other.center == self.center:
+                    return True
+            return False
+        else:
+            raise TypeError
+
     def update(self, x, y):
         self.pos = vec2(x, y)
         self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
@@ -174,7 +183,7 @@ class Line(object):
                     break
                 rect.pos += self.unit * (exit + 1)
                 bound = quadtree.retrieve_bound(rect)
-                if bound.pos.x == bnd.pos.x:
+                if bound == bnd:
                     break
                 bnd = bound
         if mapcolls:
