@@ -74,25 +74,28 @@ class InputHandler(object):
 
     def process_keys(self, dt):
        # register pressed keys for movement
-        self.directns.up = self.keys[self.rkd['up']]
-        self.directns.left = self.keys[self.rkd['left']]
-        self.directns.right = self.keys[self.rkd['right']]
-        self.directns.down = self.keys[key.S]
-        self.directns.att = self.keys[self.rkd['att']]
-        if self.keys[self.rkd['blaster']]:
-            self.directns.switch = proto.blaster
-        elif self.keys[self.rkd['lg']]:
-            self.directns.switch = proto.lg
-        elif self.keys[self.rkd['sg']]:
-            self.directns.switch = proto.sg
-        elif self.keys[self.rkd['melee']]:
-            self.directns.switch = proto.melee
-        else:
-            self.directns.switch = proto.no_switch
-        self.controls['esc'] = self.keys[key.ESCAPE]
-        self.controls['f10'] = self.keys[key.F10]
-        self.controls['rdy'] = self.keys[self.rkd['rdy']]
-        self.controls['chat'] = self.keys[self.rkd['chat']]
+       try:
+            self.directns.up = self.keys[self.rkd['up']]
+            self.directns.left = self.keys[self.rkd['left']]
+            self.directns.right = self.keys[self.rkd['right']]
+            self.directns.down = self.keys[key.S]
+            self.directns.att = self.keys[self.rkd['att']]
+            if self.keys[self.rkd['blaster']]:
+                self.directns.switch = proto.blaster
+            elif self.keys[self.rkd['lg']]:
+                self.directns.switch = proto.lg
+            elif self.keys[self.rkd['sg']]:
+                self.directns.switch = proto.sg
+            elif self.keys[self.rkd['melee']]:
+                self.directns.switch = proto.melee
+            else:
+                self.directns.switch = proto.no_switch
+            self.controls['esc'] = self.keys[key.ESCAPE]
+            self.controls['f10'] = self.keys[key.F10]
+            self.controls['rdy'] = self.keys[self.rkd['rdy']]
+            self.controls['chat'] = self.keys[self.rkd['chat']]
+        except KeyError:
+            pass
 
         self.send_message('all_input', self.keys)
 
