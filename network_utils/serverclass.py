@@ -16,7 +16,7 @@ class GameServer(DatagramProtocol):
         self.players = {}
         self.players_pack = {}
         self.specs = {}
-        self.map = Map('newtest', server=True)
+        self.map = Map('phrantic', server=True)
         self.ackman = AckManager()
         self.gamestate = GamestateManager(self.allgen, self.ackman,
                                           self.players, self.map.spawns,
