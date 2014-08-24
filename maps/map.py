@@ -80,11 +80,12 @@ class Map(object):
                     height = float(atr['height'])
                     avalue = int(atr['armor'])
                     color, maxarmor = armors[avalue]
+                    respawn = timers['armor']
                     armor = self.Armor(x=x, y=-y-height, width=width,
                                        height=height, value=avalue,
-                                       bonus=False, respawn=10, color=color,
-                                       ind=self.ind, maxarmor=maxarmor,
-                                       batch=self.batch)
+                                       bonus=False, respawn=respawn,
+                                       color=color, ind=self.ind,
+                                       maxarmor=maxarmor, batch=self.batch)
                     self.items.add(armor)
                     self.ind += 1
 
@@ -99,10 +100,11 @@ class Map(object):
                     height = float(atr['height'])
                     hvalue = int(atr['health'])
                     color, maxhp = health[hvalue]
+                    respawn = timers['health']
                     if self.server:
                         health_ = Health(x=x, y=-y-height, width=width,
                                          height=height, value=hvalue,
-                                         bonus=False, respawn=20,
+                                         bonus=False, respawn=respawn,
                                          color=color, ind=self.ind,
                                          maxhp=maxhp, batch=self.batch)
                     else:
@@ -123,10 +125,11 @@ class Map(object):
                     height = float(atr['height'])
                     weapstr = atr['weapon']
                     color = weaponcolors[weapstr]
+                    respawn = timers['weapons']
                     if self.server:
                         w = allweapons[weapstr]
                         w_ = w(0, 0, x=x, y=-y-height, width=width,
-                               height=height, respawn=15, color=color,
+                               height=height, respawn=respawn, color=color,
                                ind=self.ind, batch=self.batch)
                         self.items.add(w_)
                     else:
@@ -148,9 +151,10 @@ class Map(object):
                     weapstr = atr['weapon']
                     color = weaponcolors[weapstr]
                     max_ammo, ammoval = ammo_values[weapstr]
+                    respawn = timers['weapons']
                     if self.server:
                         w_ = Ammo(x=x, y=-y-height, width=width,
-                                  height=height, respawn=15, color=color,
+                                  height=height, respawn=respawn, color=color,
                                   ind=self.ind, batch=self.batch,
                                   max_ammo=max_ammo, ammoval=ammoval,
                                   keystring=weapstr)

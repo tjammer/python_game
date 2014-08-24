@@ -2,6 +2,10 @@ from collision.aabb import AABB
 from graphics.primitives import Rect
 
 
+timers = {'armor': 20,
+          'health': 35,
+          'weapons': 20}
+
 armors = {50: ((255, 255, 0), 100),
           100: ((255, 0, 0), 200),
           10: ((0, 179, 0), 50)}
