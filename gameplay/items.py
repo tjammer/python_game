@@ -86,12 +86,15 @@ class Ammo(AABB):
         self.inactive = False
 
     def apply(self, player):
-        if player.weapons.weapons[self.keystr].ammo < self.max_ammo:
-            player.weapons.weapons[self.keystr].ammo += self.ammoval
-            if player.weapons.weapons[self.keystr].ammo > self.max_ammo:
-                player.weapons.weapons[self.keystr].ammo = self.max_ammo
-            self.inactive = self.respawn
-            return True
+        try:
+            if player.weapons.weapons[self.keystr].ammo < self.max_ammo:
+                player.weapons.weapons[self.keystr].ammo += self.ammoval
+                if player.weapons.weapons[self.keystr].ammo > self.max_ammo:
+                    player.weapons.weapons[self.keystr].ammo = self.max_ammo
+                self.inactive = self.respawn
+                return True
+        except KeyError:
+            pass
         return False
 
 
