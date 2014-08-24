@@ -1,5 +1,5 @@
 from xml.etree import ElementTree as ET
-from graphics.primitives import Rect, Triangle, AmmoTriangle, HealthBox
+from graphics.primitives import *
 from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
@@ -63,9 +63,9 @@ class Map(object):
             if child.attrib['id'] == 'layer2':
                 for recht in child:
                     atr = recht.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    height = float(atr['height'])
                     self.spawns.append(vec2(x, -y - height))
 
         #armors
@@ -74,10 +74,10 @@ class Map(object):
             if child.attrib['id'] == 'armors':
                 for rect in child:
                     atr = rect.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    width = int(atr['width'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    width = float(atr['width'])
+                    height = float(atr['height'])
                     avalue = int(atr['armor'])
                     color, maxarmor = armors[avalue]
                     armor = self.Armor(x=x, y=-y-height, width=width,
@@ -93,10 +93,10 @@ class Map(object):
             if child.attrib['id'] == 'health':
                 for rect in child:
                     atr = rect.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    width = int(atr['width'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    width = float(atr['width'])
+                    height = float(atr['height'])
                     hvalue = int(atr['health'])
                     color, maxhp = health[hvalue]
                     if self.server:
@@ -117,10 +117,10 @@ class Map(object):
             if child.attrib['id'] == 'weapons':
                 for rect in child:
                     atr = rect.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    width = int(atr['width'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    width = float(atr['width'])
+                    height = float(atr['height'])
                     weapstr = atr['weapon']
                     color = weaponcolors[weapstr]
                     if self.server:
@@ -141,10 +141,10 @@ class Map(object):
             if child.attrib['id'] == 'ammo':
                 for rect in child:
                     atr = rect.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    width = int(atr['width'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    width = float(atr['width'])
+                    height = float(atr['height'])
                     weapstr = atr['weapon']
                     color = weaponcolors[weapstr]
                     max_ammo, ammoval = ammo_values[weapstr]
@@ -168,14 +168,14 @@ class Map(object):
             if child.attrib['id'] == 'teles':
                 for rect in child:
                     atr = rect.attrib
-                    x = int(atr['x'])
-                    y = int(atr['y'])
-                    width = int(atr['width'])
-                    height = int(atr['height'])
+                    x = float(atr['x'])
+                    y = float(atr['y'])
+                    width = float(atr['width'])
+                    height = float(atr['height'])
                     destination = vec2(float(atr['dest_x']),
                                        float(atr['dest_y']))
                     dest_sign = int(atr['dest_sign'])
-                    color = (100, 100, 100)
+                    color = (255, 255, 0)
                     max_ammo, ammoval = ammo_values[weapstr]
                     if self.server:
                         w_ = Teleporter(x=x, y=-y-height, width=width,
@@ -184,8 +184,10 @@ class Map(object):
                                         dest_sign=dest_sign)
                         self.items.add(w_)
                     else:
-                        pass
-                        #self.items.add(w_)
+                        w_ = DrawableTeleporter(x=x, y=-y-height, width=width,
+                                                height=height, color=color,
+                                                batch=self.batch)
+                        self.items.add(w_)
                     self.ind += 1
 
     def draw(self):
