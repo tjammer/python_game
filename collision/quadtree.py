@@ -104,6 +104,10 @@ class QuadTree(object):
             index = self.get_index(rect)
             if index != -1:
                 self.nodes[index].retrieve(lst, rect)
+            else:
+                for node in self.nodes:
+                    for rect in node.objects:
+                        lst.append(rect)
 
         for rect in self.objects:
             lst.append(rect)
