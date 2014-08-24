@@ -180,6 +180,38 @@ class HealthBox(object):
         self.ver_list.delete()
 
 
+class DrawableTeleporter(object):
+    """docstring for DrawableTeleporter"""
+    def __init__(self, x, y, width, height, color, batch):
+        super(DrawableTeleporter, self).__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.ver_list = batch.add(6, gl.GL_TRIANGLES, None,
+                                  ('v2f', (self.x, self.y,
+                                   self.x + self.width, self.y,
+                                   self.x+self.width/2, self.y+self.height/2,
+                                   self.x+self.width/2, self.y+self.height/2,
+                                   self.x + self.width, self.y + self.height,
+                                   self.x, self.y + self.height)),
+                                  ('c3B', self.color * 6))
+
+    def add(self, batch):
+        self.ver_list = batch.add(6, gl.GL_TRIANGLES, None,
+                                  ('v2f', (self.x, self.y,
+                                   self.x + self.width, self.y,
+                                   self.x+self.width/2, self.y+self.height/2,
+                                   self.x+self.width/2, self.y+self.height/2,
+                                   self.x + self.width, self.y + self.height,
+                                   self.x, self.y + self.height)),
+                                  ('c3B', self.color * 6))
+
+    def remove(self):
+        self.ver_list.remove()
+
+
 class CrossHair(object):
     """docstring for CrossHair"""
     def __init__(self, pos=[0, 0], size=10):

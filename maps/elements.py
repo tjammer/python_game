@@ -13,7 +13,7 @@ class Teleporter(AABB):
 
     def apply(self, player):
         player.state.pos = self.destination
-        player.state.vel.y += 500
+        ##player.state.vel.y += 500
         player.state.set_cond('hold')
         if not player.move.sign_of(player.state.vel.x) == self.dest_sign:
             player.state.vel.x *= -1
