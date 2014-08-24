@@ -323,7 +323,7 @@ class BlasterProjectile(Projectile):
     def on_hit(self, player=None):
         posx = self.center.x
         posy = self.center.y
-        hwidth = 102
+        hwidth = 125
         proj = BlasterExplosion(dmg=100, knockback=400, id=self.id,
                                 x=posx, y=posy,
                                 width=hwidth*2,
@@ -600,7 +600,7 @@ class ProjectileViewer(object):
                                            batch=self.batch)
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=204, height=204,
+                    self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
                                            color=(255, 0, 150),
                                            batch=self.batch)
                     self.projs[ind].vel = vel
