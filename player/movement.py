@@ -90,7 +90,7 @@ class Movement(object):
         state.set_cond('ascending')
 
     def walljump(self, state, conds):
-        self.vel.y += self.jump_vel * 1.5
+        self.vel.y += self.jump_vel * 1.4
         if conds.onLeftWall:
             self.vel.x = self.wall_boost
         elif conds.onRightWall:
