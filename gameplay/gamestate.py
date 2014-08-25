@@ -36,10 +36,11 @@ class GamestateManager(object):
                 if player.state.isDead <= 0.0 or (player.state.isDead < 4
                                                   and player.input.att):
                     self.spawn(player)
-            for item in self.items:
-                if player.rect.overlaps(item):
-                    if self.items.apply(player, item):
-                        self.send_mapupdate(item, player)
+            else:
+                for item in self.items:
+                    if player.rect.overlaps(item):
+                        if self.items.apply(player, item):
+                            self.send_mapupdate(item, player)
             if self.ticks >= 1:
                 self.tick(player)
         for spawn in self.spawns:
