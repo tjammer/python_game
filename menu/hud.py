@@ -46,9 +46,9 @@ class Hud(object):
         self.score = Label('me 0:0 enemy', font_name=font, font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
-        self.chatdoc = document.FormattedDocument('\n' * 20)
+        self.chatdoc = document.FormattedDocument('\n' * 11)
         self.chat = layout.ScrollableTextLayout(self.chatdoc, width=500,
-                                                height=300, multiline=True,
+                                                height=208, multiline=True,
                                                 batch=self.labellist)
         self.chat.x = 130
         self.chat.y = 130
@@ -148,6 +148,9 @@ class Hud(object):
                                           bold=True))
             self.chatdoc.insert_text(len(self.chatdoc.text), '\t' + msg + '\n',
                                      dict(color=[255] * 4, bold=False))
+            start = self.chatdoc.get_paragraph_start(0)
+            end = self.chatdoc.get_paragraph_end(0)
+            self.chatdoc.delete_text(start, end)
             self.chat.view_y = -self.chat.content_height
             self.chat_active = 4
             self.chat.batch = self.active_batch
