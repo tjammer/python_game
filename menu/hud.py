@@ -47,6 +47,7 @@ class Hud(object):
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
         self.chatdoc = document.FormattedDocument('\n' * 11)
+        #self.chatlog = document .FormattedDocument('\n')
         self.chat = layout.ScrollableTextLayout(self.chatdoc, width=500,
                                                 height=208, multiline=True,
                                                 batch=self.labellist)
@@ -151,10 +152,15 @@ class Hud(object):
             start = self.chatdoc.get_paragraph_start(0)
             end = self.chatdoc.get_paragraph_end(0)
             self.chatdoc.delete_text(start, end)
-            self.chat.view_y = -self.chat.content_height
-            self.chat_active = 4
+            """self.chatlog.insert_text(len(self.chatlog.text), name,
+                                     dict(color=list(color) + [255],
+                                          bold=True))
+            self.chatlog.insert_text(len(self.chatlog.text), '\t' + msg + '\n',
+                                     dict(color=[255] * 4, bold=False))"""
             self.chat.batch = self.active_batch
+            self.chat.view_y = -self.chat.content_height
             self.chat.end_update()
+            self.chat_active = 4
 
     def set_score(self, own, other, msg=False):
         self.score.text = ' '.join((self.ownname,
