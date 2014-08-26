@@ -11,7 +11,7 @@ def duel_calc_score(killed, killer):
 
 class GamestateManager(object):
     """docstring for GamestateManager"""
-    def __init__(self, allgenfunc, ackman, players, spawns, items):
+    def __init__(self, allgenfunc, ackman, players, spawns, items, send_spec):
         super(GamestateManager, self).__init__()
         #function which return generator of all players and specs
         self.all = allgenfunc
@@ -27,6 +27,7 @@ class GamestateManager(object):
             spawn.active = False
         self.items = items
         self.ticks = 0
+        self.send_spec = send_spec
 
     def update(self, dt):
         self.ticks += dt
@@ -37,10 +38,11 @@ class GamestateManager(object):
                                                   and player.input.att):
                     self.spawn(player)
             else:
-                for item in self.items:
-                    if player.rect.overlaps(item):
-                        if self.items.apply(player, item):
-                            self.send_mapupdate(item, player)
+                if not self.gamestate == proto.warmUp:
+                    for item in self.items:
+                        if player.rect.overlaps(item):
+                            if self.items.apply(player, item):
+                                self.send_mapupdate(item, player)
             if self.ticks >= 1:
                 self.tick(player)
         for spawn in self.spawns:
@@ -54,6 +56,13 @@ class GamestateManager(object):
                 self.gametime = 0
         if self.gamestate == proto.countDown and self.gametime <= 0:
             self.start_game()
+        if self.gamestate == proto.inProgress and self.gametime == 0:
+            if not self.a.score == self.b.score:
+                self.stop_game()
+            else:
+                self.gametime = 60
+        if self.gamestate == proto.gameOver and self.gametime == 0:
+            self.to_warmup()
         self.items.update(dt, self.send_mapupdate)
         if self.ticks >= 1:
             self.ticks = 0
@@ -84,11 +93,14 @@ class GamestateManager(object):
             msg.projectile.CopyFrom(projectile)
             msg.gameState = proto.isDead
             msg.gameTime = self.gametime
+            self.score(player.id, proj.id)
             for player_ in self.all():
                 self.ackman.send_rel(msg, player_.address)
 
     def join(self, data):
         id = data.player.id
+        if self.gamestate == proto.gameOver:
+            return False
         if len(self.ingame) < 2 and id not in self.ingame:
             msg = proto.Message()
             msg.type = proto.stateUpdate
@@ -120,15 +132,19 @@ class GamestateManager(object):
 
     def spec(self, data):
         id = data.player.id
-        msg = proto.Message()
-        msg.type = proto.stateUpdate
-        plr = proto.Player()
-        plr.id = id
-        msg.player.CopyFrom(plr)
-        msg.gameState = proto.goesSpec
-        msg.gameTime = self.gametime
-        for player in self.all():
-            self.ackman.send_rel(msg, player.address)
+        if self.gamestate == proto.gameOver:
+            return
+        if id in self.ingame:
+            msg = proto.Message()
+            msg.type = proto.stateUpdate
+            plr = proto.Player()
+            plr.id = id
+            msg.player.CopyFrom(plr)
+            msg.gameState = proto.goesSpec
+            msg.gameTime = self.gametime
+            for player in self.all():
+                self.ackman.send_rel(msg, player.address)
+            self.send_spec(id)
 
     def spawn(self, player):
         try:
@@ -224,6 +240,16 @@ class GamestateManager(object):
         for player in self.all():
             self.ackman.send_rel(msg, player.address)
 
+    def stop_game(self):
+        self.gamestate = proto.gameOver
+        self.gametime = 5
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        msg.gameState = proto.gameOver
+        msg.gameTime = self.gametime
+        for player in self.all():
+            self.ackman.send_rel(msg, player.address)
+
     def send_mapupdate(self, item, player_=False, address=None):
         msg = proto.Message()
         msg.type = proto.mapUpdate
@@ -278,6 +304,7 @@ class Team(object):
 
     def join(self, player):
         self.players[player.id] = player
+        self.name = player.name
 
     def leave(self, id):
         del self.players[id]
@@ -306,19 +333,26 @@ class GameStateViewer(object):
     def leave(self, id):
         if id in self.a:
             self.a.leave(id)
+            self.hudhook(name=(True, '_'))
         else:
             self.b.leave(id)
-            self.hudhook(score='-')
+            self.hudhook(name=(False, '_'))
 
     def score(self, killed, killer, weapon=False):
-        if self.gamestate == proto.inProgress:
-            for team in (self.a, self.b):
-                if killed in team and killer in team:
+        for team in (self.a, self.b):
+            if killed in team and killer in team:
+                if self.gamestate == proto.inProgress:
                     team.score -= 1
-                    break
-                elif killer in team:
+                krn = team.name
+                kdn = team.name
+                break
+            elif killer in team:
+                if self.gamestate == proto.inProgress:
                     team.score += 1
-        self.scorehook(self.a.score, self.b.score, msg=weapon)
+                krn = team.name
+            else:
+                kdn = team.name
+        self.scorehook(self.a.score, self.b.score, msg=(weapon, krn, kdn))
 
     def init_self(self, id):
         self.ownid = id
@@ -326,17 +360,21 @@ class GameStateViewer(object):
     def add_self(self, ownplayer):
         if len(self.b) == 0:
             self.b = self.a
+            self.hudhook(name=(False, self.b.name))
         self.a = Team()
         self.a.join(ownplayer)
         self.scorehook(self.a.score, self.b.score)
+        self.hudhook(name=(True, ownplayer.name))
 
     def to_team(self, id):
         if len(self.a) == 0:
             self.a.join(self.players[id])
+            self.hudhook(name=(True, self.players[id].name))
         else:
             self.b.join(self.players[id])
-            self.hudhook(score=self.players[id].name)
+            self.hudhook(name=(False, self.players[id].name))
         self.reset_score()
+        self.scorehook(self.a.score, self.b.score)
 
     def reset_score(self):
         self.a.score = 0
@@ -349,9 +387,13 @@ class GameStateViewer(object):
         text = ' '.join((name, 'is ready!'))
         self.hudhook(text=text)
 
+    def show_score(self):
+        pass
+
     def start_game(self):
         self.gamestate = proto.inProgress
 
     def to_warmup(self):
         self.gamestate = proto.warmUp
         self.reset_score()
+        self.scorehook(self.a.score, self.b.score)

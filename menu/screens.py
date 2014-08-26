@@ -167,6 +167,8 @@ class GameScreen(Events):
                 self.gs_view.start_game()
             elif gs == proto.warmUp:
                 self.gs_view.to_warmup()
+            elif gs == proto.over:
+                self.gs_view.show_score()
         elif typ == proto.mapUpdate:
             ind, itemid, gt, spawn = data
             self.gs_view.set_time(gt)

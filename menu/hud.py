@@ -41,8 +41,6 @@ class Hud(object):
                           x=640, y=680, anchor_x='center', anchor_y='center',
                           bold=True,
                           batch=self.labellist)
-        self.killmsg = Label('0:00', font_name=font, font_size=36,
-                             x=640, y=680, anchor_x='left', anchor_y='center')
         self.score = Label('me 0:0 enemy', font_name=font, font_size=24,
                            x=1260, y=680, anchor_x='right', anchor_y='center',
                            batch=self.labellist)
@@ -55,21 +53,28 @@ class Hud(object):
         self.chat.y = 130
         self.chat.content_valign = 'bottom'
 
+        self.killdoc = document.FormattedDocument('\n')
+        self.killmsg = layout.ScrollableTextLayout(self.killdoc, width=300,
+                                                   height=104, multiline=True,
+                                                   batch=self.labellist)
+        self.killmsg.x = 20
+        self.killmsg.y = 600
+
         self.normal_hpcol = (255, 255, 255, 255)
         self.low_hpcol = (255, 128, 0, 255)
         self.high_hpcol = (0, 204, 255, 255)
-        self.enemyname = '_'
-        self.ownname = 'me'
+        self.bname = '_'
+        self.aname = '_'
         self.gametime = 70
         self.weaponcolors = {proto.melee: (0, 255, 255, 255),
                              proto.explBlaster: (255, 255, 0, 255)}
+        self.killmsg_count = 0
 
     def init_player(self, players):
         if len(players) == 0:
-            self.enemyname = '_'
             self.set_score(0, 0)
         else:
-            self.enemyname = players.values()[0].name
+            self.bname = players.values()[0].name
             self.set_score(0, 0)
         self.time.batch = self.labellist
         self.active_batch = self.labellist
@@ -90,8 +95,15 @@ class Hud(object):
         if self.killmsg_active:
             self.killmsg_active -= dt
             if self.killmsg_active <= 0:
-                self.killmsg_active = False
-                self.killmsg.delete()
+                self.killmsg_count -= 1
+                start = self.killdoc.get_paragraph_start(1)
+                end = self.killdoc.get_paragraph_end(1)
+                self.killdoc.delete_text(start, end)
+                if self.killmsg_count > 0:
+                    self.killmsg_active = 4
+                else:
+                    self.killmsg_active = False
+                    self.killmsg.delete()
         if self.chat_active:
             self.chat_active -= dt
             if self.chat_active <= 0:
@@ -100,7 +112,7 @@ class Hud(object):
         self.time.text = self.calc_time(self.gametime)
 
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
-                    ammo=False, time=False, score=False, msg=False, chat=None):
+                    ammo=False, time=False, name=False, msg=False, chat=None):
         if armor:
             self.armor.text = armor
             if int(armor) <= 20:
@@ -137,9 +149,13 @@ class Hud(object):
             self.ammo.text = ammo
         if isinstance(time, float):
             self.gametime = time
-        if score:
-            self.enemyname = score
-            self.score.text = '0:0 ' + self.enemyname
+        if name:
+            a, name = name
+            if a:
+                self.aname = name
+            else:
+                self.bname = name
+            #self.score.text = '0:0 ' + self.bname
         if chat:
             name, color, msg = chat
             self.chat.begin_update()
@@ -162,10 +178,28 @@ class Hud(object):
             self.chat.end_update()
             self.chat_active = 4
 
-    def set_score(self, own, other, msg=False):
-        self.score.text = ' '.join((self.ownname,
-                                   str(own), ':', str(other),
-                                   self.enemyname))
+    def set_score(self, a, b, msg=False):
+        self.score.text = ' '.join((self.aname,
+                                   str(a), ':', str(b),
+                                   self.bname))
+        if msg:
+            w, killer, killed = msg
+            if w == 11:
+                w = 4
+            wcol = weaponcolors['w' + str(w-1)]
+            self.killmsg.begin_update()
+            self.killdoc.insert_text(len(self.killdoc.text), killer,
+                                     dict(color=[255] * 4))
+            self.killdoc.insert_text(len(self.killdoc.text), ' killed',
+                                     dict(color=wcol + [255]))
+            self.killdoc.insert_text(len(self.killdoc.text), ' '.join(('',
+                                     killed, '\n')),
+                                     dict(color=[255] * 4))
+            self.killmsg.batch = self.active_batch
+            if not self.killmsg_active:
+                self.killmsg_active = 4
+            self.killmsg_count += 1
+            self.killmsg.end_update()
 
     def calc_time(self, gametime):
         mins = '{:01.0f}'.format(gametime // 60)
