@@ -20,7 +20,7 @@ class GameServer(DatagramProtocol):
         self.ackman = AckManager()
         self.gamestate = GamestateManager(self.allgen, self.ackman,
                                           self.players, self.map.spawns,
-                                          self.map.items)
+                                          self.map.items, self.spec_player)
         self.projectiles = ProjectileManager(self.players, self.map,
                                              self.gamestate.damage_player,
                                              self.allgen)
@@ -50,16 +50,16 @@ class GameServer(DatagramProtocol):
         elif data.type == proto.disconnect and self.isonline(data, address):
             self.ackman.respond(data, address)
             self.disc_player(data.input.id)
-        elif data.type == proto.ackResponse:
+        elif data.type == proto.ackResponse and self.isonline(data, address):
             self.ackman.receive_ack(data)
-        elif data.type == proto.stateUpdate:
+        elif data.type == proto.stateUpdate and self.isonline(data, address):
             self.ackman.respond(data, address)
             if data.gameState == proto.wantsJoin:
                 if self.gamestate.join(data):
                     self.join_player(data.player.id)
             elif data.gameState == proto.goesSpec:
                 self.gamestate.spec(data)
-                self.spec_player(data.player.id)
+                #self.spec_player(data.player.id)
             elif data.gameState == proto.isReady:
                 self.gamestate.ready_up(data)
         elif data.type == proto.chat:
