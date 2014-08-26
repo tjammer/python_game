@@ -1,4 +1,4 @@
-from pyglet.text import Label, document, layout
+from pyglet.text import Label, document, layout, DocumentLabel
 from network_utils import protocol_pb2 as proto
 from pyglet.graphics import Batch
 from gameplay.weapons import weaponcolors, allstrings
@@ -41,9 +41,6 @@ class Hud(object):
                           x=640, y=680, anchor_x='center', anchor_y='center',
                           bold=True,
                           batch=self.labellist)
-        self.score = Label('me 0:0 enemy', font_name=font, font_size=24,
-                           x=1260, y=680, anchor_x='right', anchor_y='center',
-                           batch=self.labellist)
         self.chatdoc = document.FormattedDocument('\n' * 11)
         #self.chatlog = document .FormattedDocument('\n')
         self.chat = layout.ScrollableTextLayout(self.chatdoc, width=500,
@@ -59,6 +56,15 @@ class Hud(object):
                                                    batch=self.labellist)
         self.killmsg.x = 20
         self.killmsg.y = 600
+
+        self.scoredoc = document.FormattedDocument('0 : 0')
+        self.score = layout.ScrollableTextLayout(self.scoredoc, width=150,
+                                                 height=104, multiline=True,
+                                                 batch=self.labellist)
+        self.score.x = 1270
+        self.score.y = 650
+        self.score.anchor_x = 'right'
+        self.score.anchor_y = 'center'
 
         self.normal_hpcol = (255, 255, 255, 255)
         self.low_hpcol = (255, 128, 0, 255)
@@ -179,9 +185,17 @@ class Hud(object):
             self.chat_active = 4
 
     def set_score(self, a, b, msg=False):
-        self.score.text = ' '.join((self.aname,
-                                   str(a), ':', str(b),
-                                   self.bname))
+        self.score.begin_update()
+        self.scoredoc.delete_text(0, len(self.scoredoc.text))
+        self.scoredoc.insert_text(0, ''.join((str(a), '   ', self.aname, '\n',
+                                              str(b), '   ', self.bname)),
+                                  dict(color=[255] * 4))
+        apos = self.scoredoc.get_paragraph_start(1)
+        bpos = self.scoredoc.get_paragraph_start(len(self.scoredoc.text) - 1)
+        self.scoredoc.set_style(apos, apos+1, dict(font_size=24, baseline=-0))
+        self.scoredoc.set_style(bpos, bpos+1, dict(font_size=24, baseline=-0))
+        self.score.end_update()
+        self.score.width = self.score.content_width + 40
         if msg:
             w, killer, killed = msg
             if w == 11:
