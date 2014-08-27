@@ -86,10 +86,12 @@ class Hud(object):
             self.bname = players.values()[0].name
             self.set_score(0, 0)
         self.time.batch = self.labellist
+        self.score.batch = self.labellist
         self.active_batch = self.labellist
 
     def init_spec(self):
         self.time.batch = self.speclist
+        self.score.batch = self.speclist
         self.active_batch = self.speclist
 
     def draw(self):
@@ -195,8 +197,8 @@ class Hud(object):
                                   dict(color=[255] * 4))
         apos = self.scoredoc.get_paragraph_start(1)
         bpos = self.scoredoc.get_paragraph_start(len(self.scoredoc.text) - 1)
-        self.scoredoc.set_style(apos, apos+1, dict(font_size=24, baseline=-5))
-        self.scoredoc.set_style(bpos, bpos+1, dict(font_size=24, baseline=-5))
+        self.scoredoc.set_style(apos, apos+1, dict(font_size=24, baseline=-6))
+        self.scoredoc.set_style(bpos, bpos+1, dict(font_size=24, baseline=-6))
         self.score.end_update()
         self.score.width = self.score.content_width + 40
         if msg:
@@ -237,23 +239,51 @@ class ScoreBoard(object):
         super(ScoreBoard, self).__init__()
         self.ascore, self.aname = a
         self.bscore, self.bname = b
-        scoretxt = '  '.join((str(self.ascore), str(self.bscore)))
-        nmstxt = '\t'.join((self.aname, self.bname))
-        self.scoredoc = FormattedDocument(''.join((nmstxt, '\n', scoretxt)))
-        a = len(self.scoredoc.text) - 1
-        self.scoredoc.set_paragraph_style(1, 1, dict(font_size=20))
-        self.scoredoc.set_paragraph_style(a, a, dict(font_size=200))
-        self.scorelayout = ScrollableTextLayout(self.scoredoc, width=800,
-                                                height=600, batch=batch,
-                                                multiline=True)
-        w = 200 * len(scoretxt) * 72 / 96 - (len(nmstxt)) * 20 * 72 / 96
-        self.scoredoc.set_style(0, len(self.scoredoc.text),
-                                dict(color=[255] * 4, align='center',
-                                     tab_stops=[w]))
-        self.scorelayout.x = 1280 / 2
-        self.scorelayout.y = 720 / 2 - 100
-        self.scorelayout.anchor_x = 'center'
-        self.scorelayout.anchor_y = 'center'
+        self.adoc = FormattedDocument('\t'.join((self.aname,
+                                      str(self.ascore))))
+        self.bdoc = FormattedDocument('\t'.join((str(self.bscore),
+                                      self.bname)))
+        scsize = 100
+
+        self.alayout = ScrollableTextLayout(self.adoc, width=400, height=300,
+                                            batch=batch, multiline=True)
+        w = 400 - len(str(self.ascore)) * scsize * 72 / 96
+        self.adoc.set_style(0, len(self.adoc.text), dict(wrap=False,
+                            color=[255]*4, align='left', tab_stops=[w]))
+        self.adoc.set_style(0, len(self.aname), dict(font_size=32))
+        a = len(self.aname)+1
+        self.adoc.set_style(a, a + len(str(self.ascore)),
+                            dict(font_size=scsize, baseline=-scsize / 4))
+
+        self.alayout.x = 1280 / 2
+        self.alayout.y = 720 / 2 + 50
+        self.alayout.anchor_x = 'right'
+        self.alayout.anchor_y = 'center'
+
+        self.blayout = ScrollableTextLayout(self.bdoc, width=400, height=300,
+                                            batch=batch, multiline=True)
+        w = 400 - len(str(self.bscore)) * scsize * 72 / 96
+        self.bdoc.set_style(0, len(self.bdoc.text), dict(wrap=False,
+                            color=[255]*4, align='right', tab_stops=[w]))
+        self.bdoc.set_style(0, len(str(self.bscore)), dict(font_size=scsize,
+                            baseline=-scsize / 4))
+        a = len(str(self.bscore))+1
+        self.bdoc.set_style(a, a + len(self.bname), dict(font_size=32))
+
+        self.blayout.x = 1280 / 2
+        self.blayout.y = 720 / 2 + 50
+        self.blayout.anchor_x = 'left'
+        self.blayout.anchor_y = 'center'
 
     def delete(self):
         self.scorelayout.delete()
+
+
+class WeaponBar(object):
+    """docstring for WeaponBar"""
+    def __init__(self, batch):
+        super(WeaponBar, self).__init__()
+        pass
+
+    def init_bar(self, weapons):
+        self.ammodoc = FormattedDocument()
