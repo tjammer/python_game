@@ -6,7 +6,7 @@ from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from elements import inputdict, weaponsdict, KeysFrame
 from menu_events import Events, MenuClass
 from pyglet.text import Label
-from graphics.primitives import Box, Triangle, font
+from graphics.primitives import Box, Triangle, font, AmmoTriangle as Ammo
 from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
@@ -140,6 +140,7 @@ class GameScreen(Events):
                     pass
                 elif ind == self.player.id and not self.isSpec:
                     self.send_message('menu_transition_-')
+                    self.gs_view.leave(self.player.id)
                     self.trans_to_spec()
                 else:
                     self.specs[ind] = self.players[ind]
@@ -179,7 +180,10 @@ class GameScreen(Events):
                     if not st in self.player.weapons.weapons:
                         self.player.weapons.pickup(st)
                     else:
-                        self.player.weapons.apply(st, self.player)
+                        if not isinstance(self.map.items[itemid], Ammo):
+                            self.player.weapons.apply(st, self.player)
+                        else:
+                            self.player.weapons.predict_ammo(st)
             self.map.serverupdate(itemid, spawn)
         elif typ == proto.chat:
             ind, msg = data
@@ -277,8 +281,8 @@ class GameScreen(Events):
         self.isSpec = False
         self.player.weapons.hook_hud(self.hud.update_prop)
         self.player.state.hook_hud(self.hud.update_prop)
-        self.gs_view.add_self(self.player)
         self.hud.init_player(self.players)
+        self.gs_view.add_self(self.player)
 
     def game_update(self, dt):
         self.update_physics(dt)

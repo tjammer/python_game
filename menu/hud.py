@@ -1,10 +1,10 @@
 from pyglet.text import Label
 from pyglet.text.document import FormattedDocument
-from pyglet.text.layout import ScrollableTextLayout
+from pyglet.text.layout import ScrollableTextLayout, IncrementalTextLayout
 from network_utils import protocol_pb2 as proto
 from pyglet.graphics import Batch
 from gameplay.weapons import weaponcolors, allstrings
-from graphics.primitives import font
+from graphics.primitives import font, Triangle
 
 
 class Hud(object):
@@ -78,6 +78,7 @@ class Hud(object):
                              proto.explBlaster: (255, 255, 0, 255)}
         self.killmsg_count = 0
         self.scoreboard = None
+        self.weaponbar = WeaponBar(self.labellist)
 
     def init_player(self, players):
         if len(players) == 0:
@@ -125,21 +126,23 @@ class Hud(object):
     def update_prop(self, armor=False, hp=False, text=False, weapon=False,
                     ammo=False, time=False, name=False, msg=False, chat=None):
         if armor:
-            self.armor.text = armor
-            if int(armor) <= 20:
-                self.armor.color = self.low_hpcol
-            elif int(armor) > 100:
-                self.armor.color = self.high_hpcol
-            else:
-                self.armor.color = self.normal_hpcol
+            if armor != self.armor.text:
+                self.armor.text = armor
+                if int(armor) <= 20:
+                    self.armor.color = self.low_hpcol
+                elif int(armor) > 100:
+                    self.armor.color = self.high_hpcol
+                else:
+                    self.armor.color = self.normal_hpcol
         if hp:
-            self.hp.text = hp
-            if int(hp) <= 20:
-                self.hp.color = self.low_hpcol
-            elif int(hp) > 100:
-                self.hp.color = self.high_hpcol
-            else:
-                self.hp.color = self.normal_hpcol
+            if hp != self.hp.text:
+                self.hp.text = hp
+                if int(hp) <= 20:
+                    self.hp.color = self.low_hpcol
+                elif int(hp) > 100:
+                    self.hp.color = self.high_hpcol
+                else:
+                    self.hp.color = self.normal_hpcol
         if text:
             self.text.begin_update()
             self.text.text = text
@@ -147,17 +150,21 @@ class Hud(object):
             self.text.batch = self.active_batch
             self.text.end_update()
         if weapon:
-            self.weapon.text = weapon
-            if weapon == allstrings['w0']:
-                self.weapon.color = weaponcolors['w0'] + [255]
-            if weapon == allstrings['w1']:
-                self.weapon.color = weaponcolors['w1'] + [255]
-            if weapon == allstrings['w2']:
-                self.weapon.color = weaponcolors['w2'] + [255]
-            if weapon == allstrings['w3']:
-                self.weapon.color = weaponcolors['w3'] + [255]
+            if weapon != self.weapon.text:
+                self.weapon.text = weapon
+                if weapon == allstrings['w0']:
+                    self.weapon.color = weaponcolors['w0'] + [255]
+                if weapon == allstrings['w1']:
+                    self.weapon.color = weaponcolors['w1'] + [255]
+                if weapon == allstrings['w2']:
+                    self.weapon.color = weaponcolors['w2'] + [255]
+                if weapon == allstrings['w3']:
+                    self.weapon.color = weaponcolors['w3'] + [255]
         if ammo:
-            self.ammo.text = ammo
+            ammo, weapons = ammo
+            if ammo != self.ammo.text:
+                self.ammo.text = ammo
+            self.weaponbar.update(weapons)
         if isinstance(time, float):
             self.gametime = time
         if name:
@@ -244,13 +251,14 @@ class ScoreBoard(object):
         self.bdoc = FormattedDocument('\t'.join((str(self.bscore),
                                       self.bname)))
         scsize = 100
+        nmsize = 32
 
         self.alayout = ScrollableTextLayout(self.adoc, width=400, height=300,
                                             batch=batch, multiline=True)
         w = 400 - len(str(self.ascore)) * scsize * 72 / 96
         self.adoc.set_style(0, len(self.adoc.text), dict(wrap=False,
                             color=[255]*4, align='left', tab_stops=[w]))
-        self.adoc.set_style(0, len(self.aname), dict(font_size=32))
+        self.adoc.set_style(0, len(self.aname), dict(font_size=nmsize))
         a = len(self.aname)+1
         self.adoc.set_style(a, a + len(str(self.ascore)),
                             dict(font_size=scsize, baseline=-scsize / 4))
@@ -262,13 +270,13 @@ class ScoreBoard(object):
 
         self.blayout = ScrollableTextLayout(self.bdoc, width=400, height=300,
                                             batch=batch, multiline=True)
-        w = 400 - len(str(self.bscore)) * scsize * 72 / 96
+        w = 400 - len(str(self.bname)) * nmsize * 72 / 96
         self.bdoc.set_style(0, len(self.bdoc.text), dict(wrap=False,
                             color=[255]*4, align='right', tab_stops=[w]))
         self.bdoc.set_style(0, len(str(self.bscore)), dict(font_size=scsize,
                             baseline=-scsize / 4))
         a = len(str(self.bscore))+1
-        self.bdoc.set_style(a, a + len(self.bname), dict(font_size=32))
+        self.bdoc.set_style(a, a + len(self.bname), dict(font_size=nmsize))
 
         self.blayout.x = 1280 / 2
         self.blayout.y = 720 / 2 + 50
@@ -276,14 +284,62 @@ class ScoreBoard(object):
         self.blayout.anchor_y = 'center'
 
     def delete(self):
-        self.scorelayout.delete()
+        self.alayout.delete()
+        self.blayout.delete()
 
 
 class WeaponBar(object):
     """docstring for WeaponBar"""
     def __init__(self, batch):
         super(WeaponBar, self).__init__()
-        pass
+        self.batch = batch
+        self.weapons = {'1': 1, '2': 1, '3': 1}
+        self.ammos = []
+        self.tris = []
+
+    def __len__(self):
+        return len(self.weapons)
 
     def init_bar(self, weapons):
-        self.ammodoc = FormattedDocument()
+        try:
+            self.ammolayout.delete()
+            for tri in self.tris:
+                tri.remove()
+        except AttributeError:
+            pass
+        ammotext = '\t'.join(str(w.ammo) for key, w in weapons.iteritems()
+                             if key != 'w0')
+        self.ammos = ammotext.split('\t')
+        self.ammodoc = FormattedDocument(ammotext)
+        self.ammodoc.set_style(0, len(ammotext), dict(color=[255]*4,
+                               tab_stops=[120*(i+1) for i in range(6)],
+                               font_size=24, align='center', wrap=False))
+        self.ammolayout = IncrementalTextLayout(self.ammodoc, width=600,
+                                                height=50, batch=self.batch,
+                                                multiline=True)
+        self.ammolayout.x = 1280 / 2
+        self.ammolayout.y = 20
+        self.ammolayout.anchor_x = 'center'
+        self.ammolayout.anchor_y = 'bottom'
+        w = self.ammolayout.content_width
+        colorlist = [weaponcolors[key] for key in weapons if key != 'w0']
+        self.tris = [Triangle(640-w/2-52+120*i, 35, 50, 50, col,
+                     self.batch, 0, 0) for i, col in enumerate(colorlist)]
+
+    def update(self, weapons):
+        if len(weapons) != len(self.weapons):
+            self.init_bar(weapons)
+            self.weapons = weapons.copy()
+        else:
+            ammotext = '\t'.join(str(w.ammo) for key, w in weapons.iteritems()
+                                 if key != 'w0')
+            ammos = ammotext.split('\t')
+            self.ammolayout.begin_update()
+            for i, a in enumerate(ammos):
+                if a != self.ammos[i]:
+                    ln = sum(len(self.ammos[j]) for j in range(i)) + i
+                    self.ammodoc.delete_text(ln, ln + len(self.ammos[i]))
+                    self.ammodoc.insert_text(ln, a)
+            self.ammolayout.end_update()
+
+            self.ammos = ammos

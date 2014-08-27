@@ -129,6 +129,7 @@ class Blaster(Weapon):
         self.selfhit = True
         self.proj_lifetime = 10
         self.keystr = 'w3'
+        self.knockback = 500
 
     def on_fire(self, pos, aim_pos):
         rectoffset = vec2(16, 32)
@@ -137,7 +138,7 @@ class Blaster(Weapon):
         proj = BlasterProjectile(x=pos.x+16, y=pos.y+32,
                                  width=15, height=15, vel=self.vel,
                                  direc=direc, lifetime=self.proj_lifetime,
-                                 dmg=110, id=self.id)
+                                 dmg=110, id=self.id, knockback=self.knockback)
         proj.dispatch_proj = self.dispatch_proj
         self.dispatch_proj(proj)
 
@@ -330,6 +331,8 @@ class BlasterProjectile(Projectile):
                                 height=hwidth*2, vel=0, direc=vec2(0, 0),
                                 lifetime=0.05)
         if player:
+            #direc should already be normalized for blasterproj
+            player.state.vel += self.direc * self.knockback
             self.damage_player(player, self)
             proj.players.append(player)
         self.dispatch_proj(proj)
@@ -719,13 +722,13 @@ class WeaponsManager(object):
                 self.current_s = allstrings[key]
                 if self.hudhook:
                     self.hudhook(weapon=self.current_s,
-                                 ammo=str(self.current_w.ammo))
+                                 ammo=(str(self.current_w.ammo), self.weapons))
         except KeyError:
             pass
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
-        self.hudhook(ammo=str(self.current_w.ammo))
+        self.hudhook(ammo=(str(self.current_w.ammo), self.weapons))
 
     def reset(self):
         self.weapons = {}
@@ -745,22 +748,27 @@ class WeaponsManager(object):
     def apply(self, keystr, player):
         self.weapons[keystr].apply(player)
         if self.weapons[keystr] == self.current_w:
-            self.hudhook(ammo=str(self.current_w.ammo))
+            self.hudhook(ammo=(str(self.current_w.ammo), self.weapons))
 
     def pack_ammo_weapon(self):
-        key = [key for key, val in self.weapons.iteritems()
-               if val == self.current_w][0]
+        key = self.current_w.keystr
         return self.current_w.ammo, int(key[-1]) + 1
 
     def from_server(self, weapinfo):
         ammo, weap = weapinfo
         key = 'w' + str(weap - 1)
         try:
-            if self.current_w == self.weapons[key]:
+            if self.current_w.keystr == key:
                 self.current_w.ammo = ammo
-                self.hudhook(ammo=str(self.current_w.ammo))
+                self.hudhook(ammo=(str(self.current_w.ammo), self.weapons))
         except KeyError:
             pass
+
+    def predict_ammo(self, keystr):
+        maxammo, ammoval = ammo_values[keystr]
+        self.weapons[keystr].ammo += ammoval
+        if self.weapons[keystr].ammo > maxammo:
+            self.weapons[keystr].ammo = maxammo
 
 allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
               'w1': ShotGun}
