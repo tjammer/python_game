@@ -341,10 +341,13 @@ class GameStateViewer(object):
     def leave(self, id):
         if id in self.a:
             self.a.leave(id)
+            self.a.name = '_'
             self.hudhook(name=(True, '_'))
         else:
             self.b.leave(id)
+            self.b.name = '_'
             self.hudhook(name=(False, '_'))
+        self.scorehook(0, 0)
 
     def score(self, killed, killer, weapon=False):
         for team in (self.a, self.b):
@@ -371,8 +374,8 @@ class GameStateViewer(object):
             self.hudhook(name=(False, self.b.name))
         self.a = Team()
         self.a.join(ownplayer)
-        self.scorehook(self.a.score, self.b.score)
         self.hudhook(name=(True, ownplayer.name))
+        self.scorehook(self.a.score, self.b.score)
 
     def to_team(self, id):
         if len(self.a) == 0:
