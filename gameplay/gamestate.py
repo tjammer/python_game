@@ -28,6 +28,7 @@ class GamestateManager(object):
         self.items = items
         self.ticks = 0
         self.send_spec = send_spec
+        self.dueltime = 15
 
     def update(self, dt):
         self.ticks += dt
@@ -38,7 +39,7 @@ class GamestateManager(object):
                                                   and player.input.att):
                     self.spawn(player)
             else:
-                if not self.gamestate == proto.warmUp:
+                if not self.gamestate == proto.countDown:
                     for item in self.items:
                         if player.rect.overlaps(item):
                             if self.items.apply(player, item):
@@ -66,6 +67,10 @@ class GamestateManager(object):
         self.items.update(dt, self.send_mapupdate)
         if self.ticks >= 1:
             self.ticks = 0
+
+    def update_player(self, dt, id, rectgen):
+        if not self.gamestate == proto.gameOver:
+            self.ingame[id].update(dt, rectgen)
 
     def damage_player(self, player, proj):
         #armor absorbs 2/3 of dmg
@@ -208,8 +213,11 @@ class GamestateManager(object):
             player.freeze()
 
     def start_game(self):
-        self.gametime = 300
+        self.gametime = self.dueltime
         self.gamestate = proto.inProgress
+        for item in self.items.get_inactive():
+            item.inactive = False
+            self.send_mapupdate(item)
         msg = proto.Message()
         msg.type = proto.stateUpdate
         plr = proto.Player()
@@ -388,7 +396,7 @@ class GameStateViewer(object):
         self.hudhook(text=text)
 
     def show_score(self):
-        pass
+        self.scorehook(self.a.score, self.b.score, scoreboard=True)
 
     def start_game(self):
         self.gamestate = proto.inProgress

@@ -1,4 +1,6 @@
-from pyglet.text import Label, document, layout, DocumentLabel
+from pyglet.text import Label
+from pyglet.text.document import FormattedDocument
+from pyglet.text.layout import ScrollableTextLayout
 from network_utils import protocol_pb2 as proto
 from pyglet.graphics import Batch
 from gameplay.weapons import weaponcolors, allstrings
@@ -41,26 +43,26 @@ class Hud(object):
                           x=640, y=680, anchor_x='center', anchor_y='center',
                           bold=True,
                           batch=self.labellist)
-        self.chatdoc = document.FormattedDocument('\n' * 11)
+        self.chatdoc = FormattedDocument('\n' * 11)
         #self.chatlog = document .FormattedDocument('\n')
-        self.chat = layout.ScrollableTextLayout(self.chatdoc, width=500,
-                                                height=208, multiline=True,
-                                                batch=self.labellist)
+        self.chat = ScrollableTextLayout(self.chatdoc, width=500,
+                                         height=208, multiline=True,
+                                         batch=self.labellist)
         self.chat.x = 130
         self.chat.y = 130
         self.chat.content_valign = 'bottom'
 
-        self.killdoc = document.FormattedDocument('\n')
-        self.killmsg = layout.ScrollableTextLayout(self.killdoc, width=300,
-                                                   height=104, multiline=True,
-                                                   batch=self.labellist)
+        self.killdoc = FormattedDocument('\n')
+        self.killmsg = ScrollableTextLayout(self.killdoc, width=300,
+                                            height=104, multiline=True,
+                                            batch=self.labellist)
         self.killmsg.x = 20
         self.killmsg.y = 600
 
-        self.scoredoc = document.FormattedDocument('0 : 0')
-        self.score = layout.ScrollableTextLayout(self.scoredoc, width=150,
-                                                 height=104, multiline=True,
-                                                 batch=self.labellist)
+        self.scoredoc = FormattedDocument('0 : 0')
+        self.score = ScrollableTextLayout(self.scoredoc, width=150,
+                                          height=104, multiline=True,
+                                          batch=self.labellist)
         self.score.x = 1270
         self.score.y = 650
         self.score.anchor_x = 'right'
@@ -75,6 +77,7 @@ class Hud(object):
         self.weaponcolors = {proto.melee: (0, 255, 255, 255),
                              proto.explBlaster: (255, 255, 0, 255)}
         self.killmsg_count = 0
+        self.scoreboard = None
 
     def init_player(self, players):
         if len(players) == 0:
@@ -184,7 +187,7 @@ class Hud(object):
             self.chat.end_update()
             self.chat_active = 4
 
-    def set_score(self, a, b, msg=False):
+    def set_score(self, a, b, msg=False, scoreboard=False):
         self.score.begin_update()
         self.scoredoc.delete_text(0, len(self.scoredoc.text))
         self.scoredoc.insert_text(0, ''.join((str(a), '   ', self.aname, '\n',
@@ -192,8 +195,8 @@ class Hud(object):
                                   dict(color=[255] * 4))
         apos = self.scoredoc.get_paragraph_start(1)
         bpos = self.scoredoc.get_paragraph_start(len(self.scoredoc.text) - 1)
-        self.scoredoc.set_style(apos, apos+1, dict(font_size=24, baseline=-0))
-        self.scoredoc.set_style(bpos, bpos+1, dict(font_size=24, baseline=-0))
+        self.scoredoc.set_style(apos, apos+1, dict(font_size=24, baseline=-5))
+        self.scoredoc.set_style(bpos, bpos+1, dict(font_size=24, baseline=-5))
         self.score.end_update()
         self.score.width = self.score.content_width + 40
         if msg:
@@ -214,8 +217,43 @@ class Hud(object):
                 self.killmsg_active = 4
             self.killmsg_count += 1
             self.killmsg.end_update()
+        if scoreboard:
+            self.scoreboard = ScoreBoard((a, self.aname), (b, self.bname),
+                                         self.active_batch)
+        else:
+            if not self.scoreboard is None:
+                self.scoreboard.delete()
+                self.scoreboard = None
 
     def calc_time(self, gametime):
         mins = '{:01.0f}'.format(gametime // 60)
         secs = '{:02.0f}'.format(gametime % 60)
         return ''.join((mins, ':', secs))
+
+
+class ScoreBoard(object):
+    """docstring for ScoreBoard"""
+    def __init__(self, a, b, batch):
+        super(ScoreBoard, self).__init__()
+        self.ascore, self.aname = a
+        self.bscore, self.bname = b
+        scoretxt = '  '.join((str(self.ascore), str(self.bscore)))
+        nmstxt = '\t'.join((self.aname, self.bname))
+        self.scoredoc = FormattedDocument(''.join((nmstxt, '\n', scoretxt)))
+        a = len(self.scoredoc.text) - 1
+        self.scoredoc.set_paragraph_style(1, 1, dict(font_size=20))
+        self.scoredoc.set_paragraph_style(a, a, dict(font_size=200))
+        self.scorelayout = ScrollableTextLayout(self.scoredoc, width=800,
+                                                height=600, batch=batch,
+                                                multiline=True)
+        w = 200 * len(scoretxt) * 72 / 96 - (len(nmstxt)) * 20 * 72 / 96
+        self.scoredoc.set_style(0, len(self.scoredoc.text),
+                                dict(color=[255] * 4, align='center',
+                                     tab_stops=[w]))
+        self.scorelayout.x = 1280 / 2
+        self.scorelayout.y = 720 / 2 - 100
+        self.scorelayout.anchor_x = 'center'
+        self.scorelayout.anchor_y = 'center'
+
+    def delete(self):
+        self.scorelayout.delete()
