@@ -10,7 +10,7 @@ from options import colors, Options
 
 class Player(Events):
     """docstring for player"""
-    def __init__(self, server=False, dispatch_proj=None, id=False):
+    def __init__(self, server=False, dispatch_proj=None, id=False, batch=None):
         super(Player, self).__init__()
         self.state = state(vec2(100, 130), vec2(0, 0), 100)
         self.move = Movement(*self.state.pos)
@@ -25,7 +25,8 @@ class Player(Events):
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
         #self.color = Options()['color']  #(0, 204, 255)
         self.set_color(Options()['color'])
-        self.rect = self.Rect(0, 0, 32, 72, self.color, isplayer=True)
+        self.rect = self.Rect(0, 0, 32, 72, self.color, isplayer=True,
+                              batch=batch)
         #input will be assigned by windowmanager class
         self.input = proto.Input()
         self.listeners = {}
