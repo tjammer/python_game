@@ -405,3 +405,7 @@ class GameStateViewer(object):
         self.gamestate = proto.warmUp
         self.reset_score()
         self.scorehook(self.a.score, self.b.score)
+
+    def count_down(self):
+        text = 'all players are ready! prepare to fight!'
+        self.hudhook(text=text)

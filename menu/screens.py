@@ -163,6 +163,7 @@ class GameScreen(Events):
                 self.gs_view.is_ready(ind, name)
             elif gs == proto.countDown:
                 self.player.freeze()
+                self.gs_view.count_down()
             elif gs == proto.inProgress:
                 self.gs_view.start_game()
             elif gs == proto.warmUp:
