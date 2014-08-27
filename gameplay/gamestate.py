@@ -250,7 +250,7 @@ class GamestateManager(object):
 
     def stop_game(self):
         self.gamestate = proto.gameOver
-        self.gametime = 5
+        self.gametime = 10
         msg = proto.Message()
         msg.type = proto.stateUpdate
         msg.gameState = proto.gameOver
