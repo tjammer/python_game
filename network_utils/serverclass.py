@@ -42,15 +42,16 @@ class GameServer(DatagramProtocol):
             if dt > 0:
                 dt = (dt / 1000000.)
                 dt = dt if dt < self.mxdt else self.mxdt
+                id = data.input.id
                 # update movement
-                self.players[data.input.id].update(dt,
-                                                   self.rectgen(data.input.id))
-                self.players[data.input.id].time = data.input.time
-                self.player_to_pack(data.input.id)
+                #self.players[id].update(dt, self.rectgen(data.input.id))
+                self.gamestate.update_player(dt, id, self.rectgen(id))
+                self.players[id].time = data.input.time
+                self.player_to_pack(id)
         elif data.type == proto.disconnect and self.isonline(data, address):
             self.ackman.respond(data, address)
             self.disc_player(data.input.id)
-        elif data.type == proto.ackResponse and self.isonline(data, address):
+        elif data.type == proto.ackResponse:
             self.ackman.receive_ack(data)
         elif data.type == proto.stateUpdate and self.isonline(data, address):
             self.ackman.respond(data, address)
