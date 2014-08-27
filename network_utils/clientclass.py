@@ -10,8 +10,8 @@ class Client(DatagramProtocol):
     def __init__(self):
         self.time = 0
         self.connected = False
-        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
-        #self.host = ('127.0.0.1', 8000)
+        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
+        self.host = ('127.0.0.1', 8000)
         self.con_timer = 0
         self.message = proto.Message()
         self.input = proto.Input()
@@ -63,6 +63,9 @@ class Client(DatagramProtocol):
                 self.transport.write(msg_, self.host)
         elif event == 'other':
             #only need one message for now, check git for other
+            inpt = proto.Input()
+            inpt.id = self.input.id
+            msg.input.CopyFrom(inpt)
             self.ackman.send_rel(msg, self.host)
 
     def datagramReceived(self, datagram, address):
