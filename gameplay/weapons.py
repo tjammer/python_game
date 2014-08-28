@@ -121,7 +121,7 @@ class Blaster(Weapon):
         super(Blaster, self).__init__(*args, **kwargs)
         self.dispatch_proj = dispatch_proj
         self.id = id
-        self.reload_t = 1000
+        self.reload_t = 800
         self.ammo = 10
         self.max_ammo = 15
         self.ammoval = 5
