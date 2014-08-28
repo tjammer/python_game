@@ -17,7 +17,7 @@ weaponcolors = {'w0': [255, 255, 255], 'w3': [149, 17, 70],
                 'w2': [255, 152, 0], 'w1': [126, 138, 162]}
 
 #values for ammo_boxes. (max_ammo, ammoval)
-ammo_values = {'w1': (50, 25), 'w2': (150, 100), 'w3': (25, 10)}
+ammo_values = {'w1': (50, 25), 'w2': (100, 50), 'w3': (25, 10)}
 
 
 class Weapon(Rectangle):
@@ -150,9 +150,9 @@ class LightningGun(Weapon):
         self.dispatch_proj = dispatch_proj
         self.id = id
         self.reload_t = 50
-        self.ammo = 100
-        self.max_ammo = 100
-        self.ammoval = 50
+        self.ammo = 50
+        self.max_ammo = 50
+        self.ammoval = 25
         self.length = 800
         self.dmg = 8
         self.knockback = 30
