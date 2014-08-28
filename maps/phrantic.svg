@@ -25,10 +25,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.35"
-     inkscape:cx="1312.0963"
+     inkscape:cx="983.52487"
      inkscape:cy="1397.1762"
      inkscape:document-units="px"
-     inkscape:current-layer="ammo"
+     inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -96,7 +96,8 @@
      inkscape:groupmode="layer"
      id="ammo"
      inkscape:label="ammo"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <rect
        weapon="w3"
        style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
@@ -278,8 +279,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <rect
        style="fill:#969696;fill-opacity:1;stroke:none"
        id="rect3020"
@@ -430,9 +430,9 @@
     <rect
        style="fill:#969696;fill-opacity:1;stroke:none"
        id="rect3076"
-       width="300"
+       width="250"
        height="90"
-       x="350"
+       x="400"
        y="-640" />
     <rect
        style="fill:#969696;fill-opacity:1;stroke:none"
