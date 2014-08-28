@@ -18,11 +18,9 @@ class Map(object):
         self.server = server
         if server:
             self.Rect = AABB
-            self.Armor = Armor
             self.batch = None
         else:
             self.Rect = Rect
-            self.Armor = DrawableArmor
             from pyglet.graphics import Batch
             self.batch = Batch()
         self.items = ItemManager(self.batch)
@@ -81,11 +79,20 @@ class Map(object):
                     avalue = int(atr['armor'])
                     color, maxarmor = armors[avalue]
                     respawn = timers['armor']
-                    armor = self.Armor(x=x, y=-y-height, width=width,
-                                       height=height, value=avalue,
-                                       bonus=False, respawn=respawn,
-                                       color=color, ind=self.ind,
-                                       maxarmor=maxarmor, batch=self.batch)
+                    if self.server:
+                        armor = Armor(x=x, y=-y-height, width=width,
+                                      height=height, value=avalue,
+                                      bonus=False, respawn=respawn,
+                                      color=color, ind=self.ind,
+                                      maxarmor=maxarmor, batch=self.batch)
+                    else:
+                        armor = DrawableArmor(x=x+6, y=-y-height,
+                                              width=width-12,
+                                              height=height-12, value=avalue,
+                                              bonus=False, respawn=respawn,
+                                              color=color, ind=self.ind,
+                                              maxarmor=maxarmor,
+                                              batch=self.batch)
                     self.items.add(armor)
                     self.ind += 1
 
@@ -108,7 +115,8 @@ class Map(object):
                                          color=color, ind=self.ind,
                                          maxhp=maxhp, batch=self.batch)
                     else:
-                        health_ = HealthBox(x, -y - height, width, height,
+                        health_ = HealthBox(x+6, -y - height, width-12,
+                                            height-12,
                                             color=color, batch=self.batch,
                                             ind=self.ind)
                     self.items.add(health_)
@@ -133,8 +141,9 @@ class Map(object):
                                ind=self.ind, batch=self.batch)
                         self.items.add(w_)
                     else:
-                        w_ = Triangle(x=x, y=-y-height, width=width,
-                                      height=height, color=color, ind=self.ind,
+                        w_ = Triangle(x=x+6, y=-y-height, width=width-12,
+                                      height=height-12, color=color,
+                                      ind=self.ind,
                                       batch=self.batch, keystr=weapstr)
                         self.items.add(w_)
                     self.ind += 1
@@ -160,8 +169,8 @@ class Map(object):
                                   keystring=weapstr)
                         self.items.add(w_)
                     else:
-                        w_ = AmmoTriangle(x=x, y=-y-height, width=width,
-                                          height=height, color=color,
+                        w_ = AmmoTriangle(x=x+6, y=-y-height, width=width-12,
+                                          height=height-12, color=color,
                                           ind=self.ind,
                                           batch=self.batch, keystr=weapstr)
                         self.items.add(w_)
