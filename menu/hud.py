@@ -216,7 +216,7 @@ class Hud(object):
             self.killmsg.begin_update()
             self.killdoc.insert_text(len(self.killdoc.text), killer,
                                      dict(color=[255] * 4))
-            self.killdoc.insert_text(len(self.killdoc.text), ' killed',
+            self.killdoc.insert_text(len(self.killdoc.text), ' fragged',
                                      dict(color=wcol + [255]))
             self.killdoc.insert_text(len(self.killdoc.text), ' '.join(('',
                                      killed, '\n')),
