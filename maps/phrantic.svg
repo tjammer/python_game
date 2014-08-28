@@ -24,11 +24,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="2361.4286"
-     inkscape:cy="1285.5063"
+     inkscape:zoom="0.35"
+     inkscape:cx="1312.0963"
+     inkscape:cy="1397.1762"
      inkscape:document-units="px"
-     inkscape:current-layer="teles"
+     inkscape:current-layer="ammo"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -69,7 +69,8 @@
      inkscape:groupmode="layer"
      id="teles"
      inkscape:label="teles"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <rect
        y="-100"
        x="1537"
@@ -95,8 +96,7 @@
      inkscape:groupmode="layer"
      id="ammo"
      inkscape:label="ammo"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <rect
        weapon="w3"
        style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
@@ -106,8 +106,8 @@
        x="2175"
        y="-910" />
     <rect
-       y="-910"
-       x="1475"
+       y="-600"
+       x="2150"
        height="50"
        width="50"
        id="rect3021"
@@ -121,14 +121,6 @@
        height="50"
        x="1200"
        y="-910" />
-    <rect
-       y="-20"
-       x="670"
-       height="50"
-       width="50"
-       id="rect3892"
-       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
-       weapon="w2" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -152,14 +144,6 @@
        id="rect3040"
        style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
        weapon="w3" />
-    <rect
-       weapon="w3"
-       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
-       id="rect3884"
-       width="50"
-       height="50"
-       x="2125"
-       y="-600" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -446,9 +430,9 @@
     <rect
        style="fill:#969696;fill-opacity:1;stroke:none"
        id="rect3076"
-       width="200"
+       width="300"
        height="90"
-       x="450"
+       x="350"
        y="-640" />
     <rect
        style="fill:#969696;fill-opacity:1;stroke:none"
