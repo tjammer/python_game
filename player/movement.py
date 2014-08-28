@@ -37,7 +37,7 @@ class Movement(object):
         if state.isDead:
             conds.hold = True
             if conds.onGround:
-                self.vel.x -= self.vel.x * dt * self.friction * 0.1
+                self.vel.x -= self.vel.x * dt * self.friction * 0.5
             conds.hold = False
             sign = 0
         elif input.right and not input.left:
