@@ -8,7 +8,8 @@ inpt = proto.Input()
 inputdict = {'left': 'left', 'right': 'right', 'up': 'jump', 'att': 'attack',
              'rdy': 'ready up', 'chat': 'chat'}
 weaponsdict = {'melee': 'melee', 'sg': 'shotgun',
-               'lg': 'lightning gun', 'blaster': 'blaster'}
+               'lg': 'lightning gun', 'blaster': 'blaster',
+               'gl': 'grenade launcher'}
 
 
 class TextBoxFramed(object):

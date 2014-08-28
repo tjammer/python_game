@@ -88,6 +88,8 @@ class InputHandler(object):
                 self.directns.switch = proto.sg
             elif self.keys[self.rkd['melee']]:
                 self.directns.switch = proto.melee
+            elif self.keys[self.rkd['gl']]:
+                self.directns.switch = proto.gl
             else:
                 self.directns.switch = proto.no_switch
             self.controls['esc'] = self.keys[key.ESCAPE]

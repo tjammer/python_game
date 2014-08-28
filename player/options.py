@@ -16,6 +16,7 @@ standards = {'name': 'UnnamedPlayer',
              'sg': '_2',
              'lg': 'E',
              'blaster': 'Q',
+             'gl': 'R',
              'chat': 'ENTER'}
 
 

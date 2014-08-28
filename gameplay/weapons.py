@@ -14,10 +14,11 @@ def spread(dx, dy, angle, num):
     return dys
 
 weaponcolors = {'w0': [255, 255, 255], 'w3': [149, 17, 70],
-                'w2': [255, 152, 0], 'w1': [126, 138, 162]}
+                'w2': [255, 152, 0], 'w1': [126, 138, 162],
+                'w4': [34, 83, 120]}
 
 #values for ammo_boxes. (max_ammo, ammoval)
-ammo_values = {'w1': (50, 25), 'w2': (100, 50), 'w3': (25, 10)}
+ammo_values = {'w1': (50, 25), 'w2': (100, 50), 'w3': (25, 10), 'w4': (25, 10)}
 
 
 class Weapon(Rectangle):
@@ -136,7 +137,7 @@ class Blaster(Weapon):
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
         proj = BlasterProjectile(x=pos.x+16, y=pos.y+32,
-                                 width=15, height=15, vel=self.vel,
+                                 width=10, height=10, vel=self.vel,
                                  direc=direc, lifetime=self.proj_lifetime,
                                  dmg=110, id=self.id, knockback=self.knockback)
         proj.dispatch_proj = self.dispatch_proj
@@ -190,6 +191,35 @@ class ShotGun(Weapon):
         self.dispatch_proj(pellets)
 
 
+class GrenadeLauncher(Weapon):
+    """docstring for GrenadeLauncher"""
+    def __init__(self, dispatch_proj, id, *args, **kwargs):
+        super(GrenadeLauncher, self).__init__(*args, **kwargs)
+        self.dispatch_proj = dispatch_proj
+        self.id = id
+        self.reload_t = 600
+        self.ammo = 10
+        self.max_ammo = 15
+        self.ammoval = 5
+        self.vel = 900
+        self.knockback = 700
+        self.proj_lifetime = 2.5
+        self.keystr = 'w4'
+
+    def on_fire(self, pos, aim_pos):
+        pos += vec2(16, 36)
+        dr = aim_pos - pos
+        drunit = dr / dr.mag() + vec2(0, 0.2)
+        drunit = drunit / drunit.mag()
+        proj = NadeProjectile(x=pos.x, y=pos.y, width=15, height=10,
+                              vel=self.vel, direc=drunit,
+                              lifetime=self.proj_lifetime, dmg=120, id=self.id,
+                              knockback=self.knockback)
+        #proj.vel.y += 500
+        proj.dispatch_proj = self.dispatch_proj
+        self.dispatch_proj(proj)
+
+
 class NoAmmoError(Exception):
     def __init__(self):
         pass
@@ -225,8 +255,11 @@ class Projectile(Rectangle):
         self.ppos = ppos
         self.canthurt = 0.5
 
-    def on_hit(self, player=None):
+    def on_hit(self, player=None, norm=0):
         pass
+
+    def on_runout(self):
+        return True
 
     def updateproj(self, dt, mapgen, playergen):
         self.lifetime -= dt
@@ -237,39 +270,45 @@ class Projectile(Rectangle):
         return self.collide(dt, mapgen, playergen)
 
     def collide(self, dt, mapgen, playergen):
+        norm = False
         all_collisions = ((self.sweep(obj.rect, dt), obj.id)
                           for obj in playergen)
         collisions = [coldata for coldata in all_collisions if coldata[0]]
         id = False
         try:
             xt = min(col[0][1] for col in collisions if col[0][0].x != 0)
-            id = [col[1] for col in collisions if col[0][1] == xt][0]
+            norm, id = [(col[0][0], col[1]) for col in collisions if
+                        col[0][1] == xt][0]
         except (TypeError, ValueError):
             xt = dt
         try:
             yt = min(col[0][1] for col in collisions if col[0][0].y != 0)
             if yt < xt:
-                id = [col[1] for col in collisions if col[0][1] == yt][0]
+                norm, id = [(col[0][0], col[1]) for col in collisions if
+                            col[0][1] == yt][0]
         except (TypeError, ValueError):
             yt = dt
         dt_ = vec2(xt, yt)
         if not id:
+            #mapcollisions
             all_collisions = (self.sweep(obj, dt) for obj in mapgen)
             collisions = [coldata for coldata in all_collisions if coldata]
             try:
                 xt = min(col[1] for col in collisions if col[0].x != 0)
+                norm = [col[0] for col in collisions if col[1] == xt][0]
             except (TypeError, ValueError):
                 xt = dt
             try:
                 yt = min(col[1] for col in collisions if col[0].y != 0)
+                norm = [col[0] for col in collisions if col[1] == yt][0]
             except (TypeError, ValueError):
                 yt = dt
             dt_ = vec2(xt, yt)
             if (dt_.x < dt or dt_.y < dt):
                 id = -1
-        return self.resolve_sweep(dt_, id)
+        return self.resolve_sweep(dt_, id, norm)
 
-    def resolve_sweep(self, dt, id):
+    def resolve_sweep(self, dt, id, norm):
         pos = self.pos + self.vel * dt
         self.update(*pos)
         if not id:
@@ -277,7 +316,7 @@ class Projectile(Rectangle):
         elif id == self.id and self.canthurt:
             return False
         else:
-            return id
+            return id, norm
 
     def pass_pos(self, pos, vel):
         self.vel, self.pos = vel, pos
@@ -292,7 +331,7 @@ class MeleeProjectile(Projectile):
         self.vel = vec2(0, 0)
         self.ids = [self.id]
 
-    def on_hit(self, players=None):
+    def on_hit(self, players=None, norm=0):
         for player in players:
             if player.id not in self.ids:
                 self.damage_player(player, self)
@@ -301,7 +340,7 @@ class MeleeProjectile(Projectile):
         return False
 
     def collide(self, dt, mapgen, playergen):
-        return [player for player in playergen if self.overlaps(player.rect)]
+        return [plr for plr in playergen if self.overlaps(plr.rect)], 0
 
     def updateproj(self, dt, mapgen, playergen):
         self.update(*(vec2(*self.ppos) + self.offset + self.rectoffset))
@@ -321,7 +360,7 @@ class BlasterProjectile(Projectile):
         super(BlasterProjectile, self).__init__(*args, **kwargs)
         self.type = proto.blaster
 
-    def on_hit(self, player=None):
+    def on_hit(self, player=None, norm=0):
         posx = self.center.x
         posy = self.center.y
         hwidth = 125
@@ -340,6 +379,58 @@ class BlasterProjectile(Projectile):
         return True
 
 
+class NadeProjectile(Projectile):
+    """docstring for NadeProjectile"""
+    def __init__(self, *args, **kwargs):
+        super(NadeProjectile, self).__init__(*args, **kwargs)
+        self.type = proto.gl
+
+    def on_hit(self, player, norm):
+        if player:
+            posx = self.center.x
+            posy = self.center.y
+            hwidth = 125
+            proj = BlasterExplosion(dmg=110, knockback=700, id=self.id, x=posx,
+                                    y=posy, width=hwidth*2, height=hwidth*2,
+                                    vel=0, direc=vec2(0, 0), lifetime=0.05)
+            proj.type = proto.explNade
+            player.state.vel += self.direc * self.knockback
+            self.damage_player(player, self)
+            proj.players.append(player)
+            self.dispatch_proj(proj)
+            return True
+        else:
+            if norm.x:
+                self.vel.x *= -0.6
+            else:
+                self.vel.x *= 0.9
+                self.vel.y *= -0.6
+            return False
+
+    def on_runout(self):
+        posx = self.center.x
+        posy = self.center.y
+        hwidth = 125
+        proj = BlasterExplosion(dmg=110, knockback=700, id=self.id, x=posx,
+                                y=posy, width=hwidth*2, height=hwidth*2, vel=0,
+                                direc=vec2(0, 0), lifetime=0.05)
+        proj.type = proto.explNade
+        self.dispatch_proj(proj)
+        return True
+
+    def resolve_sweep(self, dt, id, norm):
+        if not id == -1:
+            self.vel -= vec2(0, 1500) * dt
+        pos = self.pos + self.vel * dt
+        self.update(*pos)
+        if not id:
+            return False
+        elif id == self.id and self.canthurt:
+            return False
+        else:
+            return id, norm
+
+
 class Explosion(Projectile):
     """docstring for Explosion"""
     def __init__(self, *args, **kwargs):
@@ -348,9 +439,9 @@ class Explosion(Projectile):
         self.orig_dmg = self.dmg
 
     def collide(self, dt, mapgen, playergen):
-        return [player for player in playergen if self.overlaps(player.rect)]
+        return [plr for plr in playergen if self.overlaps(plr.rect)], 0
 
-    def on_hit(self, players):
+    def on_hit(self, players, norm=0):
         for player in players:
             if player not in self.players:
                 direc = self.center - player.rect.center
@@ -459,6 +550,7 @@ class ProjectileManager(object):
             playergen = (player for player in self.players.itervalues())
             coll = proj.updateproj(dt, mapgen, playergen)
             if coll:
+                coll, norm = coll
                 try:
                     player = self.players[coll]
                 except KeyError:
@@ -466,32 +558,17 @@ class ProjectileManager(object):
                 except TypeError:
                     #in case of explosions coll: list of players in expl radius
                     player = coll
-                self.resolve_collision(proj, player)
+                self.resolve_collision(proj, player, norm)
             if proj.lifetime < 0:
-                self.todelete.append(proj)
+                if proj.on_runout():
+                    self.todelete.append(proj)
         #loop over copy of list to make deletion possible
         self.del_projectiles()
         self.send_all()
 
-    def collide(self, proj):
-        #extra function to be able to return when coll is found
-        collided = False
-        for player in self.players.itervalues():
-            coll = proj.collides(player.rect)
-            if coll:
-                ovr, axis = coll
-                self.resolve_collision(ovr, axis, proj, player)
-                collided = True
-        if not collided:
-            for rect in self.map.quad_tree.retrieve([], proj):
-                coll = proj.collides(rect)
-                if coll:
-                    ovr, axis = coll
-                    self.resolve_collision(ovr, axis, proj)
-
-    def resolve_collision(self, proj, player):
+    def resolve_collision(self, proj, player, norm):
         #self.todelete.append(proj)
-        if proj.on_hit(player):
+        if proj.on_hit(player, norm):
             self.todelete.append(proj)
 
     def del_projectiles(self):
@@ -598,11 +675,21 @@ class ProjectileViewer(object):
                                            color=(255, 0, 0), batch=self.batch)
                     self.projs[ind].vel = vel
                 elif self.data.type == proto.blaster:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=15, height=15,
+                    self.projs[ind] = Rect(pos.x, pos.y, width=10, height=10,
                                            color=weaponcolors['w3'],
                                            batch=self.batch)
                     self.projs[ind].vel = vel
+                elif self.data.type == proto.gl:
+                    self.projs[ind] = Rect(pos.x, pos.y, width=15, height=10,
+                                           color=weaponcolors['w4'],
+                                           batch=self.batch)
+                    self.projs[ind].vel = vel
                 elif self.data.type == proto.explBlaster:
+                    self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
+                                           color=(255, 0, 150),
+                                           batch=self.batch)
+                    self.projs[ind].vel = vel
+                elif self.data.type == proto.explNade:
                     self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
                                            color=(255, 0, 150),
                                            batch=self.batch)
@@ -628,7 +715,7 @@ class ProjectileViewer(object):
                     center, mpos = self.get_center(id)
                     mpos = vec2(*mpos)
                     dr = mpos - center
-                    dys = spread(dr.x, dr.y, angle=0.2, num=6)
+                    dys = spread(dr.x, dr.y, angle=0.1, num=6)
                     cont = ProjContainer(0.05, id)
                     for dy in dys:
                         un = vec2(dr.x, dy)
@@ -771,7 +858,7 @@ class WeaponsManager(object):
             self.weapons[keystr].ammo = maxammo
 
 allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
-              'w1': ShotGun}
+              'w1': ShotGun, 'w4': GrenadeLauncher}
 
 allstrings = {'w0': 'melee', 'w3': 'blaster',
-              'w2': 'lightning gun', 'w1': 'shotgun'}
+              'w2': 'lightning gun', 'w1': 'shotgun', 'w4': 'grenade launcher'}

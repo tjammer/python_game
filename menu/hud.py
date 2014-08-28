@@ -152,14 +152,9 @@ class Hud(object):
         if weapon:
             if weapon != self.weapon.text:
                 self.weapon.text = weapon
-                if weapon == allstrings['w0']:
-                    self.weapon.color = weaponcolors['w0'] + [255]
-                if weapon == allstrings['w1']:
-                    self.weapon.color = weaponcolors['w1'] + [255]
-                if weapon == allstrings['w2']:
-                    self.weapon.color = weaponcolors['w2'] + [255]
-                if weapon == allstrings['w3']:
-                    self.weapon.color = weaponcolors['w3'] + [255]
+                wkey = [key for key, val in allstrings.iteritems()
+                        if val == weapon][0]
+                self.weapon.color = weaponcolors[wkey] + [255]
         if ammo:
             ammo, weapons = ammo
             if ammo != self.ammo.text:
@@ -212,6 +207,8 @@ class Hud(object):
             w, killer, killed = msg
             if w == 11:
                 w = 4
+            if w == 12:
+                w = 5
             wcol = weaponcolors['w' + str(w-1)]
             self.killmsg.begin_update()
             self.killdoc.insert_text(len(self.killdoc.text), killer,
