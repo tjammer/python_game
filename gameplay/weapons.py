@@ -399,7 +399,7 @@ class ShotGunPellets(object):
         self.plength = plength
         self.id = id
         self.type = typ
-        spread_dy = spread(dx, dy, angle=0.2, num=pnum)
+        spread_dy = spread(dx, dy, angle=0.1, num=pnum)
         self.pellets = [HitScanLine(x, y, dx, spread_dy[i], plength, pdmg, pkb,
                         id, 0) for i in range(pnum)]
         self.dir = vec2(dx, dy)
