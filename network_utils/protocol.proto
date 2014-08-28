@@ -55,7 +55,7 @@ message Player {
     optional MState mState = 7;
     optional int32 hp = 8;
     optional int32 armor = 9;
-    optional int32 time = 10;
+    optional uint32 time = 10;
     optional string chat = 11;
     optional int32 ammo = 12;
     optional ProjectileType weapon = 13;
