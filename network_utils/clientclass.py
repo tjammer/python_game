@@ -190,8 +190,8 @@ class moves(list):
 
     def advance(self, index):
         index[0] += 1
-        #if index[0] >= self.maximum:
-        #    index[0] -= self.maximum
+        if index[0] >= self.maximum:
+            index[0] -= self.maximum
 
 
 def correct_client(update_physics, s_move, moves, head, tail, update_state):
