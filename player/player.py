@@ -54,19 +54,26 @@ class Player(Events):
             self.state.pos.y -= 1000 * dt
 
     def client_update(self, s_state):
-        easing = .8
-        snapping_distance = 20
+        easing = .3
+        snapping_distance = 15
 
         diff = vec2(s_state.pos.x - self.state.pos[0],
                     s_state.pos.y - self.state.pos[1])
         len_diff = diff.mag()
 
         if len_diff > snapping_distance:
+            print True
             self.state.pos = s_state.pos
         elif len_diff > .1:
             self.state.pos += diff * easing
         self.state.vel = s_state.vel
         self.rect.update(*self.state.pos)
+        self.state.conds = s_state.conds
+
+    def predict(self, dt, rectgen):
+        self.rect.vel = self.move.get_vel(dt, self.state, self.input)
+        self.rect.update(*self.state.pos)
+        self.collide(dt, rectgen, self.state)
 
     def draw(self):
         self.rect.draw()

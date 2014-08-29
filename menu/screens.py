@@ -58,6 +58,10 @@ class GameScreen(Events):
                               (ChatScreen, self.window))
 
         self.update_keys()
+        for plr in self.players.itervalues():
+            mapgen = (rect for rect in self.map.quad_tree.retrieve([],
+                      plr.rect))
+            plr.predict(dt, mapgen)
         self.on_update(dt)
 
     def update_physics(self, dt, state=False, input=False):
