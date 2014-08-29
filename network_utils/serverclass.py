@@ -268,7 +268,7 @@ class GameServer(DatagramProtocol):
 
     def rectgen(self, idx=-1):
         playergen = (player.rect for key, player in self.players.iteritems()
-                     if key != idx)
+                     if key != idx and not player.state.isDead)
         mapgen = (rect for rect in self.map.quad_tree.retrieve([],
                   self.players[idx].rect))
         return chain(playergen, mapgen)
