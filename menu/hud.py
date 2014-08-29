@@ -199,8 +199,10 @@ class Hud(object):
                                   dict(color=[255] * 4))
         apos = self.scoredoc.get_paragraph_start(1)
         bpos = self.scoredoc.get_paragraph_start(len(self.scoredoc.text) - 1)
-        self.scoredoc.set_style(apos, apos+1, dict(font_size=24, baseline=-6))
-        self.scoredoc.set_style(bpos, bpos+1, dict(font_size=24, baseline=-6))
+        self.scoredoc.set_style(apos, apos+len(str(a)), dict(font_size=24,
+                                baseline=-6))
+        self.scoredoc.set_style(bpos, bpos+len(str(b)), dict(font_size=24,
+                                baseline=-6))
         self.score.end_update()
         self.score.width = self.score.content_width + 40
         if msg:
