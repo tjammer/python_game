@@ -747,6 +747,10 @@ class ProjectileViewer(object):
                 pos = proj.pos + proj.vel * dt
                 ##self.interpolate(key, pos)
                 proj.update(*pos)
+                proj.time -= dt
+                if proj.time <= 0:
+                    proj.remove()
+                    todelete.append(key)
             elif isinstance(proj, Line):
                 proj.time -= dt
                 if proj.time <= 0:
