@@ -156,7 +156,7 @@ class LightningGun(Weapon):
         self.ammoval = 25
         self.length = 800
         self.dmg = 8
-        self.knockback = 30
+        self.knockback = 70
         self.keystr = 'w2'
 
     def on_fire(self, pos, aim_pos):
