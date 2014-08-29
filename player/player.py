@@ -62,7 +62,6 @@ class Player(Events):
         len_diff = diff.mag()
 
         if len_diff > snapping_distance:
-            print True
             self.state.pos = s_state.pos
         elif len_diff > .1:
             self.state.pos += diff * easing
