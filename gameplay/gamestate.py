@@ -368,8 +368,9 @@ class GameStateViewer(object):
                 kdn = team.name
         self.scorehook(self.a.score, self.b.score, msg=(weapon, krn, kdn))
 
-    def init_self(self, id):
+    def init_self(self, id, gs):
         self.ownid = id
+        self.gamestate = gs
 
     def add_self(self, ownplayer):
         if len(self.b) == 0:

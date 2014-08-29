@@ -180,6 +180,7 @@ class GameServer(DatagramProtocol):
         inpt.name = self.map.name
         own.input.CopyFrom(inpt)
         own.player.CopyFrom(player)
+        own.gameState = self.gamestate.gamestate
         self.ackman.send_rel(own, address)
         #send other players to player
         for idx, p in self.players.iteritems():

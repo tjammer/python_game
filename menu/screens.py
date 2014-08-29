@@ -224,12 +224,12 @@ class GameScreen(Events):
         self.on_draw()
 
     def on_connect(self, msg):
-        ind, mapname, name = msg
+        ind, mapname, name, gs = msg
         self.player.get_id(ind, name)
         self.map = Map(mapname)
         print 'connected with id: ' + str(self.player.id)
         #self.send_message('input', (self.player.input, 1337))
-        self.gs_view.init_self(ind)
+        self.gs_view.init_self(ind, gs)
         self.trans_to_spec()
 
     def try_join(self):

@@ -75,8 +75,9 @@ class Client(DatagramProtocol):
             self.id = self.message.player.id
             name = self.message.player.chat
             mapname = self.message.input.name
+            gs = self.message.gameState
             self.ackman.respond(self.message, address)
-            self.send_message('on_connect', (self.id, mapname, name))
+            self.send_message('on_connect', (self.id, mapname, name, gs))
         elif self.message.type == proto.playerUpdate and self.connected:
             ind = self.message.player.id
             state = self.server_to_state(self.message.player)
