@@ -209,8 +209,8 @@ class GrenadeLauncher(Weapon):
     def on_fire(self, pos, aim_pos):
         pos += vec2(16, 36)
         dr = aim_pos - pos
-        drunit = dr / dr.mag() + vec2(0, 0.2)
-        drunit = drunit / drunit.mag()
+        drunit = dr / dr.mag() + vec2(0, 0.3)
+        #drunit = drunit / drunit.mag()
         proj = NadeProjectile(x=pos.x, y=pos.y, width=15, height=10,
                               vel=self.vel, direc=drunit,
                               lifetime=self.proj_lifetime, dmg=120, id=self.id,
@@ -668,7 +668,8 @@ class ProjectileViewer(object):
             vel = vec2(self.data.velx, self.data.vely)
             pos = vec2(self.data.posx, self.data.posy)
             if ind in self.projs:
-                self.projs[ind].update(*pos)
+                ##self.projs[ind].update(*pos)
+                self.correct(pos, vel, ind)
             else:
                 if self.data.type == proto.melee:
                     self.projs[ind] = Rect(pos.x, pos.y, width=70, height=70,
@@ -741,7 +742,10 @@ class ProjectileViewer(object):
         todelete = []
         for key, proj in self.projs.iteritems():
             if isinstance(proj, Rect):
+                if proj.color == weaponcolors['w4']:
+                    proj.vel.y -= 1500 * dt
                 pos = proj.pos + proj.vel * dt
+                ##self.interpolate(key, pos)
                 proj.update(*pos)
             elif isinstance(proj, Line):
                 proj.time -= dt
@@ -765,6 +769,17 @@ class ProjectileViewer(object):
 
     def draw(self):
         self.batch.draw()
+
+    def correct(self, pos, vel, id):
+        self.projs[id].vel = vel
+        if (self.projs[id].pos - pos).mag() > 10:
+            self.projs[id].update(*pos)
+        else:
+            self.interpolate(id, pos)
+
+    def interpolate(self, id, pos):
+        npos = (pos - self.projs[id].pos) * 0.3
+        self.projs[id].update(*(self.projs[id].pos + npos))
 
 
 class WeaponsManager(object):
@@ -861,4 +876,4 @@ allweapons = {'w0': Melee, 'w3': Blaster, 'w2': LightningGun,
               'w1': ShotGun, 'w4': GrenadeLauncher}
 
 allstrings = {'w0': 'melee', 'w3': 'blaster',
-              'w2': 'lightning gun', 'w1': 'shotgun', 'w4': 'grenade launcher'}
+              'w2': 'lightning gun', 'w1': 'shotgun', 'w4': 'grenades'}
