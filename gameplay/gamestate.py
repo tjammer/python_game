@@ -28,7 +28,7 @@ class GamestateManager(object):
         self.items = items
         self.ticks = 0
         self.send_spec = send_spec
-        self.dueltime = 15
+        self.dueltime = 300
 
     def update(self, dt):
         self.ticks += dt
