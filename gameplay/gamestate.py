@@ -181,21 +181,23 @@ class GamestateManager(object):
                     team.score += 1
 
     def ready_up(self, data):
-        id = data.player.id
-        self.ingame[id].ready = True
-        if len([plr for plr in self.ingame.itervalues() if plr.ready]) == 2:
-            self.countdown()
-        else:
-            msg = proto.Message()
-            msg.type = proto.stateUpdate
-            plr = proto.Player()
-            plr.id = id
-            plr.chat = self.ingame[id].name
-            msg.player.CopyFrom(plr)
-            msg.gameState = proto.isReady
-            msg.gameTime = self.gametime
-            for player in self.all():
-                self.ackman.send_rel(msg, player.address)
+        if self.gamestate == proto.warmUp:
+            id = data.player.id
+            self.ingame[id].ready = True
+            if len([plr for plr in self.ingame.itervalues()
+                   if plr.ready]) == 2:
+                self.countdown()
+            else:
+                msg = proto.Message()
+                msg.type = proto.stateUpdate
+                plr = proto.Player()
+                plr.id = id
+                plr.chat = self.ingame[id].name
+                msg.player.CopyFrom(plr)
+                msg.gameState = proto.isReady
+                msg.gameTime = self.gametime
+                for player in self.all():
+                    self.ackman.send_rel(msg, player.address)
 
     def countdown(self):
         self.gametime = 10
