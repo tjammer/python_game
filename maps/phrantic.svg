@@ -25,10 +25,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="1889.4465"
-     inkscape:cy="1702.159"
+     inkscape:cx="318.49939"
+     inkscape:cy="1500.1285"
      inkscape:document-units="px"
-     inkscape:current-layer="armors"
+     inkscape:current-layer="weapons"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -135,8 +135,7 @@
      inkscape:groupmode="layer"
      id="weapons"
      inkscape:label="weapons"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <rect
        weapon="w2"
        style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
@@ -153,14 +152,6 @@
        id="rect3040"
        style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
        weapon="w3" />
-    <rect
-       weapon="w3"
-       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
-       id="rect3051"
-       width="50"
-       height="50"
-       x="125"
-       y="-150" />
     <rect
        y="-600"
        x="2200"
@@ -221,7 +212,8 @@
      inkscape:groupmode="layer"
      id="armors"
      inkscape:label="armor"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <rect
        style="fill:#ffff00;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:0;stroke-dasharray:none"
        id="rect3038"
