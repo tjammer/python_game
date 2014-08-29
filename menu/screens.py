@@ -279,6 +279,7 @@ class GameScreen(Events):
         self.isSpec = True
         self.player.state.hook_hud(self.hud.update_prop)
         self.hud.init_spec()
+        self.gs_view.scorehook(self.gs_view.a.score, self.gs_view.b.score)
 
     def trans_to_game(self):
         self.on_update = self.game_update
