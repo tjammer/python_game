@@ -675,26 +675,31 @@ class ProjectileViewer(object):
                     self.projs[ind] = Rect(pos.x, pos.y, width=70, height=70,
                                            color=(255, 0, 0), batch=self.batch)
                     self.projs[ind].vel = vel
+                    self.projs[ind].time = 0.09
                 elif self.data.type == proto.blaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=10, height=10,
                                            color=weaponcolors['w3'],
                                            batch=self.batch)
                     self.projs[ind].vel = vel
+                    self.projs[ind].time = 10.1
                 elif self.data.type == proto.gl:
                     self.projs[ind] = Rect(pos.x, pos.y, width=15, height=10,
                                            color=weaponcolors['w4'],
                                            batch=self.batch)
                     self.projs[ind].vel = vel
+                    self.projs[ind].time = 2.6
                 elif self.data.type == proto.explBlaster:
                     self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
                                            color=(255, 0, 150),
                                            batch=self.batch)
                     self.projs[ind].vel = vel
+                    self.projs[ind].time = 0.06
                 elif self.data.type == proto.explNade:
                     self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
                                            color=(255, 0, 150),
                                            batch=self.batch)
                     self.projs[ind].vel = vel
+                    self.projs[ind].time = 0.06
                 elif self.data.type == proto.lg:
                     id = self.data.playerId
                     length = self.data.posx
