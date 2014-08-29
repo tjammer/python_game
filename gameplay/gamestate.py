@@ -73,16 +73,17 @@ class GamestateManager(object):
             self.ingame[id].update(dt, rectgen)
 
     def damage_player(self, player, proj):
-        #armor absorbs 2/3 of dmg
-        hpdmg = proj.dmg / 3
-        armordmg = hpdmg * 2 + proj.dmg % 3
-        player.state.armor -= armordmg
-        if player.state.armor < 0:
-            player.state.hp += player.state.armor
-            player.state.armor = 0
-        player.state.hp -= hpdmg
-        if player.state.hp <= 0:
-            self.kill(player, proj)
+        if not player.state.isDead:
+            #armor absorbs 2/3 of dmg
+            hpdmg = proj.dmg / 3
+            armordmg = hpdmg * 2 + proj.dmg % 3
+            player.state.armor -= armordmg
+            if player.state.armor < 0:
+                player.state.hp += player.state.armor
+                player.state.armor = 0
+            player.state.hp -= hpdmg
+            if player.state.hp <= 0:
+                self.kill(player, proj)
 
     def kill(self, player, proj):
         if not player.state.isDead:
