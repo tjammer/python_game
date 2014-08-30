@@ -271,6 +271,7 @@ class GameScreen(Events):
     def idle_update(self, dt):
         self.send_to_client(dt)
         self.gs_view.update(dt)
+        self.proj_viewer.update(dt)
         self.hud.update(dt)
 
     def trans_to_spec(self):
