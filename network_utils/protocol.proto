@@ -57,14 +57,14 @@ message Player {
     optional MState mState = 7;
     optional int32 hp = 8;
     optional int32 armor = 9;
-    optional uint32 time = 10;
+    optional uint64 time = 10;
     optional string chat = 11;
     optional int32 ammo = 12;
     optional ProjectileType weapon = 13;
 }
 
 message Input {
-    optional uint32 time = 1;
+    optional uint64 time = 1;
     optional int32 id = 7;
     optional bool right = 2;
     optional bool left = 3;
