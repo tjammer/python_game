@@ -52,6 +52,8 @@ class AABB(object):
             norm = vec2(float(x > y), -float(y > x))
             if not obj.isplayer:
                 return norm, -dt
+            elif not self.isplayer:
+                return norm, dt
         else:
             #find distance for entry and exit
             if self.vel.x > 0:
