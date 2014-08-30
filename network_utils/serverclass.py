@@ -268,11 +268,11 @@ class GameServer(DatagramProtocol):
         del self.players[id], self.players_pack[id]
 
     def rectgen(self, idx=-1):
-        playergen = (player.rect for key, player in self.players.iteritems()
-                     if key != idx and not player.state.isDead)
-        mapgen = (rect for rect in self.map.quad_tree.retrieve([],
-                  self.players[idx].rect))
-        return chain(playergen, mapgen)
+        playergen = [player.rect for key, player in self.players.iteritems()
+                     if key != idx and not player.state.isDead]
+        mapgen = [rect for rect in self.map.quad_tree.retrieve([],
+                  self.players[idx].rect)]
+        return playergen + mapgen
 
     def allgen(self):
         playergen = (player for player in self.players.itervalues())

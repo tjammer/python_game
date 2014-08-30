@@ -115,6 +115,12 @@ class AABB(object):
         else:
             return vec2(self.sign_of(vec.x), self.sign_of(vec.y))
 
+    def copy(self):
+        rct = AABB(x=self.pos.x, y=self.pos.y, height=self.height,
+                   width=self.width, isplayer=self.isplayer)
+        rct.vel = vec2(*self.vel)
+        return rct
+
 
 class Line(object):
     """line is in principle aabb with width = 0"""

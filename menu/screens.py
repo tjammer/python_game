@@ -65,12 +65,12 @@ class GameScreen(Events):
         self.on_update(dt)
 
     def update_physics(self, dt, state=False, input=False):
-        playergen = (player.rect for player in self.players.itervalues()
-                     if not player.state.isDead)
-        mapgen = (rect for rect in self.map.quad_tree.retrieve([],
-                  self.player.rect))
-        rectgen = chain(playergen, mapgen)
-        self.player.update(dt, rectgen, state, input)
+        playerlist = [player.rect for player in self.players.itervalues()
+                      if not player.state.isDead]
+        maplist = [rect for rect in self.map.quad_tree.retrieve([],
+                   self.player.rect)]
+        rectlist = playerlist + maplist
+        self.player.update(dt, rectlist, state, input)
         return self.player.state
 
     def update_state_only(self, state):

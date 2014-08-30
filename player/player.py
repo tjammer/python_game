@@ -78,20 +78,41 @@ class Player(Events):
         self.rect.draw()
 
     def collide(self, dt, rectgen, state):
-        all_collisions = (self.rect.sweep(obj, dt) for obj in rectgen)
-        collisions = [coldata for coldata in all_collisions if coldata]
+        all_cols = [self.rect.sweep(obj, dt) for obj in rectgen]
+        cols = [coldata for coldata in all_cols if coldata]
         try:
-            xt = min(col[1] for col in collisions if col[0].x != 0)
-            xnorm = [col[0].x for col in collisions if col[1] == xt][0]
+            xt = min(col[1] for col in cols if col[0].x != 0)
+            xnorm, rct = [(col[0].x, rectgen[all_cols.index(col)])
+                          for col in cols if col[1] == xt][0]
         except ValueError:
             xt = dt
             xnorm = 0.
         try:
-            yt = min(col[1] for col in collisions if col[0].y != 0)
-            ynorm = [col[0].y for col in collisions if col[1] == yt][0]
+            yt = min(col[1] for col in cols if col[0].y != 0)
+            ynorm = [col[0].y for col in cols if col[1] == yt][0]
         except ValueError:
             yt = dt
             ynorm = 0.
+
+        if xnorm:
+            #check for stair
+            stairoffset = 10
+            testr = self.rect.copy()
+            testr.update(testr.pos.x, testr.pos.y + stairoffset)
+            first = testr.sweep(rct, dt)
+            if not first:
+                testr.update(testr.pos.x + testr.sign_of(testr.vel.x) * 30,
+                             testr.pos.y)
+                testr.vel.x = 0
+                second = testr.sweep(rct, float('Inf'))
+                if second:
+                    s1 = testr.vel.y * second[1]
+                    s = stairoffset + s1
+                    t = s / testr.vel.y
+                    yt = t
+                    xnorm = 0
+                    ynorm = -1
+
         dt = vec2(xt, yt)
         norm = vec2(xnorm, ynorm)
         self.resolve_sweep(norm, dt, state)
