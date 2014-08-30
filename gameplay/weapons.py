@@ -384,6 +384,7 @@ class NadeProjectile(Projectile):
     def __init__(self, *args, **kwargs):
         super(NadeProjectile, self).__init__(*args, **kwargs)
         self.type = proto.gl
+        self.canthurt = 0.25
 
     def on_hit(self, player, norm):
         if player:
