@@ -6,24 +6,23 @@ from player.state import vec2
 from gameplay.items import *
 from gameplay.weapons import *
 from elements import Teleporter
+import copy
 
 
 class Map(object):
     """docstring for Map"""
-    def __init__(self, mapname, server=False):
+    def __init__(self, mapname, server=False, batch=None, renderhook=None):
         super(Map, self).__init__()
         self.name = mapname
         self.rects = []
         self.quad_tree = None
         self.server = server
+        self.batch = batch
         if server:
             self.Rect = AABB
-            self.batch = None
         else:
             self.Rect = Rect
-            from pyglet.graphics import Batch
-            self.batch = Batch()
-        self.items = ItemManager(self.batch)
+        self.items = ItemManager(self.batch, renderhook=renderhook)
         try:
             self.load(''.join(('maps/', mapname, '.svg')))
         except ET.ParseError:
@@ -208,3 +207,35 @@ class Map(object):
 
     def serverupdate(self, itemid, spawn):
         self.items.fromserver(itemid, spawn)
+
+
+class DrawableMap(object):
+    """docstring for DrawableMap"""
+    def __init__(self, map, batch, fac):
+        super(DrawableMap, self).__init__()
+        self.items = [copy.copy(item) for item in map.items.items]
+        self.rects = [rect.copy() for rect in map.rects]
+        self.batch = batch
+        self.scale(fac)
+
+    def scale(self, fac):
+        for rect in self.rects:
+            rect.pos *= fac
+            rect.width *= fac.x
+            rect.height *= fac.y
+            rect.add(self.batch)
+        for ind, item in enumerate(self.items):
+            try:
+                item.pos *= fac
+            except AttributeError:
+                item.x *= fac.x
+                item.y *= fac.y
+            item.width *= fac.x
+            item.height *= fac.y
+            self.items[ind].add(self.batch)
+
+    def spawn(self, id):
+        self.items[id].add(self.batch)
+
+    def taken(self, id):
+        self.items[id].remove()

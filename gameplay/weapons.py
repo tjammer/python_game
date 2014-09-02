@@ -1,8 +1,9 @@
 from collision.aabb import AABB as Rectangle, Line
 from player.state import vec2
 from network_utils import protocol_pb2 as proto
-from graphics.primitives import Rect, DrawaAbleLine
 import math
+
+phext = vec2(16, 36)
 
 
 def spread(dx, dy, angle, num):
@@ -100,7 +101,7 @@ class Melee(Weapon):
 
     def on_fire(self, pos, aim_pos):
         self.ammo += 1
-        rectoffset = vec2(16, 36)
+        rectoffset = phext
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
         if temp.mag() <= self.reach:
@@ -133,10 +134,10 @@ class Blaster(Weapon):
         self.knockback = 500
 
     def on_fire(self, pos, aim_pos):
-        rectoffset = vec2(16, 32)
+        rectoffset = phext
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
-        proj = BlasterProjectile(x=pos.x+16, y=pos.y+32,
+        proj = BlasterProjectile(x=pos.x+phext.x, y=pos.y+phext.y,
                                  width=10, height=10, vel=self.vel,
                                  direc=direc, lifetime=self.proj_lifetime,
                                  dmg=110, id=self.id, knockback=self.knockback)
@@ -161,8 +162,9 @@ class LightningGun(Weapon):
 
     def on_fire(self, pos, aim_pos):
         dr = aim_pos - pos
-        line = HitScanLine(pos.x + 16, pos.y + 36, dr.x, dr.y, self.length,
-                           self.dmg, self.knockback, self.id, proto.lg)
+        line = HitScanLine(pos.x + phext.x, pos.y + phext.y, dr.x, dr.y,
+                           self.length, self.dmg, self.knockback, self.id,
+                           proto.lg)
         self.dispatch_proj(line)
 
 
@@ -184,7 +186,7 @@ class ShotGun(Weapon):
 
     def on_fire(self, pos, aim_pos):
         dr = aim_pos - pos
-        pellets = ShotGunPellets(pos.x + 16, pos.y + 36, dr.x, dr.y,
+        pellets = ShotGunPellets(pos.x + phext.x, pos.y + phext.y, dr.x, dr.y,
                                  self.pelletdmg, self.pellets,
                                  self.pelletknockback, self.pelletlength,
                                  self.id, proto.sg)
@@ -207,7 +209,7 @@ class GrenadeLauncher(Weapon):
         self.keystr = 'w4'
 
     def on_fire(self, pos, aim_pos):
-        pos += vec2(16, 36)
+        pos += phext
         dr = aim_pos - pos
         drunit = dr / dr.mag() + vec2(0, 0.3)
         #drunit = drunit / drunit.mag()
@@ -327,7 +329,7 @@ class MeleeProjectile(Projectile):
     def __init__(self, *args, **kwargs):
         super(MeleeProjectile, self).__init__(*args, **kwargs)
         self.type = proto.melee
-        self.rectoffset = vec2(16 - self.width / 2, 36 - self.height / 2)
+        self.rectoffset = vec2(phext.x-self.width / 2, phext.y-self.height / 2)
         self.vel = vec2(0, 0)
         self.ids = [self.id]
 
@@ -469,7 +471,7 @@ class BlasterExplosion(Explosion):
 class HitScanLine(Line):
     """docstring for HitScanLine"""
     def __init__(self, x, y, dx, dy, length, dmg, knockback, id, typ):
-        super(HitScanLine, self).__init__(x, y, dx - 16, dy - 36,
+        super(HitScanLine, self).__init__(x, y, dx - phext.x, dy - phext.y,
                                           length)
         self.dmg = dmg
         self.knockback = knockback
@@ -650,146 +652,6 @@ class ProjectileManager(object):
         self.message.projectile.CopyFrom(proj)
         for player in self.allgen():
             self.send_(self.message.SerializeToString(), player.address)
-
-
-class ProjectileViewer(object):
-    """docstring for ProjectileViewer"""
-    def __init__(self, get_cent):
-        super(ProjectileViewer, self).__init__()
-        self.projs = {}
-        self.data = proto.Projectile()
-        from pyglet.graphics import Batch
-        self.batch = Batch()
-        self.get_center = get_cent
-
-    def process_proj(self, datagram):
-        self.data.CopyFrom(datagram)
-        ind = self.data.projId
-        if not self.data.toDelete:
-            vel = vec2(self.data.velx, self.data.vely)
-            pos = vec2(self.data.posx, self.data.posy)
-            if ind in self.projs:
-                ##self.projs[ind].update(*pos)
-                self.correct(pos, vel, ind)
-            else:
-                if self.data.type == proto.melee:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=70, height=70,
-                                           color=(255, 0, 0), batch=self.batch)
-                    self.projs[ind].vel = vel
-                    self.projs[ind].time = 0.09
-                elif self.data.type == proto.blaster:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=10, height=10,
-                                           color=weaponcolors['w3'],
-                                           batch=self.batch)
-                    self.projs[ind].vel = vel
-                    self.projs[ind].time = 10.1
-                elif self.data.type == proto.gl:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=15, height=10,
-                                           color=weaponcolors['w4'],
-                                           batch=self.batch)
-                    self.projs[ind].vel = vel
-                    self.projs[ind].time = 2.6
-                elif self.data.type == proto.explBlaster:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
-                                           color=(255, 0, 150),
-                                           batch=self.batch)
-                    self.projs[ind].vel = vel
-                    self.projs[ind].time = 0.06
-                elif self.data.type == proto.explNade:
-                    self.projs[ind] = Rect(pos.x, pos.y, width=250, height=250,
-                                           color=(255, 0, 150),
-                                           batch=self.batch)
-                    self.projs[ind].vel = vel
-                    self.projs[ind].time = 0.06
-                elif self.data.type == proto.lg:
-                    id = self.data.playerId
-                    length = self.data.posx
-                    playerhit = self.data.posy
-                    center, mpos = self.get_center(id)
-                    mpos = vec2(*mpos)
-                    dr = mpos - center
-                    line = DrawaAbleLine(center.x, center.y, dr.x, dr.y,
-                                         length=length, batch=self.batch,
-                                         color=weaponcolors['w2'])
-                    if playerhit:
-                        line.update_color((255, 0, 0))
-                    line.time = 0.05
-                    line.id = id
-                    self.projs[ind] = line
-                elif self.data.type == proto.sg:
-                    id = self.data.playerId
-                    playerhit = self.data.posy
-                    center, mpos = self.get_center(id)
-                    mpos = vec2(*mpos)
-                    dr = mpos - center
-                    dys = spread(dr.x, dr.y, angle=0.1, num=6)
-                    cont = ProjContainer(0.05, id)
-                    for dy in dys:
-                        un = vec2(dr.x, dy)
-                        un = un / un.mag()
-                        line = DrawaAbleLine(center.x + un.x * 40,
-                                             center.y + un.y * 40, dr.x, dy,
-                                             length=100, batch=self.batch,
-                                             color=weaponcolors['w1'])
-                        if playerhit:
-                            line.update_color((255, 0, 0))
-                        cont.append(line)
-                    self.projs[ind] = cont
-                else:
-                    raise ValueError
-        else:
-            try:
-                self.projs[ind].remove()
-                del self.projs[ind]
-            except KeyError:
-                pass
-
-    def update(self, dt):
-        todelete = []
-        for key, proj in self.projs.iteritems():
-            if isinstance(proj, Rect):
-                if proj.color == weaponcolors['w4']:
-                    proj.vel.y -= 1500 * dt
-                pos = proj.pos + proj.vel * dt
-                ##self.interpolate(key, pos)
-                proj.update(*pos)
-                proj.time -= dt
-                if proj.time <= 0:
-                    proj.remove()
-                    todelete.append(key)
-            elif isinstance(proj, Line):
-                proj.time -= dt
-                if proj.time <= 0:
-                    proj.remove()
-                    todelete.append(key)
-                center, mpos = self.get_center(proj.id)
-                proj.update(center.x, center.y, mpos[0], mpos[1])
-            elif isinstance(proj, ProjContainer):
-                proj.time -= dt
-                if proj.time <= 0:
-                    for p in proj:
-                        p.remove()
-                    todelete.append(key)
-                for p in proj:
-                    u = p.unit
-                    m = p.pos + u + u*50
-                    p.update(p.pos.x + u.x*50, p.pos.y + u.y*50, m.x, m.y)
-        for key in todelete:
-            del self.projs[key]
-
-    def draw(self):
-        self.batch.draw()
-
-    def correct(self, pos, vel, id):
-        self.projs[id].vel = vel
-        if (self.projs[id].pos - pos).mag() > 10:
-            self.projs[id].update(*pos)
-        else:
-            self.interpolate(id, pos)
-
-    def interpolate(self, id, pos):
-        npos = (pos - self.projs[id].pos) * 0.3
-        self.projs[id].update(*(self.projs[id].pos + npos))
 
 
 class WeaponsManager(object):

@@ -1,3 +1,6 @@
+from pyglet.graphics import Batch
+
+
 class Events(object):
     """docstring for Events
     class for menu classes to inherit events"""
@@ -42,6 +45,7 @@ class MenuClass(object):
         self.listeners = {}
         self.bool = vool
         self.keys_old[key_.ESCAPE] = True
+        self.batch = Batch()
 
     def update(self, dt):
         for key, button in self.buttons.items():
@@ -62,9 +66,10 @@ class MenuClass(object):
         #    self.keys_old[key] = value
 
     def draw(self):
-        for key, panel in self.buttons.items() + self.text_boxes.items():
+        """for key, panel in self.buttons.items() + self.text_boxes.items():
             panel.draw()
-        self.on_draw()
+        self.on_draw()"""
+        self.batch.draw()
 
     def handle_clicks(self, key):
         pass

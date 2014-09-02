@@ -1,15 +1,21 @@
 from pyglet.gl import *
 from menu.menu_events import Events
 from player.state import vec2
+from player import player
+
+phext = player.phext
 
 
 class Camera(Events):
     """docstring for Camera"""
     def __init__(self, window):
         super(Camera, self).__init__()
-        self.campos = vec2(- 2 * window.width, window.height / 2)
+        width = window.width
+        height = window.height
+        self.window = window
+        self.campos = vec2(- 2 * width, height / 2)
         self.target = vec2(self.campos.x, self.campos.y)
-        self.wcoords = vec2(window.width / 2, window.height / 2)
+        self.wcoords = vec2(width / 2, height / 2)
         self.pos = vec2(0, 0)
         self.vel = vec2(0, 0)
         self.mul_easing = .3 * 30
@@ -18,17 +24,26 @@ class Camera(Events):
         self.offset = vec2(0, -self.wcoords.y / 2)
         self.eas_vel = vec2(0, 0)
         self.aimpos = vec2(0, 0)
+        self.scale = vec2(window.width / 1360., window.height / 765.)
+
+    def __enter__(self):
+        self.set_camera()
+
+    def __exit__(self, type, value, tb):
+        self.set_static()
 
     def update(self, dt, state):
-        self.pos, self.vel = state.pos + vec2(16, 36), state.vel
+        self.pos, self.vel = state.pos + vec2(*phext), state.vel
+        self.pos = vec2(*self.pos) * self.scale
         # velocity easing
         #if self.vel.x != 0:
         #self.eas_vel.x -= (self.eas_vel.x - self.vel.x) * dt
         #self.eas_vel.y -= (0*self.eas_vel.y + self.vel.y) * dt
         self.target = self.mpos + self.pos + self.offset
         self.campos -= (self.campos - self.target) * self.mul_easing * dt
-        #print self.x + self.m_x - 2 * self.w
         self.aimpos = self.campos + self.mpos - (self.wcoords+self.offset) * 2
+        self.aimpos = vec2(self.aimpos.x / self.scale.x,
+                           self.aimpos.y / self.scale.y)
         self.send_message('mousepos', self.aimpos)
 
     def set_camera(self):

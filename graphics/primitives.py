@@ -39,6 +39,7 @@ class Rect(AABB):
 
     def update_color(self, color):
         self.ver_list.colors = list(color) * 4
+        self.color = color
 
     def remove(self):
         self.ver_list.delete()
@@ -52,6 +53,10 @@ class Rect(AABB):
                                   self.pos.x + self.width, self.pos.y)),
                                   ('c3B', [self.color[0], self.color[1],
                                    self.color[2]] * 4))
+
+    def copy(self):
+        return Rect(self.pos.x, self.pos.y, self.width, self.height,
+                    self.color)
 
 
 class DrawaAbleLine(Line):
@@ -214,17 +219,18 @@ class DrawableTeleporter(object):
 
 class CrossHair(object):
     """docstring for CrossHair"""
-    def __init__(self, pos=[0, 0], size=10):
+    def __init__(self, batch, pos=[0, 0], size=10):
         super(CrossHair, self).__init__()
         self.pos = pos
         self.x = pos[0]
         self.y = pos[1]
         self.size = size
-        self.cross = graphics.vertex_list(4,
-                                         ('v2f/stream', (self.x - self.size,
-                                          self.y, self.x + self.size, self.y,
-                                          self.x, self.y - self.size,
-                                          self.x, self.y + self.size)))
+        self.cross = batch.add(4, gl.GL_LINES, None,
+                               ('v2f/stream', (self.x - self.size,
+                                self.y, self.x + self.size, self.y,
+                                self.x, self.y - self.size,
+                                self.x, self.y + self.size)),
+                               ('c3B', [255] * 12))
         self.drawable = True
 
     def update(self, x, y):
@@ -236,8 +242,19 @@ class CrossHair(object):
 
     def draw(self, x, y):
         self.update(x, y)
-        gl.glColor3d(1, 1, 1)
+        gl.glColor3f(1, 1, 1)
         self.cross.draw(gl.GL_LINES)
+
+    def remove(self):
+        self.cross.delete()
+
+    def add(self, batch):
+        self.cross = batch.add(4, gl.GL_LINES, None,
+                               ('v2f/stream', (self.x - self.size,
+                                self.y, self.x + self.size, self.y,
+                                self.x, self.y - self.size,
+                                self.x, self.y + self.size)),
+                               ('c3B', [255] * 12))
 
 
 class Box(object):

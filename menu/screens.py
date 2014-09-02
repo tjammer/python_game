@@ -11,11 +11,11 @@ from pyglet.window import key
 from maps.map import Map
 from network_utils.clientclass import move, moves, correct_client
 from network_utils import protocol_pb2 as proto
-from gameplay.weapons import ProjectileViewer
 from itertools import chain
 from graphics.primitives import CrossHair
 from hud import Hud
 from gameplay.gamestate import GameStateViewer
+from graphics.render import Render, ProjectileViewer
 
 
 class GameScreen(Events):
@@ -24,8 +24,12 @@ class GameScreen(Events):
         super(GameScreen, self).__init__()
         self.window = window
         self.camera = Camera(window)
-        self.player = player.Player()
-        self.proj_viewer = ProjectileViewer(self.send_center)
+        self.render = Render(self.camera, self.window)
+        sc_batch = self.render.scene_batch
+        st_batch = self.render.static_batch
+        self.player = player.Player(renderhook=self.render.playerhook)
+        self.proj_viewer = ProjectileViewer(self.send_center, batch=sc_batch,
+                                            scale=self.render.scale)
         self.controls = {}
         self.controls_old = {}
         self.map = Map('blank')
@@ -38,9 +42,9 @@ class GameScreen(Events):
         self.players = {}
         self.specs = {}
         #crosshair
-        self.cross = CrossHair()
+        self.cross = CrossHair(batch=st_batch)
         self.isSpec = True
-        self.hud = Hud()
+        self.hud = Hud(batch=st_batch)
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
 
@@ -59,8 +63,8 @@ class GameScreen(Events):
 
         self.update_keys()
         for plr in self.players.itervalues():
-            mapgen = (rect for rect in self.map.quad_tree.retrieve([],
-                      plr.rect))
+            mapgen = [rect for rect in self.map.quad_tree.retrieve([],
+                      plr.rect)]
             plr.predict(dt, mapgen)
         self.on_update(dt)
 
@@ -102,15 +106,16 @@ class GameScreen(Events):
             gs, data = data
             if gs == proto.goesSpec:
                 ind, name, colstring = data
-                new = player.Player()
+                new = player.Player(renderhook=self.render.playerhook)
                 new.name = name
                 new.id = ind
                 new.set_color(colstring)
+                new.rect.update_color(new.color)
                 self.specs[ind] = new
             #if there are existing players on the server
             elif gs == proto.wantsJoin:
                 ind, name, state, time, colstring = data
-                new = player.Player()
+                new = player.Player(renderhook=self.render.playerhook)
                 new.name = name
                 new.state = state
                 new.time = time
@@ -118,12 +123,14 @@ class GameScreen(Events):
                 new.set_color(colstring)
                 new.rect.update_color(new.color)
                 self.players[ind] = new
+                new.add_to_view()
                 print 'new player: %s' % name
                 self.gs_view.to_team(ind)
         elif typ == proto.disconnect:
             ind = data
             if ind in self.players:
                 self.gs_view.leave(ind)
+                self.players[ind].remove_from_view()
                 del self.players[ind]
             elif ind in self.specs:
                 del self.specs[ind]
@@ -140,6 +147,7 @@ class GameScreen(Events):
                     self.players[ind] = self.specs[ind]
                     del self.specs[ind]
                     self.gs_view.to_team(ind)
+                    self.players[ind].add_to_view()
             elif gs == proto.goesSpec:
                 if ind == self.player.id and self.isSpec:
                     pass
@@ -151,6 +159,7 @@ class GameScreen(Events):
                     self.specs[ind] = self.players[ind]
                     self.gs_view.leave(ind)
                     del self.players[ind]
+                    self.specs[ind].remove_from_view()
             elif gs == proto.isDead:
                 ind, killer, weapon = ind
                 if ind == self.player.id:
@@ -221,12 +230,14 @@ class GameScreen(Events):
         self.send_message('input', (proto.Input(), self.time))
 
     def draw(self):
-        self.on_draw()
+        self.render.draw()
 
     def on_connect(self, msg):
         ind, mapname, name, gs = msg
         self.player.get_id(ind, name)
-        self.map = Map(mapname)
+        batch = pyglet.graphics.Batch()
+        self.map = Map(mapname, batch=batch, renderhook=self.render.maphook)
+        self.render.maphook(self.map, add=True)
         print 'connected with id: ' + str(self.player.id)
         #self.send_message('input', (self.player.input, 1337))
         self.gs_view.init_self(ind, gs)
@@ -276,20 +287,22 @@ class GameScreen(Events):
 
     def trans_to_spec(self):
         self.on_update = self.spec_update
-        self.on_draw = self.spec_draw
         self.isSpec = True
         self.player.state.hook_hud(self.hud.update_prop)
         self.hud.init_spec()
         self.gs_view.scorehook(self.gs_view.a.score, self.gs_view.b.score)
+        self.player.remove_from_view()
+        self.cross.remove()
 
     def trans_to_game(self):
         self.on_update = self.game_update
-        self.on_draw = self.game_draw
         self.isSpec = False
         self.player.weapons.hook_hud(self.hud.update_prop)
         self.player.state.hook_hud(self.hud.update_prop)
         self.hud.init_player(self.players)
         self.gs_view.add_self(self.player)
+        self.player.add_to_view()
+        self.cross.add(self.render.static_batch)
 
     def game_update(self, dt):
         self.update_physics(dt)
@@ -298,17 +311,7 @@ class GameScreen(Events):
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
         self.hud.update(dt)
-
-    def game_draw(self):
-        self.camera.set_camera()
-        for plr in self.players.itervalues():
-            plr.draw()
-        self.player.draw()
-        self.proj_viewer.draw()
-        self.map.draw()
-        self.camera.set_static()
-        self.hud.draw()
-        self.cross.draw(*self.camera.mpos)
+        self.cross.update(*self.camera.mpos)
 
     def spec_update(self, dt):
         self.player.specupdate(dt)
@@ -318,15 +321,6 @@ class GameScreen(Events):
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
         self.hud.update(dt)
-
-    def spec_draw(self):
-        self.camera.set_camera()
-        for plr in self.players.itervalues():
-            plr.draw()
-        self.proj_viewer.draw()
-        self.map.draw()
-        self.camera.set_static()
-        self.hud.draw()
 
     def send_center(self, ind):
         if ind == self.player.id:
@@ -342,9 +336,9 @@ class MainMenu(MenuClass):
     def __init__(self, window, *args, **kwargs):
         self.window = window
         super(MainMenu, self).__init__(*args, **kwargs)
-        self.buttons['start'] = btn([500, 450], 'start game')
-        self.buttons['options'] = btn([500, 300], 'options')
-        self.buttons['quit'] = btn([500, 150], 'quit game')
+        self.buttons['start'] = btn([500, 450], 'start game', batch=self.batch)
+        self.buttons['options'] = btn([500, 300], 'options', batch=self.batch)
+        self.buttons['quit'] = btn([500, 150], 'quit game', batch=self.batch)
 
     def handle_clicks(self, key):
         if key == 'quit':
@@ -361,14 +355,13 @@ class QuitScreen(MenuClass):
     """docstring for QuitScreen"""
     def __init__(self, *args, **kwargs):
         super(QuitScreen, self).__init__(*args, **kwargs)
-        self.buttons['quit'] = btn([300, 300], 'yes')
-        self.buttons['dont_quit'] = btn([680, 300], 'no')
+        self.buttons['quit'] = btn([300, 300], 'yes', batch=self.batch)
+        self.buttons['dont_quit'] = btn([680, 300], 'no', batch=self.batch)
         self.text = 'do you really want to quit?'
         self.Label = Label(self.text, font_name=font,
                            font_size=36, bold=False,
-                           x=640,
-                           y=500,
-                           anchor_x='center', anchor_y='center')
+                           x=640, y=500, anchor_x='center',
+                           anchor_y='center', batch=self.batch)
         self.Box = Box([340, 200], [600, 400], 2)
 
     def handle_clicks(self, key):
@@ -377,24 +370,22 @@ class QuitScreen(MenuClass):
         if key == 'dont_quit':
             self.send_message('menu_transition_-')
 
-    def draw(self):
-        self.Box.draw()
-        for key_, panel in self.buttons.iteritems():
-            panel.draw()
-        self.Label.draw()
-
 
 class GameMenu(MenuClass):
     """docstring for GameMenu
     main menu ingame"""
     def __init__(self, *args, **kwargs):
         super(GameMenu, self).__init__(*args, **kwargs)
-        self.buttons['resume'] = btn([500, 400], 'resume game')
-        self.buttons['to_main'] = btn([500, 200], 'main menu')
+        self.buttons['resume'] = btn([500, 400], 'resume game',
+                                     batch=self.batch)
+        self.buttons['to_main'] = btn([500, 200], 'main menu',
+                                      batch=self.batch)
         if self.bool:
-            self.buttons['join_game'] = btn([950, 50], 'join game')
+            self.buttons['join_game'] = btn([950, 50], 'join game',
+                                            batch=self.batch)
         else:
-            self.buttons['join_game'] = btn([950, 50], 'spectate')
+            self.buttons['join_game'] = btn([950, 50], 'spectate',
+                                            batch=self.batch)
         self.cd = 0
 
     def handle_clicks(self, key):
@@ -424,10 +415,8 @@ class LoadScreen(MenuClass):
         super(LoadScreen, self).__init__(*args, **kwargs)
         self.label = Label('connecting to server', font_name=font,
                            font_size=36, bold=False, x=200, y=550,
-                           anchor_x='left', anchor_y='baseline')
-
-    def draw(self):
-        self.label.draw()
+                           anchor_x='left', anchor_y='baseline',
+                           batch=self.batch)
 
     def on_connect(self):
         self.send_message('menu_transition_-')
@@ -445,12 +434,11 @@ class ChatScreen(MenuClass):
     def __init__(self, window, *args, **kwargs):
         super(ChatScreen, self).__init__(*args, **kwargs)
         self.window = window
-        self.batch = pyglet.graphics.Batch()
         self.widget = TextWidget('', 200, 100, window.width - 500, self.batch,
                                  self.window)
 
-    def on_draw(self):
-        self.batch.draw()
+    """def on_draw(self):
+        self.batch.draw()"""
 
     def add_update(self, dt):
         if (self.keys[key.ENTER]
@@ -473,7 +461,6 @@ class PlayerOptions(MenuClass):
         except TypeError:
             self.window = arg
             self.options = options.Options()
-        self.batch = pyglet.graphics.Batch()
         self.box = Box([100, 100], [1080, 568], batch=self.batch)
         self.namelabel = Label('name', font_name=font,
                                font_size=24, bold=False, x=200, y=600,
@@ -503,9 +490,6 @@ class PlayerOptions(MenuClass):
             if key == self.options['color']:
                 self.buttons[key].activate()
         self.activecolor = None
-
-    def draw(self):
-        self.batch.draw()
 
     def add_update(self, dt):
         if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
@@ -555,7 +539,6 @@ class KeyMapMenu(MenuClass):
         except TypeError:
             self.window = arg
             self.options = options.Options()
-        self.batch = pyglet.graphics.Batch()
         self.box = Box([100, 100], [1080, 568], batch=self.batch)
         self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
         self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
@@ -627,6 +610,3 @@ class KeyMapMenu(MenuClass):
                         ky = self.options[ke]
                         self.buttons['test'].insert(ke, ky)
                     self.buttons['test'].layout.view_y = view
-
-    def draw(self):
-        self.batch.draw()

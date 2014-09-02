@@ -104,10 +104,11 @@ class Ammo(AABB):
 
 class ItemManager(object):
     """docstring for ItemManager"""
-    def __init__(self, batch):
+    def __init__(self, batch, renderhook):
         super(ItemManager, self).__init__()
         self.items = []
         self.batch = batch
+        self.renderhook = renderhook
 
     def __iter__(self):
         return self.get_items()
@@ -145,9 +146,11 @@ class ItemManager(object):
         if spawn:
             self.items[id].inactive = False
             self.items[id].add(self.batch)
+            self.renderhook(id, spawn=True)
         else:
             self.items[id].inactive = True
             self.items[id].remove()
+            self.renderhook(id, taken=True)
 
 
 class IdDump(object):

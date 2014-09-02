@@ -7,10 +7,14 @@ from menu.menu_events import Events
 from gameplay.weapons import WeaponsManager
 from options import colors, Options
 
+pext = vec2(32, 72)
+phext = pext / 2
+
 
 class Player(Events):
     """docstring for player"""
-    def __init__(self, server=False, dispatch_proj=None, id=False, batch=None):
+    def __init__(self, server=False, dispatch_proj=None, id=False, batch=None,
+                 renderhook=None):
         super(Player, self).__init__()
         self.state = state(vec2(100, 130), vec2(0, 0), 100)
         self.move = Movement(*self.state.pos)
@@ -25,12 +29,13 @@ class Player(Events):
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
         #self.color = Options()['color']  #(0, 204, 255)
         self.set_color(Options()['color'])
-        self.rect = self.Rect(0, 0, 32, 72, self.color, isplayer=True,
+        self.rect = self.Rect(0, 0, pext.x, pext.y, self.color, isplayer=True,
                               batch=batch)
         #input will be assigned by windowmanager class
         self.input = proto.Input()
         self.listeners = {}
         self.ready = False
+        self.renderhook = renderhook
 
     def update(self, dt, rectgen, state=False, input=False):
         if not state:
@@ -42,6 +47,8 @@ class Player(Events):
         self.collide(dt, rectgen, state)
         self.weapons.update(dt, state, input)
         self.state.update(dt, state)
+        if self.renderhook:
+            self.renderhook(self, update=True)
 
     def specupdate(self, dt):
         if self.input.up:
@@ -68,6 +75,8 @@ class Player(Events):
         self.state.vel = s_state.vel
         self.rect.update(*self.state.pos)
         self.state.conds = s_state.conds
+        if self.renderhook:
+            self.renderhook(self, update=True)
 
     def predict(self, dt, rectgen):
         self.rect.vel = self.move.get_vel(dt, self.state, self.input)
@@ -109,9 +118,10 @@ class Player(Events):
                     s1 = testr.vel.y * second[1]
                     s = stairoffset + s1
                     t = s / testr.vel.y
-                    yt = t
-                    xnorm = 0
-                    ynorm = -1
+                    if not abs(t) == float('Inf'):
+                        yt = t
+                        xnorm = 0
+                        ynorm = -1
 
         dt = vec2(xt, yt)
         norm = vec2(xnorm, ynorm)
@@ -169,6 +179,7 @@ class Player(Events):
         self.id = id
         self.name = name
         self.weapons = WeaponsManager(self.dispatch_proj, self.id)
+        self.renderhook(self, add=True)
 
     def die(self):
         self.state.isDead = 5
@@ -180,3 +191,33 @@ class Player(Events):
 
     def set_color(self, cstr):
         self.color = colors[cstr]
+
+    def remove_from_view(self):
+        self.renderhook(self, remove=True)
+
+    def add_to_view(self):
+        self.renderhook(self, add=True)
+
+
+class DrawablePlayer(object):
+    """docstring for DrawablePlayer"""
+    def __init__(self, player, batch, fac):
+        super(DrawablePlayer, self).__init__()
+        self.state = player.state
+        self.rect = player.rect.copy()
+        self.batch = batch
+        self.scale(fac)
+
+    def scale(self, fac):
+        self.rect.pos *= fac
+        self.rect.width *= fac.x
+        self.rect.height *= fac.y
+        self.rect.add(self.batch)
+
+    def update(self, player, fac):
+        self.rect.update(*(vec2(*player.rect.pos) * fac))
+        if player.rect.color != self.rect.color:
+            self.rect.update_color(player.rect.color)
+
+    def remove(self):
+        self.rect.remove()

@@ -2,6 +2,7 @@ from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 from network_utils import protocol_pb2 as proto
 from options import Options
+from state import vec2
 
 
 class InputHandler(object):

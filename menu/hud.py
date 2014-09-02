@@ -9,7 +9,7 @@ from graphics.primitives import font, Triangle
 
 class Hud(object):
     """docstring for Hud"""
-    def __init__(self):
+    def __init__(self, batch):
         super(Hud, self).__init__()
         self.text_ = 'This is the warmup phase'
         self.hp_t = '0'
@@ -17,37 +17,35 @@ class Hud(object):
         self.text_active = 5
         self.killmsg_active = False
         self.chat_active = False
-        self.labellist = Batch()
-        self.speclist = Batch()
-        self.active_batch = self.speclist
+        self.batch = batch
         self.hp = Label(self.hp_t, font_name=font, font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
                         anchor_y='bottom',
-                        batch=self.labellist)
+                        batch=self.batch)
         self.armor = Label(self.armor_t, font_name=font, font_size=36,
                            x=240, y=10, anchor_x='center', anchor_y='bottom',
                            bold=True,
-                           batch=self.labellist)
+                           batch=self.batch)
         self.text = Label(self.text_, font_name=font, font_size=36,
                           x=640, y=360, anchor_x='center', anchor_y='center',
-                          batch=self.labellist)
+                          batch=self.batch)
         self.weapon = Label('melee', font_name=font, font_size=32,
                             x=1160, y=80, anchor_x='center', anchor_y='bottom',
                             color=(0, 255, 255, 255),
-                            batch=self.labellist)
+                            batch=self.batch)
         self.ammo = Label('1', font_name=font, font_size=36,
                           x=1160, y=10, anchor_x='center', anchor_y='bottom',
                           bold=True,
-                          batch=self.labellist)
+                          batch=self.batch)
         self.time = Label('0:00', font_name=font, font_size=36,
                           x=640, y=680, anchor_x='center', anchor_y='center',
                           bold=True,
-                          batch=self.labellist)
+                          batch=self.batch)
         self.chatdoc = FormattedDocument('\n' * 11)
         #self.chatlog = document .FormattedDocument('\n')
         self.chat = ScrollableTextLayout(self.chatdoc, width=500,
                                          height=208, multiline=True,
-                                         batch=self.labellist)
+                                         batch=self.batch)
         self.chat.x = 130
         self.chat.y = 130
         self.chat.content_valign = 'bottom'
@@ -55,14 +53,14 @@ class Hud(object):
         self.killdoc = FormattedDocument('\n')
         self.killmsg = ScrollableTextLayout(self.killdoc, width=300,
                                             height=104, multiline=True,
-                                            batch=self.labellist)
+                                            batch=self.batch)
         self.killmsg.x = 20
         self.killmsg.y = 600
 
         self.scoredoc = FormattedDocument('0 : 0')
         self.score = ScrollableTextLayout(self.scoredoc, width=150,
                                           height=104, multiline=True,
-                                          batch=self.labellist)
+                                          batch=self.batch)
         self.score.x = 1270
         self.score.y = 650
         self.score.anchor_x = 'right'
@@ -78,7 +76,7 @@ class Hud(object):
                              proto.explBlaster: (255, 255, 0, 255)}
         self.killmsg_count = 0
         self.scoreboard = None
-        self.weaponbar = WeaponBar(self.labellist)
+        self.weaponbar = WeaponBar(self.batch)
 
     def init_player(self, players):
         if len(players) == 0:
@@ -86,14 +84,20 @@ class Hud(object):
         else:
             self.bname = players.values()[0].name
             self.set_score(0, 0)
-        self.time.batch = self.labellist
-        self.score.batch = self.labellist
-        self.active_batch = self.labellist
+        self.weaponbar.batch = self.batch
+        self.weapon.batch = self.batch
+        self.ammo.batch = self.batch
+        self.hp.batch = self.batch
+        self.armor.begin_update()
+        self.armor.batch = self.batch
+        self.armor.end_update()
 
     def init_spec(self):
-        self.time.batch = self.speclist
-        self.score.batch = self.speclist
-        self.active_batch = self.speclist
+        self.weaponbar.remove()
+        self.weapon.delete()
+        self.ammo.delete()
+        self.hp.delete()
+        self.armor.delete()
 
     def draw(self):
         self.active_batch.draw()
@@ -147,7 +151,7 @@ class Hud(object):
             self.text.begin_update()
             self.text.text = text
             self.text_active = 1
-            self.text.batch = self.active_batch
+            self.text.batch = self.batch
             self.text.end_update()
         if weapon:
             if weapon != self.weapon.text:
@@ -186,7 +190,7 @@ class Hud(object):
                                           bold=True))
             self.chatlog.insert_text(len(self.chatlog.text), '\t' + msg + '\n',
                                      dict(color=[255] * 4, bold=False))"""
-            self.chat.batch = self.active_batch
+            self.chat.batch = self.batch()
             self.chat.view_y = -self.chat.content_height
             self.chat.end_update()
             self.chat_active = 4
@@ -220,14 +224,14 @@ class Hud(object):
             self.killdoc.insert_text(len(self.killdoc.text), ' '.join(('',
                                      killed, '\n')),
                                      dict(color=[255] * 4))
-            self.killmsg.batch = self.active_batch
+            self.killmsg.batch = self.batch
             if not self.killmsg_active:
                 self.killmsg_active = 4
             self.killmsg_count += 1
             self.killmsg.end_update()
         if scoreboard:
             self.scoreboard = ScoreBoard((a, self.aname), (b, self.bname),
-                                         self.active_batch)
+                                         self.batch)
         else:
             if not self.scoreboard is None:
                 self.scoreboard.delete()
@@ -342,3 +346,11 @@ class WeaponBar(object):
             self.ammolayout.end_update()
 
             self.ammos = ammos
+
+    def remove(self):
+        try:
+            self.ammolayout.delete()
+            for tri in self.tris:
+                tri.remove()
+        except AttributeError:
+            pass
