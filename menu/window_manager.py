@@ -16,7 +16,7 @@ class WindowManager(Events):
         self.saved_mouse = (1280 / 2, 720 / 2)
 
         # set up main menu as starting screen
-        self.current_screen = MainMenu(self.window)
+        self.current_screen = MainMenu(window=self.window)
         self.register_screen()
 
         """@self.window.event
@@ -51,7 +51,7 @@ class WindowManager(Events):
 
         elif event == 'to_main':
             self.stack = []
-            self.current_screen = MainMenu(self.window)
+            self.current_screen = MainMenu(window=self.window)
             self.register_screen()
             self.disconnect()
             self.saved_mouse = (1280 / 2, 720 / 2)
@@ -63,7 +63,7 @@ class WindowManager(Events):
                 self.current_screen.player.input = proto.Input()
                 self.InputHandler.unregister(self.current_screen.camera.
                                              receive_m_pos, 'mouse_cam')
-            self.current_screen = msg(arg)
+            self.current_screen = msg(arg, window=self.window)
             self.register_screen()
 
         elif event == 'menu_transition_-':
@@ -99,7 +99,7 @@ class WindowManager(Events):
         elif event == 'switch_to':
             msg, arg = msg
             self.stack.pop()
-            self.current_screen = msg(arg)
+            self.current_screen = msg(arg, window=self.window)
             self.register_screen()
 
     def start_game(self):

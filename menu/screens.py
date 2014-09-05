@@ -16,6 +16,7 @@ from graphics.primitives import CrossHair
 from hud import Hud
 from gameplay.gamestate import GameStateViewer
 from graphics.render import Render, ProjectileViewer
+from player.state import vec2
 
 
 class GameScreen(Events):
@@ -59,7 +60,7 @@ class GameScreen(Events):
 
         if self.controls['chat'] and not self.controls_old['chat']:
             self.send_message('menu_transition_+',
-                              (ChatScreen, self.window))
+                              (ChatScreen, None))
 
         self.update_keys()
         for plr in self.players.itervalues():
@@ -335,10 +336,12 @@ class MainMenu(MenuClass):
     """docstring for MainMenu"""
     def __init__(self, window, *args, **kwargs):
         self.window = window
-        super(MainMenu, self).__init__(*args, **kwargs)
+        self.scale = vec2(window.width / 1280., window.height / 720.)
+        super(MainMenu, self).__init__(window=window, *args, **kwargs)
         self.buttons['start'] = btn([500, 450], 'start game', batch=self.batch)
         self.buttons['options'] = btn([500, 300], 'options', batch=self.batch)
         self.buttons['quit'] = btn([500, 150], 'quit game', batch=self.batch)
+        self.do_scale()
 
     def handle_clicks(self, key):
         if key == 'quit':
@@ -363,6 +366,7 @@ class QuitScreen(MenuClass):
                            x=640, y=500, anchor_x='center',
                            anchor_y='center', batch=self.batch)
         self.Box = Box([340, 200], [600, 400], 2)
+        self.do_scale()
 
     def handle_clicks(self, key):
         if key == 'quit':
@@ -387,6 +391,7 @@ class GameMenu(MenuClass):
             self.buttons['join_game'] = btn([950, 50], 'spectate',
                                             batch=self.batch)
         self.cd = 0
+        self.do_scale()
 
     def handle_clicks(self, key):
         if key == 'resume':
@@ -417,6 +422,7 @@ class LoadScreen(MenuClass):
                            font_size=36, bold=False, x=200, y=550,
                            anchor_x='left', anchor_y='baseline',
                            batch=self.batch)
+        self.do_scale()
 
     def on_connect(self):
         self.send_message('menu_transition_-')
@@ -428,14 +434,19 @@ class LoadScreen(MenuClass):
         except:
             pass
 
+    def draw(self):
+        self.window.clear()
+        self.batch.draw()
+
 
 class ChatScreen(MenuClass):
     """docstring for ChatScreen"""
-    def __init__(self, window, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ChatScreen, self).__init__(*args, **kwargs)
-        self.window = window
-        self.widget = TextWidget('', 200, 100, window.width - 500, self.batch,
-                                 self.window)
+        #self.window = window
+        self.widget = TextWidget('', 200, 100, self.window.width - 500,
+                                 self.batch, self.window)
+        self.do_scale()
 
     """def on_draw(self):
         self.batch.draw()"""
@@ -461,7 +472,8 @@ class PlayerOptions(MenuClass):
         except TypeError:
             self.window = arg
             self.options = options.Options()
-        self.box = Box([100, 100], [1080, 568], batch=self.batch)
+        self.box = Box([100, 100], [1080*self.scale.x, 568*self.scale.y],
+                       batch=self.batch)
         self.namelabel = Label('name', font_name=font,
                                font_size=24, bold=False, x=200, y=600,
                                anchor_x='left', anchor_y='center',
@@ -490,6 +502,7 @@ class PlayerOptions(MenuClass):
             if key == self.options['color']:
                 self.buttons[key].activate()
         self.activecolor = None
+        self.do_scale()
 
     def add_update(self, dt):
         if self.keys[key.ESCAPE] and not self.keys_old[key.ESCAPE]:
@@ -539,7 +552,8 @@ class KeyMapMenu(MenuClass):
         except TypeError:
             self.window = arg
             self.options = options.Options()
-        self.box = Box([100, 100], [1080, 568], batch=self.batch)
+        self.box = Box([100, 100], [1080*self.scale.x, 568*self.scale.y],
+                       batch=self.batch)
         self.buttons['cancel'] = btn([130, 120], 'cancel', batch=self.batch)
         self.buttons['save'] = btn([850, 120], 'save', batch=self.batch)
         self.buttons['test'] = KeysFrame([390, 600], 500, 330, self.window,
@@ -554,6 +568,7 @@ class KeyMapMenu(MenuClass):
             ke, val = a
             key = self.options[ke]
             self.buttons['test'].insert(ke, key)
+        self.do_scale()
 
     def handle_clicks(self, key):
         if key == 'cancel':
@@ -610,3 +625,5 @@ class KeyMapMenu(MenuClass):
                         ky = self.options[ke]
                         self.buttons['test'].insert(ke, ky)
                     self.buttons['test'].layout.view_y = view
+                    self.buttons['test'].layout.x *= self.scale.x
+                    self.buttons['test'].layout.y *= self.scale.y

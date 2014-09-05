@@ -1,4 +1,6 @@
 from pyglet.graphics import Batch
+from player.state import vec2
+from elements import KeysFrame
 
 
 class Events(object):
@@ -34,11 +36,11 @@ class Events(object):
 class MenuClass(object):
     """docstring for MenuClass
     base class for other menus to inherit from"""
-    def __init__(self, vool=False):
+    def __init__(self, vool=False, window=None):
         super(MenuClass, self).__init__()
         from pyglet.window import key as key_
         self.buttons = {}
-        self.text_boxes = {}
+        #self.text_boxes = {}
         self.m_pos = [0, 0]
         self.keys = key_.KeyStateHandler()
         self.keys_old = key_.KeyStateHandler()
@@ -46,6 +48,24 @@ class MenuClass(object):
         self.bool = vool
         self.keys_old[key_.ESCAPE] = True
         self.batch = Batch()
+        self.window = window
+        self.scale = vec2(window.width / 1280., window.height / 720.)
+
+    def do_scale(self):
+        for item in self.buttons.itervalues():
+            try:
+                item.x *= self.scale.x
+                item.y *= self.scale.y
+            except AttributeError:
+                item.target_pos[0] *= self.scale.x
+                item.pos[1] *= self.scale.y
+                if 'Label' in item.__dict__:
+                    if not item.animate:
+                        item.Label.x = item.pos[0] + item.size[0] / 2
+                        item.Label.y = item.pos[1] + item.size[1] / 2
+                if isinstance(item, KeysFrame):
+                    item.layout.x *= self.scale.x
+                    item.layout.y *= self.scale.y
 
     def update(self, dt):
         for key, button in self.buttons.items():
@@ -104,6 +124,6 @@ class MenuClass(object):
 
     # animation
     def animate(self, dt):
-        for key, panel in self.buttons.items() + self.text_boxes.items():
+        for key, panel in self.buttons.items():# + self.text_boxes.items():
             panel.pos[0] -= (panel.pos[0] - panel.target_pos[0])*dt * 0.15*30
             panel.update()
