@@ -44,7 +44,7 @@ class GameScreen(Events):
         #crosshair
         self.cross = CrossHair(batch=st_batch)
         self.isSpec = True
-        self.hud = Hud(batch=st_batch)
+        self.hud = Hud(batch=st_batch, window=self.window)
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
 
@@ -295,14 +295,14 @@ class GameScreen(Events):
         self.cross.remove()
 
     def trans_to_game(self):
-        self.on_update = self.game_update
+        self.player.add_to_view()
         self.isSpec = False
         self.player.weapons.hook_hud(self.hud.update_prop)
         self.player.state.hook_hud(self.hud.update_prop)
         self.hud.init_player(self.players)
         self.gs_view.add_self(self.player)
-        self.player.add_to_view()
         self.cross.add(self.render.static_batch)
+        self.on_update = self.game_update
 
     def game_update(self, dt):
         self.update_physics(dt)

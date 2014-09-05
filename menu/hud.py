@@ -2,14 +2,14 @@ from pyglet.text import Label
 from pyglet.text.document import FormattedDocument
 from pyglet.text.layout import ScrollableTextLayout, IncrementalTextLayout
 from network_utils import protocol_pb2 as proto
-from pyglet.graphics import Batch
 from gameplay.weapons import weaponcolors, allstrings
 from graphics.primitives import font, Triangle
+from player.state import vec2
 
 
 class Hud(object):
     """docstring for Hud"""
-    def __init__(self, batch):
+    def __init__(self, batch, window):
         super(Hud, self).__init__()
         self.text_ = 'This is the warmup phase'
         self.hp_t = '0'
@@ -18,6 +18,7 @@ class Hud(object):
         self.killmsg_active = False
         self.chat_active = False
         self.batch = batch
+        self.scale = vec2(window.width / 1280., window.height / 720.)
         self.hp = Label(self.hp_t, font_name=font, font_size=36,
                         bold=True, x=80, y=10, anchor_x='center',
                         anchor_y='bottom',
@@ -76,7 +77,14 @@ class Hud(object):
                              proto.explBlaster: (255, 255, 0, 255)}
         self.killmsg_count = 0
         self.scoreboard = None
-        self.weaponbar = WeaponBar(self.batch)
+        self.weaponbar = WeaponBar(self.batch, self.scale)
+        self.do_scale()
+
+    def do_scale(self):
+        for item in (self.armor, self.hp, self.text, self.chat, self.killmsg,
+                     self.time, self.ammo, self.weapon, self.score):
+            item.x *= self.scale.x
+            item.y *= self.scale.y
 
     def init_player(self, players):
         if len(players) == 0:
@@ -190,7 +198,7 @@ class Hud(object):
                                           bold=True))
             self.chatlog.insert_text(len(self.chatlog.text), '\t' + msg + '\n',
                                      dict(color=[255] * 4, bold=False))"""
-            self.chat.batch = self.batch()
+            self.chat.batch = self.batch
             self.chat.view_y = -self.chat.content_height
             self.chat.end_update()
             self.chat_active = 4
@@ -231,7 +239,7 @@ class Hud(object):
             self.killmsg.end_update()
         if scoreboard:
             self.scoreboard = ScoreBoard((a, self.aname), (b, self.bname),
-                                         self.batch)
+                                         self.batch, self.scale)
         else:
             if not self.scoreboard is None:
                 self.scoreboard.delete()
@@ -245,7 +253,7 @@ class Hud(object):
 
 class ScoreBoard(object):
     """docstring for ScoreBoard"""
-    def __init__(self, a, b, batch):
+    def __init__(self, a, b, batch, scale):
         super(ScoreBoard, self).__init__()
         self.ascore, self.aname = a
         self.bscore, self.bname = b
@@ -255,6 +263,7 @@ class ScoreBoard(object):
                                       self.bname)))
         scsize = 100
         nmsize = 32
+        self.scale = scale
 
         self.alayout = ScrollableTextLayout(self.adoc, width=400, height=300,
                                             batch=batch, multiline=True)
@@ -266,8 +275,8 @@ class ScoreBoard(object):
         self.adoc.set_style(a, a + len(str(self.ascore)),
                             dict(font_size=scsize, baseline=-scsize / 4))
 
-        self.alayout.x = 1280 / 2
-        self.alayout.y = 720 / 2 + 50
+        self.alayout.x = (1280 / 2) * self.scale.x
+        self.alayout.y = (720 / 2) * self.scale.y + 50
         self.alayout.anchor_x = 'right'
         self.alayout.anchor_y = 'center'
 
@@ -293,21 +302,23 @@ class ScoreBoard(object):
 
 class WeaponBar(object):
     """docstring for WeaponBar"""
-    def __init__(self, batch):
+    def __init__(self, batch, scale):
         super(WeaponBar, self).__init__()
         self.batch = batch
-        self.weapons = {'1': 1, '2': 1, '3': 1}
+        self.weapons = {}
         self.ammos = []
         self.tris = []
+        self.scale = scale
 
     def __len__(self):
         return len(self.weapons)
 
     def init_bar(self, weapons):
         try:
-            self.ammolayout.delete()
-            for tri in self.tris:
-                tri.remove()
+            if self.ammolayout._document:
+                self.ammolayout.delete()
+                for tri in self.tris:
+                    tri.remove()
         except AttributeError:
             pass
         ammotext = '\t'.join(str(w.ammo) for key, w in weapons.iteritems()
@@ -320,14 +331,15 @@ class WeaponBar(object):
         self.ammolayout = IncrementalTextLayout(self.ammodoc, width=600,
                                                 height=50, batch=self.batch,
                                                 multiline=True)
-        self.ammolayout.x = 1280 / 2
-        self.ammolayout.y = 20
+        self.ammolayout.x = (1280 / 2) * self.scale.x
+        self.ammolayout.y = 20 * self.scale.y
         self.ammolayout.anchor_x = 'center'
         self.ammolayout.anchor_y = 'bottom'
         w = self.ammolayout.content_width
         colorlist = [weaponcolors[key] for key in weapons if key != 'w0']
-        self.tris = [Triangle(640-w/2-52+120*i, 35, 50, 50, col,
-                     self.batch, 0, 0) for i, col in enumerate(colorlist)]
+        self.tris = [Triangle(640*self.scale.x-w/2-52+120*i, 35*self.scale.y,
+                     50, 50, col, self.batch, 0, 0)
+                     for i, col in enumerate(colorlist)]
 
     def update(self, weapons):
         if len(weapons) != len(self.weapons):
@@ -349,6 +361,7 @@ class WeaponBar(object):
 
     def remove(self):
         try:
+            self.weapons = {}
             self.ammolayout.delete()
             for tri in self.tris:
                 tri.remove()
