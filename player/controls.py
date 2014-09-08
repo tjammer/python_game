@@ -117,7 +117,7 @@ class InputHandler(object):
                 except (Exception, ):
                     self.unregister(listener, msg)
 
-    def unregister(self, listener, msg):
+    def unregister(self, listener, msg=None):
         #print '%s deleted, %s' % (listener, msg)
         del self.listeners[listener]
 

@@ -21,9 +21,10 @@ from player.state import vec2
 
 class GameScreen(Events):
     """docstring for GameScreen"""
-    def __init__(self, window):
+    def __init__(self, window, input_handler):
         super(GameScreen, self).__init__()
         self.window = window
+        self.input_handler = input_handler
         self.camera = Camera(window)
         self.render = Render(self.camera, self.window)
         sc_batch = self.render.scene_batch
@@ -44,7 +45,7 @@ class GameScreen(Events):
         self.specs = {}
         #crosshair
         self.cross = CrossHair(batch=st_batch)
-        self.isSpec = True
+        self.isSpec = 0.5
         self.hud = Hud(batch=st_batch, window=self.window)
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
@@ -130,6 +131,8 @@ class GameScreen(Events):
         elif typ == proto.disconnect:
             ind = data
             if ind in self.players:
+                if ind == self.isSpec:
+                    self.isSpec = 0.5
                 self.gs_view.leave(ind)
                 self.players[ind].remove_from_view()
                 del self.players[ind]
@@ -288,12 +291,16 @@ class GameScreen(Events):
 
     def trans_to_spec(self):
         self.on_update = self.spec_update
-        self.isSpec = True
+        self.isSpec = 0.5
         self.player.state.hook_hud(self.hud.update_prop)
         self.hud.init_spec()
         self.gs_view.scorehook(self.gs_view.a.score, self.gs_view.b.score)
         self.player.remove_from_view()
         self.cross.remove()
+        self.ready_cycle = False
+        self.set_playergen()
+        self.window.set_mouse_visible(True)
+        self.window.set_exclusive_mouse(False)
 
     def trans_to_game(self):
         self.player.add_to_view()
@@ -304,6 +311,10 @@ class GameScreen(Events):
         self.gs_view.add_self(self.player)
         self.cross.add(self.render.static_batch)
         self.on_update = self.game_update
+        self.register_mouse()
+        self.window.set_mouse_visible(False)
+        self.window.set_exclusive_mouse(True)
+        self.cancel_drag()
 
     def game_update(self, dt):
         self.update_physics(dt)
@@ -315,8 +326,21 @@ class GameScreen(Events):
         self.cross.update(*self.camera.mpos)
 
     def spec_update(self, dt):
-        self.player.specupdate(dt)
-        self.camera.update(dt, self.player.state)
+        if self.player.input.att and self.ready_cycle:
+            try:
+                self.ready_cycle = False
+                self.isSpec = self.playergen.next()
+                self.unregister_mouse()
+                self.cancel_drag()
+            except StopIteration:
+                self.cancel_follow()
+        if not self.player.input.att:
+            self.ready_cycle = True
+        if self.isSpec > 0.5:
+            self.camera.update(dt, self.players[self.isSpec].state)
+        else:
+            self.player.specupdate(dt)
+            self.camera.update(dt, self.player.state)
         #self.send_to_client(dt)
         self.spec_send(dt)
         self.proj_viewer.update(dt)
@@ -330,6 +354,44 @@ class GameScreen(Events):
         else:
             pl = self.players[ind]
             return pl.rect.center, (pl.input.mx, pl.input.my)
+
+    def register_mouse(self):
+            self.input_handler.register(self.camera.receive_m_pos, 'mouse_cam')
+            self.window.set_mouse_visible(True)
+            self.window.set_exclusive_mouse(False)
+
+    def unregister_mouse(self):
+        try:
+            self.input_handler.unregister(self.camera.receive_m_pos)
+            self.window.set_mouse_visible(False)
+            self.window.set_exclusive_mouse(True)
+        except KeyError:
+            pass
+
+    def set_playergen(self):
+        self.playergen = iter(self.players.keys())
+
+    def cancel_follow(self):
+        ind = self.isSpec
+        if ind > 0.5:
+            self.player.state.pos = vec2(*self.players[ind].state.pos)
+        self.isSpec = 0.5
+        self.set_playergen()
+        self.register_mouse()
+
+        @self.window.event
+        def on_mouse_drag(x, y, dx, dy, buttons, mods):
+            if buttons == 1:
+                self.player.state.pos -= vec2(dx, dy) * 2
+
+        self.dragevent = on_mouse_drag
+
+    def cancel_drag(self):
+        try:
+            self.window.remove_handler('on_mouse_drag', self.dragevent)
+        except AttributeError:
+            pass
+
 
 
 class MainMenu(MenuClass):

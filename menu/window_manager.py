@@ -61,8 +61,11 @@ class WindowManager(Events):
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.m_cam)
                 self.current_screen.player.input = proto.Input()
-                self.InputHandler.unregister(self.current_screen.camera.
-                                             receive_m_pos, 'mouse_cam')
+                try:
+                    self.InputHandler.unregister(self.current_screen.camera.
+                                                 receive_m_pos, 'mouse_cam')
+                except KeyError:
+                    pass
             self.current_screen = msg(arg, window=self.window)
             self.register_screen()
 
@@ -103,7 +106,7 @@ class WindowManager(Events):
             self.register_screen()
 
     def start_game(self):
-        self.current_screen = GameScreen(self.window)
+        self.current_screen = GameScreen(self.window, self.InputHandler)
         self.register_screen()
         #get to load screen
         self.receive_events('menu_transition_+', (LoadScreen, False))
@@ -137,8 +140,8 @@ class WindowManager(Events):
             self.current_screen.register(self.receive_events, 'input')
             self.current_screen.camera.register(self.InputHandler.receive_aim,
                                                 'mousepos')
-            self.window.set_mouse_visible(False)
-            self.window.set_exclusive_mouse(True)
+            #self.window.set_mouse_visible(False)
+            #self.window.set_exclusive_mouse(True)
 
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)

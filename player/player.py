@@ -70,6 +70,7 @@ class Player(Events):
 
         if len_diff > snapping_distance:
             self.state.pos = s_state.pos
+            print len_diff
         elif len_diff > .1:
             self.state.pos += diff * easing
         self.state.vel = s_state.vel
@@ -82,6 +83,8 @@ class Player(Events):
         self.rect.vel = self.move.get_vel(dt, self.state, self.input)
         self.rect.update(*self.state.pos)
         self.collide(dt, rectgen, self.state)
+        if self.renderhook:
+            self.renderhook(self, update=True)
 
     def draw(self):
         self.rect.draw()
