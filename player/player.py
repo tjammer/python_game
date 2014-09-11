@@ -60,9 +60,9 @@ class Player(Events):
         if self.input.down:
             self.state.pos.y -= 1000 * dt
 
-    def client_update(self, s_state):
+    def client_update(self, s_state, scale):
         easing = .3
-        snapping_distance = 15
+        snapping_distance = 20 * scale.mag()
 
         diff = vec2(s_state.pos.x - self.state.pos[0],
                     s_state.pos.y - self.state.pos[1])
@@ -70,11 +70,11 @@ class Player(Events):
 
         if len_diff > snapping_distance:
             self.state.pos = s_state.pos
-            print len_diff
         elif len_diff > .1:
             self.state.pos += diff * easing
         self.state.vel = s_state.vel
         self.rect.update(*self.state.pos)
+        self.state.update(0, s_state)
         self.state.conds = s_state.conds
         if self.renderhook:
             self.renderhook(self, update=True)
@@ -83,6 +83,7 @@ class Player(Events):
         self.rect.vel = self.move.get_vel(dt, self.state, self.input)
         self.rect.update(*self.state.pos)
         self.collide(dt, rectgen, self.state)
+        self.weapons.update(dt, self.state, self.input)
         if self.renderhook:
             self.renderhook(self, update=True)
 
@@ -175,8 +176,7 @@ class Player(Events):
         self.state.frozen = False
         if isinstance(self.rect, Rect):
             self.rect.update_color(self.color)
-        if not other:
-            self.weapons.reset()
+        self.weapons.reset()
 
     def get_id(self, id, name):
         self.id = id

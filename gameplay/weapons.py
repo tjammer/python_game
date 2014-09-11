@@ -668,7 +668,7 @@ class WeaponsManager(object):
         self.current_w = self.weapons['w1']
         self.current_s = allstrings['w1']
         self.wli = 0
-        self.hudhook = False
+        self.hudhook = None
         self.switch_time = 0.5
 
     def fire(self, pos, aim_pos):
@@ -703,6 +703,10 @@ class WeaponsManager(object):
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
         self.hudhook(ammo=(str(self.current_w.ammo), self.weapons))
+
+    def unhook(self):
+        if self.hudhook:
+            self.hudhook = None
 
     def reset(self):
         self.weapons = {}

@@ -146,3 +146,7 @@ class state(object):
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
+
+    def unhook(self):
+        if self.hudhook:
+            self.hudhook = None

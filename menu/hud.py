@@ -92,13 +92,17 @@ class Hud(object):
         else:
             self.bname = players.values()[0].name
             self.set_score(0, 0)
-        self.weaponbar.batch = self.batch
-        self.weapon.batch = self.batch
-        self.ammo.batch = self.batch
-        self.hp.batch = self.batch
-        self.armor.begin_update()
-        self.armor.batch = self.batch
-        self.armor.end_update()
+        self.init_pers_hud()
+
+    def init_pers_hud(self):
+        if self.hp._vertex_lists:
+            self.weaponbar.batch = self.batch
+            self.weapon.batch = self.batch
+            self.ammo.batch = self.batch
+            self.hp.batch = self.batch
+            self.armor.begin_update()
+            self.armor.batch = self.batch
+            self.armor.end_update()
 
     def init_spec(self):
         self.weaponbar.remove()

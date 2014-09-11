@@ -19,12 +19,6 @@ class WindowManager(Events):
         self.current_screen = MainMenu(window=self.window)
         self.register_screen()
 
-        """@self.window.event
-        def on_resize(width, height):
-            if isinstance(self.current_screen, GameScreen):
-                self.current_screen.camera.on_resize(width, height)
-            self.InputHandler.on_resize(width, height)"""
-
     def update(self, dt):
         self.InputHandler.process_keys(dt)
         if (self.stack[0] != self.current_screen and
@@ -37,7 +31,6 @@ class WindowManager(Events):
         if self.stack[0] != self.current_screen:
             self.stack[0].draw()
         self.current_screen.draw()
-        #self.cross.draw(*self.InputHandler.mousepos)
 
     # receive events, a lot of transitions will happen here
     def receive_events(self, event, msg):
@@ -60,7 +53,12 @@ class WindowManager(Events):
             msg, arg = msg
             if isinstance(self.current_screen, GameScreen):
                 self.saved_mouse = tuple(self.InputHandler.m_cam)
-                self.current_screen.player.input = proto.Input()
+                #save aimpos, otherwise 0, 0 is sent to server
+                #and viewed by specs
+                inpt = proto.Input()
+                inpt.mx = self.current_screen.player.input.mx
+                inpt.my = self.current_screen.player.input.my
+                self.current_screen.player.input = inpt
                 try:
                     self.InputHandler.unregister(self.current_screen.camera.
                                                  receive_m_pos, 'mouse_cam')
@@ -140,8 +138,9 @@ class WindowManager(Events):
             self.current_screen.register(self.receive_events, 'input')
             self.current_screen.camera.register(self.InputHandler.receive_aim,
                                                 'mousepos')
-            #self.window.set_mouse_visible(False)
-            #self.window.set_exclusive_mouse(True)
+            if not self.current_screen.isSpec:
+                self.window.set_mouse_visible(False)
+                self.window.set_exclusive_mouse(True)
 
         self.current_screen.register(self.receive_events)
         self.stack.append(self.current_screen)

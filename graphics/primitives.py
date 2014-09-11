@@ -125,7 +125,8 @@ class Triangle(object):
                                   ('c3B', self.color * 3))
 
     def remove(self):
-        self.ver_list.delete()
+        if len(self.ver_list.get_domain() .allocator.sizes):
+            self.ver_list.delete()
 
 
 class AmmoTriangle(Triangle):
@@ -246,15 +247,17 @@ class CrossHair(object):
         self.cross.draw(gl.GL_LINES)
 
     def remove(self):
-        self.cross.delete()
+        if len(self.cross.get_domain() .allocator.sizes):
+            self.cross.delete()
 
     def add(self, batch):
-        self.cross = batch.add(4, gl.GL_LINES, None,
-                               ('v2f/stream', (self.x - self.size,
-                                self.y, self.x + self.size, self.y,
-                                self.x, self.y - self.size,
-                                self.x, self.y + self.size)),
-                               ('c3B', [255] * 12))
+        if not len(self.cross.get_domain() .allocator.sizes):
+            self.cross = batch.add(4, gl.GL_LINES, None,
+                                   ('v2f/stream', (self.x - self.size,
+                                    self.y, self.x + self.size, self.y,
+                                    self.x, self.y - self.size,
+                                    self.x, self.y + self.size)),
+                                   ('c3B', [255] * 12))
 
 
 class Box(object):

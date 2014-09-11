@@ -98,8 +98,11 @@ class GameScreen(Events):
                 self.player.weapons.from_server(weaponinfo)
             else:
                 #try:
-                self.players[ind].client_update(s_state)
+                self.players[ind].client_update(s_state, self.render.scale)
                 self.players[ind].input = inpt
+                if ind == self.isSpec:
+                    self.camera.mpos_from_aim(vec2(inpt.mx, inpt.my))
+                    self.players[ind].weapons.from_server(weaponinfo)
                 #except KeyError:
                 #    pass
         elif typ == proto.projectile:
@@ -108,7 +111,7 @@ class GameScreen(Events):
             gs, data = data
             if gs == proto.goesSpec:
                 ind, name, colstring = data
-                new = player.Player(renderhook=self.render.playerhook)
+                new = player.Player(renderhook=self.render.playerhook, id=ind)
                 new.name = name
                 new.id = ind
                 new.set_color(colstring)
@@ -117,7 +120,7 @@ class GameScreen(Events):
             #if there are existing players on the server
             elif gs == proto.wantsJoin:
                 ind, name, state, time, colstring = data
-                new = player.Player(renderhook=self.render.playerhook)
+                new = player.Player(renderhook=self.render.playerhook, id=ind)
                 new.name = name
                 new.state = state
                 new.time = time
@@ -132,10 +135,11 @@ class GameScreen(Events):
             ind = data
             if ind in self.players:
                 if ind == self.isSpec:
-                    self.isSpec = 0.5
+                    self.cancel_follow()
                 self.gs_view.leave(ind)
                 self.players[ind].remove_from_view()
                 del self.players[ind]
+                self.set_playergen()
             elif ind in self.specs:
                 del self.specs[ind]
         elif typ == proto.stateUpdate:
@@ -162,8 +166,11 @@ class GameScreen(Events):
                 else:
                     self.specs[ind] = self.players[ind]
                     self.gs_view.leave(ind)
+                    if ind == self.isSpec:
+                        self.cancel_follow()
                     del self.players[ind]
                     self.specs[ind].remove_from_view()
+                    self.set_playergen()
             elif gs == proto.isDead:
                 ind, killer, weapon = ind
                 if ind == self.player.id:
@@ -202,6 +209,17 @@ class GameScreen(Events):
                             self.player.weapons.apply(st, self.player)
                         else:
                             self.player.weapons.predict_ammo(st)
+            elif ind in self.players:
+                if isinstance(self.map.items[itemid], Triangle):
+                    st = self.map.items[itemid].keystr
+                    if not st in self.players[ind].weapons.weapons:
+                        self.players[ind].weapons.pickup(st)
+                    else:
+                        if not isinstance(self.map.items[itemid], Ammo):
+                            self.players[ind].weapons.apply(st,
+                                                            self.players[ind])
+                        else:
+                            self.players[ind].weapons.predict_ammo(st)
             self.map.serverupdate(itemid, spawn)
         elif typ == proto.chat:
             ind, msg = data
@@ -306,7 +324,7 @@ class GameScreen(Events):
         self.player.add_to_view()
         self.isSpec = False
         self.player.weapons.hook_hud(self.hud.update_prop)
-        self.player.state.hook_hud(self.hud.update_prop)
+        #self.player.state.hook_hud(self.hud.update_prop)
         self.hud.init_player(self.players)
         self.gs_view.add_self(self.player)
         self.cross.add(self.render.static_batch)
@@ -329,8 +347,16 @@ class GameScreen(Events):
         if self.player.input.att and self.ready_cycle:
             try:
                 self.ready_cycle = False
+                if self.isSpec > 0.5:
+                    self.players[self.isSpec].state.unhook()
+                    self.players[self.isSpec].weapons.unhook()
                 self.isSpec = self.playergen.next()
+                id = self.isSpec
+                self.players[id].state.hook_hud(self.hud.update_prop)
+                self.players[id].weapons.hook_hud(self.hud.update_prop)
                 self.unregister_mouse()
+                self.cross.add(self.render.static_batch)
+                self.hud.init_pers_hud()
                 self.cancel_drag()
             except StopIteration:
                 self.cancel_follow()
@@ -338,6 +364,7 @@ class GameScreen(Events):
             self.ready_cycle = True
         if self.isSpec > 0.5:
             self.camera.update(dt, self.players[self.isSpec].state)
+            self.cross.update(*self.camera.interpolate_mpos())
         else:
             self.player.specupdate(dt)
             self.camera.update(dt, self.player.state)
@@ -378,6 +405,8 @@ class GameScreen(Events):
         self.isSpec = 0.5
         self.set_playergen()
         self.register_mouse()
+        self.cross.remove()
+        self.hud.init_spec()
 
         @self.window.event
         def on_mouse_drag(x, y, dx, dy, buttons, mods):
@@ -391,7 +420,6 @@ class GameScreen(Events):
             self.window.remove_handler('on_mouse_drag', self.dragevent)
         except AttributeError:
             pass
-
 
 
 class MainMenu(MenuClass):

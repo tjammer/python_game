@@ -25,6 +25,7 @@ class Camera(Events):
         self.eas_vel = vec2(0, 0)
         self.aimpos = vec2(0, 0)
         self.scale = vec2(window.width / 1360., window.height / 765.)
+        self.mpos_temp = vec2(0, 0)
 
     def __enter__(self):
         self.set_camera()
@@ -58,6 +59,16 @@ class Camera(Events):
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]
+
+    def mpos_from_aim(self, aimpos):
+        mpos = vec2(aimpos.x * self.scale.x,
+                    aimpos.y * self.scale.y) - self.campos + (self.wcoords
+                                                             + self.offset) * 2
+        self.mpos = vec2(*mpos)
+
+    def interpolate_mpos(self):
+        self.mpos_temp -= (self.mpos_temp - self.mpos) * 0.2
+        return self.mpos_temp
 
     def on_resize(self, width, height):
         self.h = height / 2
