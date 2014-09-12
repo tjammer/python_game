@@ -702,7 +702,8 @@ class WeaponsManager(object):
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
-        self.hudhook(ammo=(str(self.current_w.ammo), self.weapons))
+        self.hudhook(ammo=(str(self.current_w.ammo), self.weapons),
+                     weapon=self.current_s)
 
     def unhook(self):
         if self.hudhook:

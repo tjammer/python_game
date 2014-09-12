@@ -150,6 +150,9 @@ class GameScreen(Events):
                 if ind == self.player.id:
                     self.send_message('menu_transition_-')
                     self.player.state.isDead = False
+                    if self.isSpec > 0.5:
+                        self.players[self.isSpec].state.unhook()
+                        self.players[self.isSpec].weapons.unhook()
                     self.trans_to_game()
                 else:
                     self.players[ind] = self.specs[ind]
@@ -410,7 +413,7 @@ class GameScreen(Events):
 
         @self.window.event
         def on_mouse_drag(x, y, dx, dy, buttons, mods):
-            if buttons == 1:
+            if buttons == 4:
                 self.player.state.pos -= vec2(dx, dy) * 2
 
         self.dragevent = on_mouse_drag
