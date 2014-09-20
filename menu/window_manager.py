@@ -1,7 +1,8 @@
-from screens import GameScreen, MainMenu, LoadScreen
+from screens import MainMenu, LoadScreen
 from player.controls import InputHandler
 from menu_events import Events
 from network_utils import protocol_pb2 as proto
+from gamescreen import GameScreen
 
 
 class WindowManager(Events):
@@ -29,7 +30,8 @@ class WindowManager(Events):
     def draw(self):
         # stack[0] is gamescreen
         if self.stack[0] != self.current_screen:
-            self.stack[0].draw()
+            if isinstance(self.stack[0], GameScreen):
+                self.stack[0].draw()
         self.current_screen.draw()
 
     # receive events, a lot of transitions will happen here
