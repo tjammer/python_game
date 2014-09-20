@@ -46,6 +46,7 @@ message Message {
     optional GameState gameState = 7;
     optional int32 ack = 5;
     optional float gameTime = 6;
+    optional Stats stats = 8;
 }
 
 message Player {
@@ -100,4 +101,17 @@ message Projectile {
     optional float vely = 7;
     optional bool toDelete = 8;
     optional float angle = 9;
+    optional bool playerHit = 10;
+}
+
+message WeaponStat {
+    optional int32 playerId = 1;
+    optional ProjectileType wType = 2;
+    optional int32 fired = 3;
+    optional int32 hit = 4;
+    optional int32 dmg = 5;
+}
+
+message Stats {
+    repeated ProjectileType type = 1;
 }
