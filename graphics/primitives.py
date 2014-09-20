@@ -44,6 +44,9 @@ class Rect(AABB):
     def remove(self):
         self.ver_list.delete()
 
+    def delete(self):
+        self.remove()
+
     def add(self, batch):
         self.ver_list = batch.add(4, gl.GL_QUADS, None,
                                  ('v2f/stream', (self.pos.x, self.pos.y,
@@ -266,14 +269,17 @@ class Box(object):
                  hcolor=(255, 255, 0), batch=None, innercol=(0, 0, 0)):
         super(Box, self).__init__()
         self.pos = pos
-        self.size = size
+        self.width = size[0]
+        self.height = size[1]
         self.f_size = f_size
         self.color = color
         self.h_color = hcolor
-        self.outer_box = Rect(pos[0], pos[1], size[0], size[1], self.color,
+        self.outer_box = Rect(pos[0], pos[1], self.width, self.height,
+                              self.color,
                               batch=batch)
         self.inner_box = Rect(pos[0] + f_size, pos[1] + f_size,
-                              size[0] - 2 * f_size, size[1] - 2 * f_size,
+                              self.width - 2 * f_size,
+                              self.height - 2 * f_size,
                               innercol, batch=batch)
 
     def draw(self):
@@ -290,3 +296,9 @@ class Box(object):
         self.outer_box.update(*self.pos)
         self.inner_box.update(self.pos[0] + self.f_size,
                               self.pos[1] + self.f_size)
+
+    def new_size(self, width, height):
+        self.outer_box.width = width
+        self.outer_box.height = height
+        self.inner_box.width = width - 2 * self.f_size
+        self.inner_box.height = height - 2 * self.f_size

@@ -242,8 +242,9 @@ class Hud(object):
             self.killmsg_count += 1
             self.killmsg.end_update()
         if scoreboard:
-            self.scoreboard = ScoreBoard((a, self.aname), (b, self.bname),
-                                         self.batch, self.scale)
+            if not self.scoreboard:
+                self.scoreboard = ScoreBoard((a, self.aname), (b, self.bname),
+                                             self.batch, self.scale)
         else:
             if not self.scoreboard is None:
                 self.scoreboard.delete()

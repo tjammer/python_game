@@ -3,6 +3,9 @@ from graphics.primitives import Box, Rect, font
 from network_utils import protocol_pb2 as proto
 from pyglet.text.document import FormattedDocument as Doc
 from pyglet.text.layout import ScrollableTextLayout as Layout
+from player.state import vec2
+from pyglet.text import Label
+from itertools import chain
 
 inpt = proto.Input()
 inputdict = {'left': 'left', 'right': 'right', 'up': 'jump', 'att': 'attack',
@@ -10,6 +13,8 @@ inputdict = {'left': 'left', 'right': 'right', 'up': 'jump', 'att': 'attack',
 weaponsdict = {'melee': 'melee', 'sg': 'shotgun',
                'lg': 'lightning gun', 'blaster': 'blaster',
                'gl': 'grenades'}
+
+unity = vec2(1, 1)
 
 
 class TextBoxFramed(object):
@@ -23,22 +28,24 @@ class TextBoxFramed(object):
         else:
             self.pos = pos
         self.animate = animate
-        self.size = size
+        self.width = size[0]
+        self.height = size[1]
         self.f_size = f_size
         # code for text here
         self.Label = pyglet.text.Label(text, font_name=font,
                                        font_size=font_size, bold=False,
-                                       x=self.pos[0] + self.size[0] / 2,
-                                       y=self.pos[1] + self.size[1] / 2,
+                                       x=self.pos[0] + self.width / 2,
+                                       y=self.pos[1] + self.height / 2,
                                        anchor_x='center', anchor_y='center',
                                        batch=batch)
-        self.Box = Box(self.pos, size, f_size, batch=batch, **kwargs)
+        self.Box = Box(self.pos, [self.width, self.height], f_size,
+                       batch=batch, **kwargs)
 
     def in_box(self, m_pos):
         m_x = m_pos[0]
         m_y = m_pos[1]
-        if m_x > self.pos[0] and m_x < self.pos[0] + self.size[0]:
-            if m_y > self.pos[1] and m_y < self.pos[1] + self.size[1]:
+        if m_x > self.pos[0] and m_x < self.pos[0] + self.width:
+            if m_y > self.pos[1] and m_y < self.pos[1] + self.height:
                 return True
         return False
 
@@ -49,8 +56,11 @@ class TextBoxFramed(object):
     def update(self):
         self.Box.update()
         if self.animate:
-            self.Label.x = self.pos[0] + self.size[0] / 2
-            self.Label.y = self.pos[1] + self.size[1] / 2
+            self.Label.x = self.pos[0] + self.width / 2
+            self.Label.y = self.pos[1] + self.height / 2
+
+    def scale_box(self):
+        self.Box.new_size(self.width, self.height)
 
     def restore(self):
         self.Box.restore()
@@ -64,7 +74,7 @@ class ColCheckBox(object):
     def __init__(self, pos, batch, color, size=(40, 40), hcolor=(255, 255, 0),
                  activecolor=(255, 255, 255), inactivecolor=(25, 25, 25)):
         super(ColCheckBox, self).__init__()
-        self.pos = pos
+        self.pos = vec2(*pos)
         self.target_pos = pos
         self.size = size
         self.color = color
@@ -100,6 +110,10 @@ class ColCheckBox(object):
             if m_y > self.pos[1] and m_y < self.pos[1] + self.size[1]:
                 return True
         return False
+
+    def over_button(self, x, y):
+        return (0 < x - self.pos.x < self.size[0] and
+                0 < y - self.pos.y < self.size[1])
 
 
 class TextWidget(object):
@@ -184,28 +198,30 @@ class TextWidget(object):
 class KeysFrame(object):
     """docstring for KeysFrame"""
     def __init__(self, pos, width, height, window, batch,
-                 line_space=None, font_size=24, hcolor=(25, 25, 25)):
+                 line_space=None, font_size=24, hcolor=(25, 25, 25),
+                 scl=unity):
         super(KeysFrame, self).__init__()
-        self.pos = pos
+        self.scale = scl
+        self.pos = vec2(*pos) * scl
         self.target_pos = pos
         self.window = window
-        self.line_space = line_space + font_size
-        self.font_size = font_size
-        self.width = width
-        self.height = height
+        self.line_space = (line_space + font_size) * self.scale.x
+        self.font_size = font_size * self.scale.x
+        self.width = width * self.scale.x
+        self.height = height * self.scale.y
         self.hcolor = hcolor
 
         self.doc = Doc('\n')
-        self.layout = Layout(self.doc, width=width, height=height,
+        self.layout = Layout(self.doc, width=self.width, height=self.height,
                              multiline=True, batch=batch)
         self.doc.set_paragraph_style(0, 0, dict(indent=None,
-                                     line_spacing=line_space,
+                                     line_spacing=self.line_space,
                                      font_size=self.font_size))
 
         self.layout.anchor_x = 'left'
         self.layout.anchor_y = 'top'
-        self.layout.x = pos[0]
-        self.layout.y = pos[1]
+        self.layout.x = self.pos[0]
+        self.layout.y = self.pos[1]
 
         self.even = 0
         self.active_i = []
@@ -244,6 +260,11 @@ class KeysFrame(object):
     def in_box(self, mpos):
         x, y = mpos
         self.mpos = mpos
+        return (0 < x - self.layout.x < self.layout.width and
+                0 < self.layout.y - y < self.layout.height)
+
+    def over_button(self, x, y):
+        self.mpos = (x, y)
         return (0 < x - self.layout.x < self.layout.width and
                 0 < self.layout.y - y < self.layout.height)
 
@@ -297,3 +318,186 @@ class KeysFrame(object):
 
     def update(self):
         pass
+
+hcolor = (255, 128, 0)
+topcolor = (0, 128, 255)
+botcolor = (25,)*3
+toplinecolor = (255,)*3
+botlinecolor = (255, 128, 0)
+
+
+class Button(object):
+    """docstring for Button"""
+    def __init__(self, text, x, y, width, height, batch, color=(50, 50, 50),
+                 scale=unity, **kwargs):
+        super(Button, self).__init__()
+        self.pos = vec2(x, y) * scale
+        self.width = width * scale.x
+        self.height = height * scale.y
+        self.bsize = 2 * scale.x
+        self.color = color
+        self.hcolor = hcolor
+        self.text = Label(text, x=(self.pos.x + self.width / 2),
+                          y=(self.pos.y + self.height / 2),
+                          anchor_x='center', anchor_y='center',
+                          batch=batch, **kwargs)
+        self.bound = Rect(self.pos.x - self.bsize, self.pos.y - self.bsize,
+                          self.width+2*self.bsize, self.height+2*self.bsize,
+                          color=toplinecolor, batch=batch)
+        self.rect = Rect(self.pos.x, self.pos.y, self.width, self.height,
+                         color=self.color, batch=batch)
+
+    def highlight(self):
+        self.rect.update_color(self.hcolor)
+
+    def restore(self):
+        if not self.rect.color == self.color:
+            self.rect.update_color(self.color)
+
+    def over_button(self, x, y):
+        return (0 < x - self.pos.x < self.width and
+                0 < y - self.pos.y < self.height)
+
+    def delete(self):
+        self.text.delete()
+        self.rect.delete()
+
+
+class LineButton(object):
+    def __init__(self, text, x, y, width, height, lheight, batch,
+                 color=(50, 50, 50), scale=unity, **kwargs):
+        super(LineButton, self).__init__()
+        self.pos = vec2(x, y) * scale
+        self.width = width * scale.x
+        self.height = height * scale.y
+        self.bsize = 1 * scale.x
+        self.color = color
+        self.hcolor = hcolor
+        self.text = Label(text, x=(self.pos.x + self.width / 2),
+                          y=(self.pos.y + self.height / 2),
+                          anchor_x='center', anchor_y='top',
+                          batch=batch, **kwargs)
+        self.rect = Rect(self.pos.x, self.pos.y, self.width, lheight*scale.y,
+                         color=self.color, batch=batch)
+
+    def highlight(self):
+        self.rect.update_color(self.hcolor)
+
+    def restore(self):
+        if not self.rect.color == self.color:
+            self.rect.update_color(self.color)
+
+    def over_button(self, x, y):
+        return (0 < x - self.pos.x < self.width and
+                0 < y - self.pos.y < self.height)
+
+
+class MenuLayout(object):
+    """docstring for MenuLayout"""
+    def __init__(self, batch, scale):
+        super(MenuLayout, self).__init__()
+        self.headline = []
+        self.center = 0
+        self.bottom = []
+        self.tabs = {}
+        self.scale = scale
+        self.batch = batch
+        self.actives = {}
+        self.button_fs = 16 * self.scale.x
+        #bottom top line height
+        self.btlh = 120
+        #line height
+        self.lheight = 3
+
+    def __iter__(self):
+        return self.actives.iteritems()
+
+    def add_headline(self, text):
+        #rects for background and line,respectively
+        if len(self.headline) != 0:
+            for item in self.headline:
+                item.delete()
+            self.headline = []
+        self.headline.append(Rect(x=0, y=(720-self.btlh)*self.scale.y,
+                             width=1280*self.scale.x,
+                             height=self.btlh*self.scale.y,
+                             color=topcolor, batch=self.batch))
+        self.headline.append(Rect(x=0, width=1280*self.scale.x,
+                             y=(720-self.btlh-self.lheight)*self.scale.y,
+                             height=self.lheight*self.scale.y,
+                             color=(255,)*3, batch=self.batch))
+        self.headline.append(Label(text, x=640*self.scale.x,
+                             y=(720-self.btlh/2)*self.scale.y, font_name=font,
+                             font_size=24 * self.scale.x,
+                             anchor_x='center', anchor_y='bottom',
+                             batch=self.batch, color=(255,)*4))
+
+    def add_bottom(self, lst):
+        #background
+        if len(lst) == 0:
+            return
+        if len(self.bottom) == 0:
+            self.bottom.append(Rect(x=0, y=0*self.scale.y,
+                               width=1280*self.scale.x,
+                               height=self.btlh*self.scale.y,
+                               color=botcolor, batch=self.batch))
+            self.bottom.append(Rect(x=0, y=self.btlh*self.scale.y,
+                               width=1280*self.scale.x,
+                               height=self.lheight*self.scale.y,
+                               color=botlinecolor, batch=self.batch))
+            self.bottom.append(True)
+
+        spacing = 1280 / (len(lst) + 1)
+
+        width = max(len(i[1]) * 72. / 96 * self.button_fs for i in lst) + 40
+
+        for i, text in enumerate(lst):
+            key, text = text
+            self.actives[key] = Button(text,
+                                       ((i+1)*spacing - width / 2),
+                                       (self.btlh - 80)/2, width,
+                                       80, batch=self.batch, scale=self.scale,
+                                       font_size=self.button_fs)
+
+    def add_center(self, lst):
+
+        spacing = (720 - 2*(self.btlh + self.lheight)) / (len(lst) + 1)
+        width = max(len(i[1]) * 72. / 96 * self.button_fs for i in lst) + 40
+
+        for i, text in enumerate(reversed(lst)):
+            key, text = text
+            self.actives[key] = Button(text, 640 - width / 2,
+                                       self.btlh+self.lheight+(i+1)*spacing-40,
+                                       width, 80, batch=self.batch,
+                                       scale=self.scale,
+                                       font_size=self.button_fs, bold=False)
+
+    def add_tabs(self, lst):
+        if len(lst) == 0:
+            return
+        #background
+        if not self.headline:
+            self.add_headline('')
+
+        width = max(len(i[1]) * 72. / 96 * self.button_fs for i in lst) + 40
+
+        for i, text in enumerate(lst):
+            try:
+                key, text = text
+                color = toplinecolor
+            except ValueError:
+                key, text, spam = text
+                color = botlinecolor
+
+            x = 1.5 * width + 20
+            y = 720-self.btlh-self.lheight
+            self.actives[key] = LineButton(text, i*x, y, width, 80,
+                                           batch=self.batch, scale=self.scale,
+                                           font_size=self.button_fs,
+                                           color=color, lheight=self.lheight)
+
+    def item_gen(self):
+        hlgen = iter(self.headline)
+        btgen = iter(self.bottom)
+        acgen = self.actives.itervalues()
+        return chain(hlgen, btgen, acgen)
