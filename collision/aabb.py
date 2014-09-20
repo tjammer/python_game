@@ -26,18 +26,20 @@ class AABB(object):
             raise TypeError
 
     def update(self, x, y):
-        self.pos = vec2(x, y)
-        self.center = vec2(self.pos.x + self.hwidth, self.pos.y + self.hheight)
+        self.pos.x, self.pos.y = x, y
+        self.center.x = self.pos.x + self.hwidth
+        self.center.y = self.pos.y + self.hheight
         self.on_update(x, y)
 
     def on_update(self, x, y):
         pass
 
     def overlaps(self, aabb):
-        distance = (self.center - aabb.center)
-        xovr = abs(distance.x) - self.hwidth - aabb.hwidth
+        distancex = self.center.x - aabb.center.x
+        xovr = abs(distancex) - self.hwidth - aabb.hwidth
         if xovr < 0:
-            yovr = abs(distance.y) - self.hheight - aabb.hheight
+            distancey = self.center.y - aabb.center.y
+            yovr = abs(distancey) - self.hheight - aabb.hheight
             if yovr < 0:
                 return xovr, yovr
         return False
