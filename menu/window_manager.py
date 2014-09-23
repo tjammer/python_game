@@ -72,6 +72,8 @@ class WindowManager(Events):
         elif event == 'menu_transition_-':
             self.stack.pop()
             self.current_screen = self.stack[-1]
+            if isinstance(self.current_screen, MainMenu):
+                self.current_screen = MainMenu(window=self.window)
             self.register_screen()
 
         # input to client

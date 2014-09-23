@@ -2,12 +2,14 @@
 from menu_events import NewMenu as MenuClass
 from player.state import vec2
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
+from elements import PopMenu
 from pyglet.text import Label
 from graphics.primitives import Box, font
 from pyglet.window import key
 from elements import inputdict, weaponsdict, KeysFrame
 from player import options
 from itertools import chain
+from graphics import wmodes
 
 
 class MainMenu(MenuClass):
@@ -148,22 +150,23 @@ class PlayerOptions(MenuClass):
             self.options = options.Options()
         self.layout.add_headline('options')
         self.layout.add_bottom([('cancel',)*2, ('save',)*2])
-        self.layout.add_tabs([('this', 'player', True), ('keys', 'controls')])
+        self.layout.add_tabs([('this', 'player', True), ('keys', 'controls'),
+                             ('graphics',)*2])
         self.namelabel = Label('name', font_name=font,
-                               font_size=24, bold=False, x=200*self.scale.x,
-                               y=500*self.scale.y,
+                               font_size=24*self.scale.x, bold=False,
+                               x=200*self.scale.x, y=500*self.scale.y,
                                anchor_x='left', anchor_y='center',
                                batch=self.batch)
         self.widget = TextWidget(self.options['name'], 500*self.scale.x,
                                  (500)*self.scale.y - 20, 200*self.scale.x,
                                  self.batch, self.window,
-                                 font_name=font, font_size=20,
+                                 font_name=font, font_size=20*self.scale.x,
                                  bold=False, anchor_x='left',
                                  anchor_y='center')
         self.widget.set_focus(None)
         self.collabel = Label('color', font_name=font,
-                              font_size=24, bold=False, x=200*self.scale.x,
-                              y=400*self.scale.y,
+                              font_size=24*self.scale.x, bold=False,
+                              x=200*self.scale.x, y=400*self.scale.y,
                               anchor_x='left', anchor_y='center',
                               batch=self.batch)
         #color checkboxes
@@ -194,6 +197,8 @@ class PlayerOptions(MenuClass):
                 self.options['name'] = name
 
     def handle_clicks(self, key):
+        if not key in options.colors:
+            self.widget.remove_handler()
         if key == 'cancel':
             self.send_message('menu_transition_-')
         elif key == 'save':
@@ -214,6 +219,9 @@ class PlayerOptions(MenuClass):
         elif key == 'keys':
             self.send_message('switch_to', (KeyMapMenu,
                               (self.window, self.options)))
+        elif key == 'graphics':
+            self.send_message('switch_to', (GraphicsMenu,
+                              (self.window, self.options)))
 
 
 class KeyMapMenu(MenuClass):
@@ -227,7 +235,8 @@ class KeyMapMenu(MenuClass):
             self.options = options.Options()
         self.layout.add_headline('options')
         self.layout.add_bottom([('cancel',)*2, ('save',)*2])
-        self.layout.add_tabs([('player', 'player'), ('keys', 'controls', 1)])
+        self.layout.add_tabs([('player', 'player'), ('keys', 'controls', 1),
+                             ('graphics',)*2])
         self.layout.actives['test'] = KeysFrame([390, 600], 500, 430,
                                                 self.window, self.batch,
                                                 line_space=15, scl=self.scale)
@@ -253,6 +262,10 @@ class KeyMapMenu(MenuClass):
         elif key == 'player':
             self.layout.actives['test'].remove_handler()
             self.send_message('switch_to', (PlayerOptions,
+                              (self.window, self.options)))
+        elif key == 'graphics':
+            self.layout.actives['test'].remove_handler()
+            self.send_message('switch_to', (GraphicsMenu,
                               (self.window, self.options)))
 
     def add_update(self, dt):
@@ -293,3 +306,65 @@ class KeyMapMenu(MenuClass):
                     self.layout.actives['test'].layout.view_y = view
                     self.layout.actives['test'].layout.x *= self.scale.x
                     self.layout.actives['test'].layout.y *= self.scale.y
+
+
+class GraphicsMenu(MenuClass):
+    """docstring for GraphicsMenu"""
+    def __init__(self, arg, *args, **kwargs):
+        super(GraphicsMenu, self).__init__(*args, **kwargs)
+        try:
+            self.window, self.options = arg
+        except TypeError:
+            self.window = arg
+            self.options = options.Options()
+        self.layout.add_headline('options')
+        self.layout.add_bottom([('cancel',)*2, ('save',)*2])
+        self.layout.add_tabs([('player', 'player'), ('keys', 'controls'),
+                             ('graphics',)*3])
+
+        #window mode
+        self.windowmode = Label('window mode', font_name=font,
+                                font_size=22*self.scale.x, bold=False,
+                                x=200*self.scale.x, y=500*self.scale.y,
+                                anchor_x='left', anchor_y='center',
+                                batch=self.batch)
+
+        text = self.options['wmode']
+        btn = PopMenu(text, wmodes, [500, 500], self.window,
+                      self.batch, 15, 22, scl=self.scale)
+        self.layout.actives['wmode'] = btn
+
+        #vsync
+        self.vsync = Label('vsync', font_name=font,
+                           font_size=22*self.scale.x, bold=False,
+                           x=200*self.scale.x, y=400*self.scale.y,
+                           anchor_x='left', anchor_y='center',
+                           batch=self.batch)
+
+        text = 'On' if self.options['vsync'] != '0' else 'Off'
+        btn = PopMenu(text, ['On', 'Off'], [500, 400], self.window,
+                      self.batch, 15, 22, scl=self.scale)
+        self.layout.actives['vsync'] = btn
+
+    def handle_clicks(self, key):
+        if key == 'cancel':
+            self.send_message('menu_transition_-')
+        if key == 'save':
+            self.options.save()
+            self.send_message('options')
+            self.send_message('menu_transition_-')
+        elif key == 'player':
+            self.send_message('switch_to', (PlayerOptions,
+                              (self.window, self.options)))
+        elif key == 'keys':
+            self.send_message('switch_to', (KeyMapMenu,
+                              (self.window, self.options)))
+        elif key == 'wmode':
+            rtn = self.layout.actives[key].activate()
+            if rtn:
+                self.options['wmode'] = rtn
+        elif key == 'vsync':
+            rtn = self.layout.actives[key].activate()
+            if rtn:
+                rtn = '0' if rtn == 'Off' else '1'
+                self.options['vsync'] = rtn

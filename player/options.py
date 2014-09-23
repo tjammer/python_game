@@ -17,7 +17,9 @@ standards = {'name': 'UnnamedPlayer',
              'lg': 'E',
              'blaster': 'Q',
              'gl': 'R',
-             'chat': 'ENTER'}
+             'chat': 'ENTER',
+             'wmode': 'windowed',
+             'vsync': '1'}
 
 
 class Options(object):
