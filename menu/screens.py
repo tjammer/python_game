@@ -368,3 +368,8 @@ class GraphicsMenu(MenuClass):
             if rtn:
                 rtn = '0' if rtn == 'Off' else '1'
                 self.options['vsync'] = rtn
+
+    def handle_empty(self):
+        for item in self.layout.actives.itervalues():
+            if isinstance(item, PopMenu):
+                item.deactivate()

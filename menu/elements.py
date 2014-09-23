@@ -6,6 +6,8 @@ from pyglet.text.layout import ScrollableTextLayout as Layout
 from player.state import vec2
 from pyglet.text import Label
 from itertools import chain
+from pyglet.graphics import OrderedGroup
+from graphics import CustomGroup
 
 inpt = proto.Input()
 inputdict = {'left': 'left', 'right': 'right', 'up': 'jump', 'att': 'attack',
@@ -525,7 +527,8 @@ class PopMenu(object):
         self.idoc = pyglet.text.document.UnformattedDocument(text, )
         self.idoc.set_style(0, len(text), dict(font_size=self.font_size,
                             color=[255]*4))
-        self.ilayout = pyglet.text.layout.TextLayout(self.idoc, batch=batch)
+        self.ilayout = pyglet.text.layout.TextLayout(self.idoc, batch=batch,
+                                                     group=CustomGroup(1))
         self.ilayout.anchor_x, self.ilayout.anchor_y = ('left', 'center')
         self.ilayout.x, self.ilayout.y = self.pos
 
@@ -645,3 +648,8 @@ class PopMenu(object):
                 self.doc.delete_text(1, len(self.doc.text))
                 self.even = 0
                 return self.idoc.text
+
+    def deactivate(self):
+        self.active = False
+        self.doc.delete_text(1, len(self.doc.text))
+        self.even = 0

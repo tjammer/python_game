@@ -55,25 +55,6 @@ class MenuClass(object):
         def on_resize(width, height):
             self.scale = vec2(width / 1280., height / 720.)
 
-    def do_scale(self):
-        for item in self.buttons.itervalues():
-            item.target_pos[0] *= self.scale.x
-            #item.target_pos[1] *= self.scale.y
-            item.pos[1] *= self.scale.y
-            if 'Label' in item.__dict__:
-                if not item.animate:
-                    item.Label.x = item.pos[0] + item.width / 2
-                    item.Label.y = item.pos[1] + item.height / 2
-            #if isinstance(item, ColCheckBox):
-            #    item.box.update()
-            if isinstance(item, TextBoxFramed):
-                item.width *= self.scale.x
-                item.height *= self.scale.y
-                item.scale_box()
-            elif isinstance(item, KeysFrame):
-                item.layout.x *= self.scale.x
-                item.layout.y *= self.scale.y
-
     def update(self, dt):
         for key, button in self.buttons.items():
             if button.in_box(self.m_pos):
@@ -85,7 +66,7 @@ class MenuClass(object):
                     continue
             else:
                 button.restore()
-        self.animate(dt)
+        #self.animate(dt)
         self.add_update(dt)
 
         self.keys_old.update(self.keys)
@@ -151,9 +132,11 @@ class NewMenu(object):
         self.layout = MenuLayout(self.batch, self.scale)
 
     def update(self, dt):
+        buttons = 0
         for key, button in self.layout:
             if button.over_button(*self.m_pos):
                 button.highlight()
+                buttons += 1
                 try:
                     if self.keys[1338]:
                         self.handle_clicks(key)
@@ -161,6 +144,8 @@ class NewMenu(object):
                     continue
             else:
                 button.restore()
+        if not buttons and self.keys[1338] and not self.keys_old[1338]:
+            self.handle_empty()
         self.add_update(dt)
 
         self.keys_old.update(self.keys)
@@ -191,6 +176,9 @@ class NewMenu(object):
         self.batch.draw()
 
     def handle_clicks(self, key):
+        pass
+
+    def handle_empty(self):
         pass
 
     def add_update(self, dt):
