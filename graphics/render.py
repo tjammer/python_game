@@ -51,22 +51,6 @@ class Render(object):
             del self.players[id]
 
 
-class CustomGroup(pyglet.graphics.Group):
-    """docstring for CustomGroup"""
-    def __init__(self, arg):
-        super(CustomGroup, self).__init__()
-        self.ord = arg
-
-    def __cmp__(self, other):
-        if isinstance(other, CustomGroup):
-            if self.ord > other.ord:
-                return 1
-            elif self.ord < other.ord:
-                return -1
-            else:
-                return 0
-
-
 class ProjectileViewer(object):
     """docstring for ProjectileViewer"""
     def __init__(self, get_cent, batch, scale):

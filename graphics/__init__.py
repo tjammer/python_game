@@ -1,4 +1,5 @@
 from pyglet.window import Window, get_platform
+from pyglet.graphics import Group
 
 
 wmodes = ['windowed', 'windowed_fs', 'fullscreen']
@@ -19,3 +20,21 @@ def get_window(options):
     else:
         return Window(1280, 720, vsync=vsync,
                       style=Window.WINDOW_STYLE_DEFAULT)
+
+
+class CustomGroup(Group):
+    """docstring for CustomGroup"""
+    def __init__(self, arg):
+        super(CustomGroup, self).__init__()
+        self.ord = arg
+
+    def __cmp__(self, other):
+        if isinstance(other, CustomGroup):
+            if self.ord > other.ord:
+                return 1
+            elif self.ord < other.ord:
+                return -1
+            else:
+                return 0
+        else:
+            return 0
