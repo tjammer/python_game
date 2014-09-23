@@ -142,13 +142,6 @@ class TextWidget(object):
         self.set_focus(self)
 
         @self.window.event
-        def on_mouse_motion(x, y, dx, dy):
-            if self.hit_test(x, y):
-                self.window.set_mouse_cursor(self.text_cursor)
-            else:
-                self.window.set_mouse_cursor(None)
-
-        @self.window.event
         def on_mouse_press(x, y, button, modifiers):
             if self.hit_test(x, y):
                 self.set_focus(self)
@@ -178,6 +171,17 @@ class TextWidget(object):
         def on_text_motion_select(motion):
             if self.focus:
                 self.focus.caret.on_text_motion_select(motion)
+
+        @self.window.event
+        def on_mouse_motion(x, y, dx, dy):
+            if self.hit_test(x, y):
+                self.window.set_mouse_cursor(self.text_cursor)
+            else:
+                self.window.set_mouse_cursor(None)
+        self.handler = on_mouse_motion
+
+    def remove_handler(self):
+        self.window.remove_handler('on_mouse_motion', self.handler)
 
     def hit_test(self, x, y):
         return (0 < x - self.layout.x < self.layout.width and
@@ -271,7 +275,7 @@ class KeysFrame(object):
     def highlight(self):
         y = self.layout.y - self.mpos[1] - self.layout.view_y
         lines = self.doc.text.split('\n')
-        num = int(float(y) / self.line_space + 0.45)
+        num = int(float(y) / self.line_space - 0.18)
         try:
             if not self.active_line:
                 action, key = lines[num].split('\t')
@@ -501,3 +505,143 @@ class MenuLayout(object):
         btgen = iter(self.bottom)
         acgen = self.actives.itervalues()
         return chain(hlgen, btgen, acgen)
+
+
+class PopMenu(object):
+    """docstring for PopMenu"""
+    def __init__(self, text, textlst, pos, window, batch,
+                 line_space=None, font_size=24, hcolor=(25, 25, 25),
+                 scl=unity):
+        super(PopMenu, self).__init__()
+        self.scale = scl
+        self.pos = vec2(*pos) * scl
+        self.target_pos = pos
+        self.window = window
+        self.line_space = (line_space + font_size) * self.scale.x
+        self.font_size = font_size * self.scale.x
+        self.hcolor = hcolor
+
+        #initial text
+        self.idoc = pyglet.text.document.UnformattedDocument(text, )
+        self.idoc.set_style(0, len(text), dict(font_size=self.font_size,
+                            color=[255]*4))
+        self.ilayout = pyglet.text.layout.TextLayout(self.idoc, batch=batch)
+        self.ilayout.anchor_x, self.ilayout.anchor_y = ('left', 'center')
+        self.ilayout.x, self.ilayout.y = self.pos
+
+        #other text in popmenu, is inserted later
+        self.doc = Doc('\n')
+        self.doc.set_paragraph_style(0, 0, dict(indent=None,
+                                     line_spacing=self.line_space,
+                                     font_size=self.font_size))
+
+        self.lwidth = max(len(txt) * self.font_size*72./96 for txt in textlst)
+        tempf = self.idoc.get_font(0)
+        self.lheight = tempf.size+tempf.ascent-tempf.descent
+        self.textlst = textlst
+
+        self.layout = Layout(self.doc, width=self.lwidth,
+                             height=self.lheight*len(textlst)+1,
+                             multiline=True, batch=batch)
+
+        self.layout.anchor_x, self.layout.anchor_y = 'left', 'top'
+        self.layout.x = self.pos[0]-self.lwidth/2+self.ilayout.content_width/2
+        self.layout.y = self.pos[1]
+
+        self.even = 0
+        self.active_i = []
+        self.curr_line = None
+        self.active_line = None
+
+        self.active = False
+        self.hlighted = False
+
+        @self.window.event
+        def on_mouse_scroll(x, y, scroll_x, scroll_y):
+            self.layout.view_y = scroll_y * self.layout.content_height
+        self.handler = on_mouse_scroll
+
+    def remove_handler(self):
+        self.window.remove_handler('on_mouse_scroll', self.handler)
+
+    def insert(self, text):
+        self.even += 1
+        iseven = self.even % 2
+        text += ' ' * 60
+        self.doc.insert_text(len(self.doc.text),
+                             text + '\n',
+                             dict(font_size=self.font_size, color=[255] * 4,
+                                  background_color=[50 * iseven] * 3 + [255]))
+        ln = len(self.doc.text) - 3
+        self.doc.set_paragraph_style(ln, ln,
+                                     dict(indent=None, wrap=False,
+                                          line_spacing=self.line_space))
+
+    def over_button(self, x, y):
+        self.mpos = (x, y)
+        if not self.active:
+            return (0 < x - self.pos.x < self.ilayout.content_width and
+                    0 < y - self.pos.y + self.ilayout.content_height / 2
+                    < self.ilayout.content_height)
+        else:
+            return (0 < x - self.layout.x < self.layout.width and
+                    0 < self.layout.y - y < self.layout.height)
+
+    def highlight(self):
+        if not self.active:
+            if not self.hlighted:
+                self.idoc.set_style(0, len(self.idoc.text),
+                                    dict(background_color=[25]*3+[255]))
+                self.hlighted = True
+        else:
+            y = self.layout.y - self.mpos[1] - self.layout.view_y
+            lines = self.doc.text.split('\n')
+            num = int(float(y) / self.line_space - 0.18)
+            try:
+                if not self.active_line:
+                    ind = self.doc.text.find(lines[num])
+                    if (ind, num) not in self.active_i:
+                        self.curr_line = (ind, num)
+                        self.restore()
+                        self.doc.set_paragraph_style(ind, ind, dict(
+                                                     background_color=
+                                                     self.hcolor + (255,)))
+                        self.active_i.append((ind, num))
+            except (IndexError, ValueError):
+                self.restore()
+
+    def restore(self):
+        if not self.active:
+            if self.hlighted:
+                self.idoc.set_style(0, len(self.idoc.text),
+                                    dict(background_color=[0]*3+[255]))
+                self.hlighted = False
+        if len(self.active_i) > 0:
+            for a in self.active_i:
+                ind, num = a
+                if not a == self.active_line:
+                    self.doc.set_paragraph_style(ind, ind, dict(
+                                                 background_color=
+                                                 [50 * (num % 2)] * 3 + [255]))
+            self.active_i = []
+            if (ind, num) == self.curr_line:
+                self.curr_line = None
+
+    def activate(self):
+        if not self.active:
+            self.active = True
+            self.layout.begin_update()
+            for txt in self.textlst:
+                self.insert(txt)
+            self.layout.end_update()
+            return False
+        else:
+            if self.curr_line[0] != 0:
+                lines = self.doc.text.split('\n')
+                self.idoc.text = lines[self.curr_line[1]].strip()
+                npos = self.pos[0]-self.lwidth/2 + self.ilayout.content_width/2
+                self.layout.x = npos
+                self.active = False
+                self.doc.delete_text(1, len(self.doc.text))
+                self.even = 0
+                return self.idoc.text

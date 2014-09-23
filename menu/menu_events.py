@@ -51,6 +51,10 @@ class MenuClass(object):
         self.window = window
         self.scale = vec2(window.width / 1280., window.height / 720.)
 
+        @window
+        def on_resize(width, height):
+            self.scale = vec2(width / 1280., height / 720.)
+
     def do_scale(self):
         for item in self.buttons.itervalues():
             item.target_pos[0] *= self.scale.x
