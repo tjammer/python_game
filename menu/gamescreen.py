@@ -194,6 +194,8 @@ class GameScreen(Events):
                 self.gs_view.to_warmup()
             elif gs == proto.gameOver:
                 self.gs_view.show_score()
+            elif gs == proto.overTime():
+                self.hud.update_prop(text='Overtime!')
         elif typ == proto.mapUpdate:
             ind, itemid, gt, spawn = data
             self.gs_view.set_time(gt)

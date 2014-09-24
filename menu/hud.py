@@ -162,7 +162,7 @@ class Hud(object):
         if text:
             self.text.begin_update()
             self.text.text = text
-            self.text_active = 1
+            self.text_active = 3
             self.text.batch = self.batch
             self.text.end_update()
         if weapon:
