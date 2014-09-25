@@ -1,10 +1,13 @@
 from movement import Movement
-from collision.aabb import AABB
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
 from menu.menu_events import Events
 from gameplay.weapons import WeaponsManager
 from options import colors, Options
+try:
+    from graphics.primitives import Rect
+except:
+    from collision.aabb import AABB as Rect
 
 pext = vec2(32, 72)
 phext = pext / 2
@@ -19,11 +22,7 @@ class Player(Events):
         self.move = Movement(*self.state.pos)
         self.dispatch_proj = dispatch_proj
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
-        if not server:
-            from graphics.primitives import Rect
-            self.Rect = Rect
-        else:
-            self.Rect = AABB
+        self.Rect = Rect
         if id:
             self.id = id
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)

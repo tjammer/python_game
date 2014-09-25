@@ -1,4 +1,10 @@
 from player.state import vec2
+try:
+    from pyglet.graphics import Batch
+    from pyglet.window import key as key_
+    from elements import MenuLayout
+except:
+    pass
 
 
 class Events(object):
@@ -117,9 +123,6 @@ class NewMenu(object):
     """docstring for NewMenu"""
     def __init__(self, vool=None, window=None):
         super(NewMenu, self).__init__()
-        from pyglet.graphics import Batch
-        from pyglet.window import key as key_
-        from elements import MenuLayout
         #self.text_boxes = {}
         self.m_pos = [0, 0]
         self.keys = key_.KeyStateHandler()

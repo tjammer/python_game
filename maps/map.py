@@ -1,11 +1,14 @@
 from xml.etree import ElementTree as ET
-from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
 from gameplay.items import *
 from gameplay.weapons import *
 from elements import Teleporter
 import copy
+try:
+    from graphics.primitives import *
+except:
+    from collision.aabb import AABB as Rect
 
 
 class Map(object):
@@ -17,12 +20,7 @@ class Map(object):
         self.quad_tree = None
         self.server = server
         self.batch = batch
-        if server:
-            self.Rect = AABB
-        else:
-            from graphics.primitives import *
-            from graphics.items import *
-            self.Rect = Rect
+        self.Rect = Rect
         self.items = ItemManager(self.batch, renderhook=renderhook)
         try:
             self.load(''.join(('maps/', mapname, '.svg')))
