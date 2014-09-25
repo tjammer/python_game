@@ -37,4 +37,4 @@ class CustomGroup(Group):
             else:
                 return 0
         else:
-            return 0
+            return self.ord
