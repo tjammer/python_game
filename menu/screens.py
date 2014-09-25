@@ -1,6 +1,5 @@
 # file for all the screens in the game
 from menu_events import NewMenu as MenuClass
-from player.state import vec2
 from elements import TextBoxFramed as btn, TextWidget, ColCheckBox as ccb
 from elements import PopMenu
 from pyglet.text import Label
@@ -122,7 +121,6 @@ class ChatScreen(MenuClass):
         #self.window = window
         self.widget = TextWidget('', 200, 100, self.window.width - 500,
                                  self.batch, self.window)
-        self.do_scale()
 
     """def on_draw(self):
         self.batch.draw()"""

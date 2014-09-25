@@ -60,7 +60,7 @@ class GameServer(DatagramProtocol):
                 if self.gamestate.join(data):
                     self.join_player(data.player.id)
             elif data.gameState == proto.goesSpec:
-                self.gamestate.spec(data)
+                self.gamestate.spec(data.player.id)
                 #self.spec_player(data.player.id)
             elif data.gameState == proto.isReady:
                 self.gamestate.ready_up(data)

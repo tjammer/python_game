@@ -55,14 +55,18 @@ class GamestateManager(object):
             self.gametime -= dt
             if self.gametime < 0:
                 self.gametime = 0
-        if self.gamestate == proto.countDown and self.gametime <= 0:
+        if self.gamestate == proto.countDown and self.gametime == 0:
             self.start_game()
         if self.gamestate == proto.inProgress and self.gametime == 0:
             if not self.a.score == self.b.score:
                 self.stop_game()
             else:
                 self.gametime = 60
-        if self.gamestate == proto.gameOver and self.gametime == 0:
+                self.send_overtime()
+        elif self.gamestate == proto.warmUp and not self.gametime:
+            if len(self.ingame) == 2:
+                self.countdown()
+        elif self.gamestate == proto.gameOver and self.gametime == 0:
             self.to_warmup()
         self.items.update(dt, self.send_mapupdate)
         if self.ticks >= 1:
@@ -117,6 +121,8 @@ class GamestateManager(object):
             msg.gameTime = self.gametime
             for player in self.all():
                 self.ackman.send_rel(msg, player.address)
+            if len(self.ingame) < 2:
+                self.gametime = 60
             return True
         return False
 
@@ -136,8 +142,7 @@ class GamestateManager(object):
         if self.gamestate in [proto.countDown, proto.inProgress]:
             self.to_warmup()
 
-    def spec(self, data):
-        id = data.player.id
+    def spec(self, id):
         if self.gamestate == proto.gameOver:
             return
         if id in self.ingame:
@@ -215,6 +220,17 @@ class GamestateManager(object):
         for player in self.ingame.itervalues():
             player.freeze()
 
+    def send_overtime(self):
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        plr = proto.Player()
+        plr.id = 0
+        msg.player.CopyFrom(plr)
+        msg.gameState = proto.overTime
+        msg.gameTime = self.gametime
+        for player in self.all():
+            self.ackman.send_rel(msg, player.address)
+
     def start_game(self):
         self.gametime = self.dueltime
         self.gamestate = proto.inProgress
@@ -239,7 +255,7 @@ class GamestateManager(object):
             self.spawn(player)
         for team in (self.a, self.b):
             team.score = 0
-        self.gametime = 0
+        self.gametime = 180
         self.gamestate = proto.warmUp
         msg = proto.Message()
         msg.type = proto.stateUpdate

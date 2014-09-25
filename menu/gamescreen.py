@@ -11,7 +11,7 @@ from hud import Hud
 from gameplay.gamestate import GameStateViewer
 from graphics.render import Render, ProjectileViewer
 from player.state import vec2
-from screens import GameMenu
+from screens import GameMenu, ChatScreen
 
 
 class GameScreen(Events):
@@ -44,6 +44,7 @@ class GameScreen(Events):
         self.hud = Hud(batch=st_batch, window=self.window)
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
+        self.frozen = False
 
     def update(self, dt):
         dt = int(dt * 1000000) / 1000000.
@@ -191,10 +192,12 @@ class GameScreen(Events):
             elif gs == proto.inProgress:
                 self.gs_view.start_game()
             elif gs == proto.warmUp:
+                self.frozen = False
                 self.gs_view.to_warmup()
             elif gs == proto.gameOver:
+                self.frozen = True
                 self.gs_view.show_score()
-            elif gs == proto.overTime():
+            elif gs == proto.overTime:
                 self.hud.update_prop(text='Overtime!')
         elif typ == proto.mapUpdate:
             ind, itemid, gt, spawn = data
@@ -216,8 +219,11 @@ class GameScreen(Events):
                         self.players[ind].weapons.pickup(st)
                     else:
                         if not isinstance(self.map.items[itemid], Ammo):
-                            self.players[ind].weapons.apply(st,
-                                                            self.players[ind])
+                            try:
+                                pl = self.players[ind]
+                                pl.weapons.apply(st, pl)
+                            except TypeError:
+                                pass
                         else:
                             self.players[ind].weapons.predict_ammo(st)
             self.map.serverupdate(itemid, spawn)
@@ -335,7 +341,8 @@ class GameScreen(Events):
         self.cancel_drag()
 
     def game_update(self, dt):
-        self.update_physics(dt)
+        if not self.frozen:
+            self.update_physics(dt)
         self.camera.update(dt, self.player.state)
         self.send_to_client(dt)
         self.proj_viewer.update(dt)
