@@ -119,7 +119,7 @@ class AABB(object):
 
     def copy(self):
         rct = AABB(x=self.pos.x, y=self.pos.y, height=self.height,
-                   width=self.width, isplayer=self.isplayer)
+                   width=self.width, isplayer=self.isplayer, color=self.color)
         rct.vel = vec2(*self.vel)
         return rct
 

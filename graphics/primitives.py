@@ -1,6 +1,6 @@
 from pyglet import graphics
 from pyglet import gl
-from collision.aabb import AABB, Line
+from collision.aabb import AABB, Line, vec2
 
 font = 'Helvetica'
 
@@ -58,8 +58,10 @@ class Rect(AABB):
                                    self.color[2]] * 4))
 
     def copy(self):
-        return Rect(self.pos.x, self.pos.y, self.width, self.height,
-                    self.color)
+        rct = Rect(x=self.pos.x, y=self.pos.y, height=self.height,
+                   width=self.width, isplayer=self.isplayer, color=self.color)
+        rct.vel = vec2(*self.vel)
+        return rct
 
 
 class DrawaAbleLine(Line):
