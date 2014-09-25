@@ -160,11 +160,15 @@ class Hud(object):
                 else:
                     self.hp.color = self.normal_hpcol
         if text:
-            self.text.begin_update()
-            self.text.text = text
-            self.text_active = 3
-            self.text.batch = self.batch
-            self.text.end_update()
+            if not self.text_active:
+                self.text.begin_update()
+                self.text.text = text
+                self.text_active = 3
+                self.text.batch = self.batch
+                self.text.end_update()
+            else:
+                self.text.text = text
+                self.text_active = 3
         if weapon:
             if weapon != self.weapon.text:
                 self.weapon.text = weapon
