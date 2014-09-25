@@ -1,5 +1,4 @@
 from movement import Movement
-from graphics.primitives import Rect
 from collision.aabb import AABB
 from network_utils import protocol_pb2 as proto
 from state import vec2, state
@@ -21,6 +20,7 @@ class Player(Events):
         self.dispatch_proj = dispatch_proj
      # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         if not server:
+            from graphics.primitives import Rect
             self.Rect = Rect
         else:
             self.Rect = AABB

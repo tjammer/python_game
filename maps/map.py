@@ -1,5 +1,4 @@
 from xml.etree import ElementTree as ET
-from graphics.primitives import *
 from collision.aabb import AABB
 from collision.quadtree import QuadTree
 from player.state import vec2
@@ -21,6 +20,8 @@ class Map(object):
         if server:
             self.Rect = AABB
         else:
+            from graphics.primitives import *
+            from graphics.items import *
             self.Rect = Rect
         self.items = ItemManager(self.batch, renderhook=renderhook)
         try:

@@ -1,4 +1,3 @@
-from graphics.primitives import Rect
 from aabb import AABB
 
 
@@ -17,6 +16,7 @@ class QuadTree(object):
         self.nodes = [None] * 4
         self.server = server
         if not server:
+            from graphics.primitives import Rect
             self.Rect = Rect
         else:
             self.Rect = AABB
