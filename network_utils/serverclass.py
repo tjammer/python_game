@@ -25,6 +25,7 @@ class GameServer(DatagramProtocol):
                                              self.gamestate.damage_player,
                                              self.allgen)
         self.mxdt = .03
+        print 'server initialized'
 
     def datagramReceived(self, datagram, address):
         data = proto.Message()
