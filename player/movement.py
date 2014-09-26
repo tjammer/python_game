@@ -78,7 +78,7 @@ class Movement(object):
                 self.jump(state, sign)
             elif (conds.onRightWall
                   or conds.onLeftWall) and conds.canJump and input.up:
-                self.walljump(state, conds)
+                self.walljump(state, conds, sign)
         if not input.up:
             state.set_cond('canJump')
             if self.vel.y > 0:
@@ -89,14 +89,17 @@ class Movement(object):
         self.vel.x += sign * (900 - abs(self.vel.x)) * 0.2
         state.set_cond('ascending')
 
-    def walljump(self, state, conds):
-        self.vel.y += self.jump_vel * 1.4
-        if conds.onLeftWall:
+    def walljump(self, state, conds, sign):
+        if conds.onLeftWall and sign == 1:
             self.vel.x = self.wall_boost
-        elif conds.onRightWall:
+            state.set_cond('ascending')
+        elif conds.onRightWall and sign == -1:
             self.vel.x = -self.wall_boost
+            state.set_cond('ascending')
+        else:
+            return
+        self.vel.y += self.jump_vel * 1.4
         self.turn_multplier = 1
-        state.set_cond('ascending')
 
     def sign_of(self, num):
         if num > 0:
