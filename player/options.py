@@ -29,6 +29,11 @@ class Options(object):
         try:
             with open('.config', 'r') as f:
                 self.odict = json.load(f)
+                for key in standards:
+                    try:
+                        self.odict[key]
+                    except KeyError:
+                        self.odict[key] = standards[key]
         except IOError:
             self.odict = standards
             with open('.config', 'w') as f:
