@@ -48,14 +48,19 @@ class Camera(Events):
         self.send_message('mousepos', self.aimpos)
 
     def set_camera(self):
-        glMatrixMode(GL_MODELVIEW)
+        glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
+        gluPerspective(52, 1, 1, 10)
+        glMatrixMode(GL_MODELVIEW)
         glTranslatef(-self.campos.x + 2 * self.wcoords.x,
-                     -self.campos.y + self.wcoords.y, 0)
+                     -self.campos.y + self.wcoords.y, 2)
 
     def set_static(self):
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
+        glOrtho(0, self.window.width, 0, self.window.height, -1, 1)
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]
