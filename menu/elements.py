@@ -528,7 +528,7 @@ class PopMenu(object):
         self.idoc.set_style(0, len(text), dict(font_size=self.font_size,
                             color=[255]*4))
         self.ilayout = pyglet.text.layout.TextLayout(self.idoc, batch=batch,
-                                                     group=CustomGroup(1))
+                                                     group=CustomGroup(-1))
         self.ilayout.anchor_x, self.ilayout.anchor_y = ('left', 'center')
         self.ilayout.x, self.ilayout.y = self.pos
 
