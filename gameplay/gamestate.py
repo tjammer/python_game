@@ -311,6 +311,13 @@ class GamestateManager(object):
         for player in self.all():
             self.ackman.send_rel(data, player.address)
 
+    def send_current_gs(self, address):
+        msg = proto.Message()
+        msg.type = proto.stateUpdate
+        msg.gameState = self.gamestate
+        msg.gameTime = self.gametime
+        self.ackman.send_rel(msg, address)
+
 
 class Team(object):
     """docstring for Team"""

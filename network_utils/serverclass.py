@@ -232,6 +232,7 @@ class GameServer(DatagramProtocol):
                 self.ackman.send_rel(new, p.address)
         #TODO: send map status
         self.map.items.send_mapstate(self.gamestate.send_mapupdate, address)
+        self.gamestate.send_current_gs(address)
 
     def disc_player(self, id):
         if id in self.players:
