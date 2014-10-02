@@ -12,8 +12,8 @@ class Hud(object):
     def __init__(self, batch, window):
         super(Hud, self).__init__()
         self.text_ = 'This is the warmup phase'
-        self.hp_t = '0'
-        self.armor_t = '0'
+        self.hp_t = '-1'
+        self.armor_t = '-1'
         self.text_active = 5
         self.killmsg_active = False
         self.chat_active = False
@@ -153,6 +153,7 @@ class Hud(object):
         if hp:
             if hp != self.hp.text:
                 self.hp.text = hp
+
                 if int(hp) <= 20:
                     self.hp.color = self.low_hpcol
                 elif int(hp) > 100:
