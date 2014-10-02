@@ -17,11 +17,6 @@ class Movement(object):
         self.angle = 0
         self.friction = 15
 
-    def update(self, dt, state, input):
-        pos, vel, conds = state.pos, state.vel, state.conds
-        self.compute_vel(dt, pos, vel, input, conds, state)
-        return self.step(dt, pos)
-
     def step(self, dt, pos):
         self.pos = pos + self.vel * dt
         return self.pos, self.vel
@@ -35,9 +30,7 @@ class Movement(object):
         self.vel = vel
         avel = abs(vel.x)
         if state.isDead:
-            conds.hold = True
-            if conds.onGround:
-                self.vel.x -= self.vel.x * dt * self.friction * 0.5
+            self.vel.x -= self.vel.x * dt * self.friction * 0.5
             conds.hold = False
             sign = 0
         elif input.right and not input.left:
@@ -65,6 +58,7 @@ class Movement(object):
             self.vel.x = self.max_vel * self.curr_sign
         v *= not conds.hold
         self.vel.x = self.vel.x + v * sign * dt
+
         #wallsliding
         if (conds.onLeftWall or conds.onRightWall) and self.vel.y < 0:
             gravity = self.gravity * .5
