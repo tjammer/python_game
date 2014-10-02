@@ -43,11 +43,15 @@ class Player(Events):
             input = self.input
         self.rect.vel = self.move.get_vel(dt, state, input)
         self.rect.update(*state.pos)
-        self.collide(dt, rectgen, state)
+        state = self.collide(dt, rectgen, state)
         self.weapons.update(dt, state, input)
         self.state.update(dt, state)
-        if self.renderhook:
-            self.renderhook(self, update=True)
+
+    def predict_step(self, dt, rectgen, state, input):
+        newrect = self.rect.copy()
+        newrect.vel = self.move.get_vel(dt, state, input)
+        newrect.update(*state.pos)
+        return self.collide(dt, rectgen, state)
 
     def specupdate(self, dt):
         if self.input.up:
@@ -128,24 +132,23 @@ class Player(Events):
 
         dt = vec2(xt, yt)
         norm = vec2(xnorm, ynorm)
-        self.resolve_sweep(norm, dt, state)
+        return self.resolve_sweep(norm, dt, state)
 
     def resolve_sweep(self, normal, dt, state):
-        self.state.pos, self.state.vel = self.move.step(dt, state.pos)
-        self.rect.update(*self.state.pos)
-        self.state.vel.x *= normal.x == 0.
-        self.state.vel.y *= normal.y == 0.
-        self.move.resolve_coll(self.state.pos, self.state.vel)
+        state.pos, state.vel = self.move.step(dt, state.pos)
+        state.vel.x *= normal.x == 0.
+        state.vel.y *= normal.y == 0.
         if normal.y < 0:
-            self.state.set_cond('onGround')
+            state.set_cond('onGround')
         elif normal.x > 0:
-            self.state.set_cond('onRightWall')
+            state.set_cond('onRightWall')
         elif normal.x < 0:
-            self.state.set_cond('onLeftWall')
+            state.set_cond('onLeftWall')
         elif normal.x == 0. and normal.y == 0.:
-            self.determine_state()
+            self.determine_state(state)
+        return state
 
-    def resolve_collision(self, ovrlap, axis, angle):
+    """def resolve_collision(self, ovrlap, axis, angle):
         self.state.pos[0] = self.rect.x1 - ovrlap * axis[0]
         self.state.pos[1] = self.rect.y1 - ovrlap * axis[1]
         self.state.vel[0] *= axis[1] > 0
@@ -160,11 +163,11 @@ class Player(Events):
             if ovrlap > 0:
                 self.state.set_cond('onRightWall')
             elif ovrlap < 0:
-                self.state.set_cond('onLeftWall')
+                self.state.set_cond('onLeftWall')"""
 
-    def determine_state(self):
-        if self.state.vel.y < 0:
-            self.state.set_cond('descending')
+    def determine_state(self, state):
+        if state.vel.y < 0:
+            state.set_cond('descending')
 
     def spawn(self, x, y, other=False):
         self.state.pos = vec2(x, y)
@@ -216,10 +219,11 @@ class DrawablePlayer(object):
         self.rect.height *= fac.y
         self.rect.add(self.batch)
 
-    def update(self, player, fac):
-        self.rect.update(*(vec2(*player.rect.pos) * fac))
-        if player.rect.color != self.rect.color:
-            self.rect.update_color(player.rect.color)
+    def update(self, state, fac):
+        pos, color = state.pos, state.color
+        self.rect.update(*(vec2(*pos) * fac))
+        if color != self.rect.color:
+            self.rect.update_color(color)
 
     def remove(self):
         self.rect.remove()

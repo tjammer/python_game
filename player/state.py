@@ -63,6 +63,9 @@ class vec2(object):
         else:
             raise TypeError
 
+    def __pow__(self, num):
+        return vec2(self.x**2, self.y**2)
+
     def mag(self):
         """magnitude of the vector"""
         return sqrt(self.x**2 + self.y**2)
@@ -133,6 +136,10 @@ class state(object):
             self.wall = 0
             self.conds.onRightWall = False
             self.conds.onLeftWall = False
+        if not stat.pos == self.pos:
+            self.pos = vec2(*stat.pos)
+        if not stat.vel == self.vel:
+            self.vel = vec2(*stat.vel)
         self.hp = stat.hp
         self.armor = stat.armor
         if self.hudhook:
@@ -140,9 +147,18 @@ class state(object):
         self.chksm = self.hp + self.armor
         self.conds.hold = stat.conds.hold
 
+    def update_hp(self, stat):
+        self.hp = stat.hp
+        self.armor = stat.armor
+        if self.hudhook:
+            self.hudhook(hp=str(self.hp), armor=str(self.armor))
+        self.chksm = self.hp + self.armor
+
     def copy(self):
+        conds = proto.MState()
+        conds.CopyFrom(self.conds)
         return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.armor,
-                     self.conds)
+                     conds)
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook

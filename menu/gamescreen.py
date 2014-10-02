@@ -12,6 +12,7 @@ from gameplay.gamestate import GameStateViewer
 from graphics.render import Render, ProjectileViewer
 from player.state import vec2
 from screens import GameMenu, ChatScreen
+from network_utils import timestep
 
 
 class GameScreen(Events):
@@ -45,9 +46,10 @@ class GameScreen(Events):
         self.gs_view = GameStateViewer(self.players, self.hud.update_prop,
                                        self.hud.set_score)
         self.frozen = False
+        self.rest_time = 0
 
     def update(self, dt):
-        dt = int(dt * 1000000) / 1000000.
+        dt = int(dt * 1000000.) / 1000000.
         if self.controls['esc'] and not self.controls_old['esc']:
             self.send_message('menu_transition_+', (GameMenu, self.isSpec))
 
@@ -67,16 +69,11 @@ class GameScreen(Events):
         self.on_update(dt)
 
     def update_physics(self, dt, state=False, input=False):
-        playerlist = [player.rect for player in self.players.itervalues()
-                      if not player.state.isDead]
-        maplist = [rect for rect in self.map.quad_tree.retrieve([],
-                   self.player.rect)]
-        rectlist = playerlist + maplist
-        self.player.update(dt, rectlist, state, input)
-        return self.player.state
+        self.player.update(dt, self.get_rect(), state, input)
+        return self.player.state.copy()
 
     def update_state_only(self, state):
-        self.player.state.update(0, state)
+        self.player.state.update_hp(state)
 
     def update_keys(self):
         for key_, value in self.controls.items():
@@ -244,7 +241,7 @@ class GameScreen(Events):
 
     def send_to_client(self, dt):
         temp_input = proto.Input()
-        self.time += int(dt * 1000000)
+        self.time += int(dt * 1000000.)
         temp_input.CopyFrom(self.player.input)
         c_move = move(self.time, temp_input, self.player.state.copy())
         try:
@@ -255,6 +252,7 @@ class GameScreen(Events):
         self.send_message('input', (self.player.input, self.time))
 
     def spec_send(self, dt):
+        self.time += int(dt * 1000000.)
         self.send_message('input', (proto.Input(), self.time))
 
     def draw(self):
@@ -341,10 +339,22 @@ class GameScreen(Events):
         self.cancel_drag()
 
     def game_update(self, dt):
-        if not self.frozen:
-            self.update_physics(dt)
+        self.rest_time += dt
+        while self.rest_time >= timestep:
+            if not self.frozen:
+                self.update_physics(timestep)
+            self.send_to_client(timestep)
+            self.rest_time -= timestep
+
+        #interpolate missing time
+        state = self.player.state.copy()
+        state = self.player.predict_step(self.rest_time, self.get_rect(),
+                                         state, self.player.input)
+        state.id = self.player.id
+        state.color = self.player.color
+        self.render.playerhook(state, update=True)
+
         self.camera.update(dt, self.player.state)
-        self.send_to_client(dt)
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
         self.hud.update(dt)
@@ -375,7 +385,6 @@ class GameScreen(Events):
         else:
             self.player.specupdate(dt)
             self.camera.update(dt, self.player.state)
-        #self.send_to_client(dt)
         self.spec_send(dt)
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
@@ -427,3 +436,10 @@ class GameScreen(Events):
             self.window.remove_handler('on_mouse_drag', self.dragevent)
         except AttributeError:
             pass
+
+    def get_rect(self):
+        playerlist = [player.rect for player in self.players.itervalues()
+                      if not player.state.isDead]
+        maplist = [rect for rect in self.map.quad_tree.retrieve([],
+                   self.player.rect)]
+        return playerlist + maplist

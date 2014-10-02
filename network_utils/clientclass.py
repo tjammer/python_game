@@ -3,6 +3,7 @@ from twisted.internet.protocol import DatagramProtocol
 from player.state import state, vec2
 from reliable import AckManager
 from player.options import Options
+from __init__ import timestep
 
 
 class Client(DatagramProtocol):
@@ -50,17 +51,16 @@ class Client(DatagramProtocol):
 
     def get_input(self, event, msg):
         #self.input, dt = msg
-        if event == 'input':
+        if event == 'input' and self.connected:
             self.input, time = msg
             self.time = time
-            if self.connected:
-                self.message = proto.Message()
-                self.message.type = proto.playerUpdate
-                self.input.time = time
-                self.input.id = self.id
-                self.message.input.CopyFrom(self.input)
-                msg_ = self.message.SerializeToString()
-                self.transport.write(msg_, self.host)
+            self.message = proto.Message()
+            self.message.type = proto.playerUpdate
+            self.input.time = time
+            self.input.id = self.id
+            self.message.input.CopyFrom(self.input)
+            msg_ = self.message.SerializeToString()
+            self.transport.write(msg_, self.host)
         elif event == 'other':
             #only need one message for now, check git for other
             inpt = proto.Input()
@@ -214,13 +214,15 @@ def correct_client(update_physics, s_move, moves, head, tail, update_state):
 
             moves.advance(head)
             index = [head[0]]
+            if index[0] == tail:
+                update_physics(0, c_state, c_input)
             while index[0] != tail:
                 dt = (moves[index[0]].time - c_time) / 1000000.
                 c_state = update_physics(dt, c_state, c_input)
 
                 c_time = moves[index[0]].time
-                c_input = moves[index[0]].input
-                moves[index[0]].state = c_state.copy()
+                c_input.CopyFrom(moves[index[0]].input)
+                moves[index[0]].state = c_state
                 moves.advance(index)
         elif moves[head[0]].state.chksm != s_move.state.chksm:
             update_state(s_move.state)
