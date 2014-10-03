@@ -11,8 +11,8 @@ class Client(DatagramProtocol):
     def __init__(self):
         self.time = 0
         self.connected = False
-        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 8000)
-        self.host = ('127.0.0.1', 8000)
+        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 49220)
+        #self.host = ('127.0.0.1', 49220)
         self.con_timer = 0
         self.message = proto.Message()
         self.input = proto.Input()

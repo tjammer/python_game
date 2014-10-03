@@ -32,8 +32,8 @@ pyglet.clock.schedule(update)
 def on_draw():
     window.clear()
     window_manager.draw()
-    #fps.draw()
+    fps.draw()
 
-reactor.listenUDP(8001, client)
+reactor.listenUDP(49221, client)
 client.register_ack()
 reactor.run(call_interval=1./fps_limit)
