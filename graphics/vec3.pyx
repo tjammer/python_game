@@ -60,3 +60,10 @@ cdef class vec3:
     def mag(self):
         """magnitude of the vector"""
         return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+
+    def normalize(self):
+        mag = self.mag()
+        if not mag == 0.:
+            return self / mag
+        else:
+            return vec3(0., 0., 0.)
