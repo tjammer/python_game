@@ -189,8 +189,6 @@ class Player(Events):
 
     def die(self):
         self.state.isDead = 5
-        if isinstance(self.rect, Rect):
-            self.rect.update_color([128] * 3)
 
     def freeze(self):
         self.state.frozen = True

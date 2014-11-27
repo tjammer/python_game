@@ -73,12 +73,12 @@ from cvec2 import cvec2 as vec2
 
 class state(object):
     """docstring for state"""
-    def __init__(self, pos, vel, hp=100, armor=0, conds=False):
+    def __init__(self, pos, vel, hp=100, armor=0, conds=False, isDead=False):
         super(state, self).__init__()
         self.pos, self.vel, self.hp, self.armor = pos, vel, hp, armor
         self.wall_t = .2
         self.wall = 0
-        self.isDead = False
+        self.isDead = isDead
         self.frozen = False
         if not conds:
             self.conds = proto.MState()
@@ -158,7 +158,7 @@ class state(object):
         conds = proto.MState()
         conds.CopyFrom(self.conds)
         return state(vec2(*self.pos), vec2(*self.vel), self.hp, self.armor,
-                     conds)
+                     conds, self.isDead)
 
     def hook_hud(self, hudhook):
         self.hudhook = hudhook
