@@ -1,4 +1,4 @@
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 
 
 class AABB(object):

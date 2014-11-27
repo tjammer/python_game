@@ -1,6 +1,6 @@
 from xml.etree import ElementTree as ET
 from collision.quadtree import QuadTree
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 from gameplay.items import *
 from gameplay.weapons import *
 from elements import Teleporter
@@ -8,7 +8,7 @@ import copy
 try:
     from graphics.primitives import *
 except:
-    from collision.aabb import AABB as Rect
+    from collision.caabb import cAABB as Rect
 
 
 class Map(object):
@@ -40,7 +40,7 @@ class Map(object):
                     y = float(atr['y'])
                     width = float(atr['width'])
                     height = float(atr['height'])
-                    color = (255, 255, 255)
+                    color = (51, 51, 51)
                     rects.append(self.Rect(x, - y - height, width,
                                  height, color, batch=self.batch))
 
@@ -62,7 +62,7 @@ class Map(object):
                     x = float(atr['x'])
                     y = float(atr['y'])
                     height = float(atr['height'])
-                    self.spawns.append(vec2(x, -y - height))
+                    self.spawns.append(Spawn(x, -y - height))
 
         #armors
         self.ind = 0
@@ -212,7 +212,7 @@ class DrawableMap(object):
     """docstring for DrawableMap"""
     def __init__(self, map, batch, fac):
         super(DrawableMap, self).__init__()
-        self.items = [copy.copy(item) for item in map.items.items]
+        self.items = map.items.items[:]
         self.rects = [rect.copy() for rect in map.rects]
         self.batch = batch
         self.scale(fac)
@@ -231,10 +231,16 @@ class DrawableMap(object):
                 item.y *= fac.y
             item.width *= fac.x
             item.height *= fac.y
-            self.items[ind].add(self.batch)
+            item.add(self.batch)
 
     def spawn(self, id):
         self.items[id].add(self.batch)
 
     def taken(self, id):
         self.items[id].remove()
+
+
+class Spawn(vec2):
+    """docstring for Spawn"""
+    def __init__(self, *args, **kwargs):
+        super(Spawn, self).__init__(*args, **kwargs)

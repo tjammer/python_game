@@ -1,4 +1,4 @@
-from aabb import AABB
+from caabb import cAABB as AABB
 
 
 class QuadTree(object):

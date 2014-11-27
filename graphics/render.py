@@ -1,6 +1,6 @@
 import pyglet
 from pyglet.gl import *
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 from maps.map import DrawableMap
 from player.player import DrawablePlayer
 from network_utils import protocol_pb2 as proto
@@ -10,25 +10,27 @@ from collision.aabb import Line
 
 
 class Render(object):
+
     """docstring for Render"""
+
     def __init__(self, camera, window):
         super(Render, self).__init__()
         self.scene_batch = pyglet.graphics.Batch()
         self.static_batch = pyglet.graphics.Batch()
         self.camera = camera
         self.window = window
-        #scaling factors
+        # scaling factors
         self.scale = vec2(window.width / 1360., window.height / 765.)
         self.players = {}
 
     def draw(self):
-        #with self.fbo:
-            #self.window.clear()
+        # with self.fbo:
+            # self.window.clear()
         with self.camera:
             self.scene_batch.draw()
         self.static_batch.draw()
 
-        #self.window.clear()
+        # self.window.clear()
         #self.fbo.texture.blit(0, 0)
 
     def maphook(self, map, add=False, spawn=False, remove=False, taken=False):
@@ -52,7 +54,9 @@ class Render(object):
 
 
 class ProjectileViewer(object):
+
     """docstring for ProjectileViewer"""
+
     def __init__(self, get_cent, batch, scale):
         super(ProjectileViewer, self).__init__()
         self.projs = {}
@@ -69,7 +73,7 @@ class ProjectileViewer(object):
             vel = vec2(self.data.velx, self.data.vely)
             pos = vec2(self.data.posx, self.data.posy)
             if ind in self.projs:
-                ##self.projs[ind].update(*pos)
+                # self.projs[ind].update(*pos)
                 self.correct(pos * self.scale, vel * self.scale, ind)
             else:
                 if self.data.type == proto.melee:
@@ -190,8 +194,8 @@ class ProjectileViewer(object):
                     todelete.append(key)
                 for p in proj:
                     u = p.unit
-                    m = p.pos + u + u*50
-                    p.update(p.pos.x + u.x*50, p.pos.y + u.y*50, m.x, m.y)
+                    m = p.pos + u + u * 50
+                    p.update(p.pos.x + u.x * 50, p.pos.y + u.y * 50, m.x, m.y)
         for key in todelete:
             del self.projs[key]
 

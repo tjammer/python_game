@@ -4,7 +4,7 @@ from pyglet.text.layout import ScrollableTextLayout, IncrementalTextLayout
 from network_utils import protocol_pb2 as proto
 from gameplay.weapons import weaponcolors, allstrings
 from graphics.primitives import font, Triangle
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 
 
 class Hud(object):

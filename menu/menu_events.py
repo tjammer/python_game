@@ -1,4 +1,4 @@
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 try:
     from pyglet.graphics import Batch
     from pyglet.window import key as key_

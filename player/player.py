@@ -1,13 +1,14 @@
 from movement import Movement
 from network_utils import protocol_pb2 as proto
-from state import vec2, state
+from state import state
+from cvec2 import cvec2 as vec2
 from menu.menu_events import Events
 from gameplay.weapons import WeaponsManager
 from options import colors, Options
 try:
     from graphics.primitives import Rect
 except:
-    from collision.aabb import AABB as Rect
+    from collision.caabb import cAABB as Rect
 
 pext = vec2(32, 72)
 phext = pext / 2

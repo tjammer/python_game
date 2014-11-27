@@ -1,4 +1,4 @@
-from collision.aabb import AABB
+from collision.caabb import cAABB as AABB
 
 
 class Teleporter(AABB):

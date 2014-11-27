@@ -1,6 +1,7 @@
 from pyglet import graphics
 from pyglet import gl
-from collision.aabb import AABB, Line, vec2
+from collision.caabb import cAABB as AABB
+from collision.aabb import Line, vec2
 
 font = 'Helvetica'
 
@@ -231,7 +232,7 @@ class DrawableTeleporter(object):
                                   ('c3B', self.color * 6))
 
     def remove(self):
-        self.ver_list.remove()
+        self.ver_list.delete()
 
 
 class CrossHair(object):

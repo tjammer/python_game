@@ -1,6 +1,6 @@
 from pyglet.gl import *
 from menu.menu_events import Events
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 from player import player
 
 phext = player.phext
@@ -24,7 +24,7 @@ class Camera(Events):
         self.offset = vec2(0, -self.wcoords.y / 2)
         self.eas_vel = vec2(0, 0)
         self.aimpos = vec2(0, 0)
-        self.scale = vec2(window.width / 1360., window.height / 765.)
+        self.scale = vec2(1360. / window.width, 765 / window.height)
         self.mpos_temp = vec2(0, 0)
 
     def __enter__(self):
@@ -42,25 +42,28 @@ class Camera(Events):
         #self.eas_vel.y -= (0*self.eas_vel.y + self.vel.y) * dt
         self.target = self.mpos + self.pos + self.offset
         self.campos -= (self.campos - self.target) * self.mul_easing * dt
-        self.aimpos = self.campos + self.mpos - (self.wcoords+self.offset) * 2
-        self.aimpos = vec2(self.aimpos.x / self.scale.x,
-                           self.aimpos.y / self.scale.y)
+        self.aimpos = self.campos + self.mpos #- (self.wcoords+self.offset) * 2
+        self.aimpos = vec2(self.aimpos.x * self.scale.x,
+                           self.aimpos.y * self.scale.y)
         self.send_message('mousepos', self.aimpos)
 
     def set_camera(self):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(52, 1, 1, 10)
-        glMatrixMode(GL_MODELVIEW)
-        glTranslatef(-self.campos.x + 2 * self.wcoords.x,
-                     -self.campos.y + self.wcoords.y, 2)
+        gluPerspective(10, 16./9, 0.1, 10000)
+        x = self.campos.x
+        y = self.campos.y
+        gluLookAt(x, y, 3600, x, y, 0, 0, 1, 0)
+        #glMatrixMode(GL_MODELVIEW)
+        #glTranslatef(-self.campos.x + 2 * self.wcoords.x,
+         #            -self.campos.y + self.wcoords.y, 2)
 
     def set_static(self):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
         glOrtho(0, self.window.width, 0, self.window.height, -1, 1)
+        #glTranslatef(0, 0, 0)
+
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]

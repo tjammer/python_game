@@ -3,7 +3,7 @@ from graphics.primitives import Box, Rect, font
 from network_utils import protocol_pb2 as proto
 from pyglet.text.document import FormattedDocument as Doc
 from pyglet.text.layout import ScrollableTextLayout as Layout
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 from pyglet.text import Label
 from itertools import chain
 from pyglet.graphics import OrderedGroup

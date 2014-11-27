@@ -1,9 +1,9 @@
 from math import sqrt
 from network_utils import protocol_pb2 as proto
+from cvec2 import cvec2 as vec2
 
 
-class vec2(object):
-    """docstring for vec2"""
+"""class vec2(object):
     def __init__(self, x, y):
         super(vec2, self).__init__()
         self.x, self.y = x, y
@@ -67,8 +67,8 @@ class vec2(object):
         return vec2(self.x**2, self.y**2)
 
     def mag(self):
-        """magnitude of the vector"""
-        return sqrt(self.x**2 + self.y**2)
+        #magnitude of the vector
+        return sqrt(self.x**2 + self.y**2)"""
 
 
 class state(object):

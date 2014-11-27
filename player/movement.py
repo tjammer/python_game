@@ -1,4 +1,4 @@
-from state import vec2
+from cvec2 import cvec2 as vec2
 
 
 class Movement(object):

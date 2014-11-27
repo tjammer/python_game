@@ -1,5 +1,6 @@
-from collision.aabb import AABB as Rectangle, Line
-from player.state import vec2
+from collision.aabb import Line
+from collision.caabb import cAABB as Rectangle
+from player.cvec2 import cvec2 as vec2
 from network_utils import protocol_pb2 as proto
 import math
 
@@ -43,6 +44,14 @@ class Weapon(Rectangle):
         #for spawning
         self.inactive = False
         self.ind = ind
+
+    def __eq__(self, other):
+        if isinstance(other, Weapon):
+            return self.keystr == other.keystr
+
+    def __ne__(self, other):
+        if isinstance(other, Weapon):
+            return self.keystr != other.keystr
 
     def on_fire(self, pos, aim_pos):
         pass
@@ -93,7 +102,7 @@ class Melee(Weapon):
         self.dispatch_proj = dispatch_proj
         self.id = id
         self.ammo = 1
-        self.vel = 0
+        self.vel_ = 0
         self.selfhit = False
         self.proj_lifetime = 1. / 12
         self.reach = 40
@@ -110,7 +119,7 @@ class Melee(Weapon):
             offset = direc * self.reach
         npos = pos + rectoffset + offset
         proj = MeleeProjectile(self.dmg, self.knockback, self.id, npos.x,
-                               npos.y, width=70, height=70, vel=self.vel,
+                               npos.y, width=70, height=70, vel=self.vel_,
                                selfhit=self.selfhit, direc=direc,
                                lifetime=self.proj_lifetime,
                                offset=offset, ppos=pos)
@@ -127,7 +136,7 @@ class Blaster(Weapon):
         self.ammo = 10
         self.max_ammo = 15
         self.ammoval = 5
-        self.vel = 1600
+        self.vel_ = 1600
         self.selfhit = True
         self.proj_lifetime = 10
         self.keystr = 'w3'
@@ -138,7 +147,7 @@ class Blaster(Weapon):
         temp = aim_pos - pos - rectoffset
         direc = temp / temp.mag()
         proj = BlasterProjectile(x=pos.x+phext.x, y=pos.y+phext.y,
-                                 width=10, height=10, vel=self.vel,
+                                 width=10, height=10, vel=self.vel_,
                                  direc=direc, lifetime=self.proj_lifetime,
                                  dmg=110, id=self.id, knockback=self.knockback)
         proj.dispatch_proj = self.dispatch_proj
@@ -203,7 +212,7 @@ class GrenadeLauncher(Weapon):
         self.ammo = 10
         self.max_ammo = 15
         self.ammoval = 5
-        self.vel = 900
+        self.vel_ = 900
         self.knockback = 700
         self.proj_lifetime = 2.5
         self.keystr = 'w4'
@@ -214,7 +223,7 @@ class GrenadeLauncher(Weapon):
         drunit = dr / dr.mag() + vec2(0, 0.3)
         #drunit = drunit / drunit.mag()
         proj = NadeProjectile(x=pos.x, y=pos.y, width=15, height=10,
-                              vel=self.vel, direc=drunit,
+                              vel=self.vel_, direc=drunit,
                               lifetime=self.proj_lifetime, dmg=120, id=self.id,
                               knockback=self.knockback)
         #proj.vel.y += 500

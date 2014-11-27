@@ -112,6 +112,12 @@ message WeaponStat {
     optional int32 dmg = 5;
 }
 
+message ScoreStat {
+    optional int32 playerId = 1;
+    optional in32 score = 2;
+}
+
 message Stats {
-    repeated ProjectileType type = 1;
+    repeated ScoreStat sStat = 1;
+    repeated WeaponStat wStat = 2;
 }

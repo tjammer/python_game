@@ -1,4 +1,4 @@
-from collision.aabb import AABB
+from collision.caabb import cAABB as AABB
 
 
 timers = {'armor': 20,
@@ -130,7 +130,7 @@ class ItemManager(object):
             self.renderhook(id, spawn=True)
         else:
             self.items[id].inactive = True
-            self.items[id].remove()
+            #self.items[id].remove()
             self.renderhook(id, taken=True)
 
 

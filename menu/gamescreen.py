@@ -10,7 +10,7 @@ from graphics.primitives import CrossHair
 from hud import Hud
 from gameplay.gamestate import GameStateViewer
 from graphics.render import Render, ProjectileViewer
-from player.state import vec2
+from player.cvec2 import cvec2 as vec2
 from screens import GameMenu, ChatScreen
 from network_utils import timestep
 
