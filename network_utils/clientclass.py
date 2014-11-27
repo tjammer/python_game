@@ -1,9 +1,9 @@
 import protocol_pb2 as proto
 from twisted.internet.protocol import DatagramProtocol
-from player.state import state, vec2
+from player.state import state
+from player.cvec2 import cvec2 as vec2
 from reliable import AckManager
 from player.options import Options
-from __init__ import timestep
 
 
 class Client(DatagramProtocol):
@@ -11,8 +11,8 @@ class Client(DatagramProtocol):
     def __init__(self):
         self.time = 0
         self.connected = False
-        self.host = ('pipc73.pit.physik.uni-tuebingen.de', 49220)
-        #self.host = ('127.0.0.1', 49220)
+        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 59446)
+        self.host = ('127.0.0.1', 59446)
         self.con_timer = 0
         self.message = proto.Message()
         self.input = proto.Input()
