@@ -4,6 +4,7 @@ from player.cvec2 import cvec2 as vec2
 from player import player
 
 phext = player.phext
+ext = vec2(*phext)
 
 
 class Camera(Events):
@@ -21,10 +22,10 @@ class Camera(Events):
         self.mul_easing = .3 * 30
         self.mpos = vec2(self.wcoords.x, self.wcoords.y)
         # y offset to have player in the lower half of the screen
-        self.offset = vec2(0, -self.wcoords.y / 2)
+        self.offset = vec2(0, +self.wcoords.y / 2)
         self.eas_vel = vec2(0, 0)
         self.aimpos = vec2(0, 0)
-        self.scale = vec2(1360. / window.width, 765 / window.height)
+        self.scale = vec2(window.width / 1360., window.height / 765.)
         self.mpos_temp = vec2(0, 0)
 
     def __enter__(self):
@@ -34,17 +35,17 @@ class Camera(Events):
         self.set_static()
 
     def update(self, dt, state):
-        self.pos, self.vel = state.pos + vec2(*phext), state.vel
+        self.pos, self.vel = state.pos + ext, state.vel
         self.pos = vec2(*self.pos) * self.scale
         # velocity easing
         #if self.vel.x != 0:
         #self.eas_vel.x -= (self.eas_vel.x - self.vel.x) * dt
         #self.eas_vel.y -= (0*self.eas_vel.y + self.vel.y) * dt
-        self.target = self.mpos + self.pos + self.offset
+        self.target = self.mpos - self.wcoords + self.pos
         self.campos -= (self.campos - self.target) * self.mul_easing * dt
-        self.aimpos = self.campos + self.mpos #- (self.wcoords+self.offset) * 2
-        self.aimpos = vec2(self.aimpos.x * self.scale.x,
-                           self.aimpos.y * self.scale.y)
+        self.aimpos = self.campos + self.mpos - self.wcoords
+        self.aimpos = vec2(self.aimpos.x / self.scale.x,
+                           self.aimpos.y / self.scale.y)
         self.send_message('mousepos', self.aimpos)
 
     def set_camera(self):
@@ -53,7 +54,7 @@ class Camera(Events):
         gluPerspective(10, 16./9, 0.1, 10000)
         x = self.campos.x
         y = self.campos.y
-        gluLookAt(x, y, 3600, x, y, 0, 0, 1, 0)
+        gluLookAt(x, y, 3300 * self.scale.x, x, y, 0, 0, 1, 0)
         #glMatrixMode(GL_MODELVIEW)
         #glTranslatef(-self.campos.x + 2 * self.wcoords.x,
          #            -self.campos.y + self.wcoords.y, 2)
