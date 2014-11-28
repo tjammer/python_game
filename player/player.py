@@ -52,7 +52,7 @@ class Player(Events):
         newrect = self.rect.copy()
         newrect.vel = self.move.get_vel(dt, state, input)
         newrect.update(*state.pos)
-        return self.collide(dt, rectgen, state)
+        return self.collide(dt, rectgen, state, newrect)
 
     def specupdate(self, dt):
         if self.input.up:
@@ -94,8 +94,11 @@ class Player(Events):
     def draw(self):
         self.rect.draw()
 
-    def collide(self, dt, rectgen, state):
-        all_cols = [self.rect.sweep(obj, dt) for obj in rectgen]
+    def collide(self, dt, rectgen, state, external_rect=None):
+        if not external_rect:
+            all_cols = [self.rect.sweep(obj, dt) for obj in rectgen]
+        else:
+            all_cols = [external_rect.sweep(obj, dt) for obj in rectgen]
         cols = [coldata for coldata in all_cols if coldata]
         try:
             xt = min(col[1] for col in cols if col[0].x != 0)
@@ -122,7 +125,7 @@ class Player(Events):
                              testr.pos.y)
                 testr.vel.x = 0
                 second = testr.sweep(rct, float('Inf'))
-                if second:
+                if second and testr.vel.y != 0:
                     s1 = testr.vel.y * second[1]
                     s = stairoffset + s1
                     t = s / testr.vel.y
