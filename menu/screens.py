@@ -5,7 +5,7 @@ from elements import PopMenu
 from pyglet.text import Label
 from graphics.primitives import Box, font
 from pyglet.window import key
-from elements import inputdict, weaponsdict, KeysFrame
+from elements import *
 from player import options
 from itertools import chain
 from graphics import wmodes
@@ -15,14 +15,28 @@ class MainMenu(MenuClass):
     """docstring for MainMenu"""
     def __init__(self, window, *args, **kwargs):
         super(MainMenu, self).__init__(window=window, *args, **kwargs)
-        self.layout.add_center([('start', 'start game'), ('options',)*2])
-        self.layout.add_bottom([('quit',)*2])
+        #self.layout.add_center([('start', 'start game'), ('options',)*2])
+        colors = {'fg': (0, 128, 255, 255), 'bg': (0, 0, 0, 0),
+                  'fg_selec': (255, 128, 0, 255), 'other': (25, 25, 25, 255),
+                  'font': (25, 25, 25, 255)}
+        self.el_manager = ElementManager(window, colors, self.layout.actives,
+                                         self.batch)
+        self.el_manager.add(VerticalLine, pos=(0.11, 0), size=(0.01, 1),
+                            anchor_y='b')
+        self.el_manager.add(LButton, pos=(0.2, 0.76), size=(0.2, 0.1),
+                            text='start game')
+        self.el_manager.add(LButton, pos=(0.2, 0.53), size=(0.2, 0.1),
+                            text='options')
+        self.el_manager.add(LButton, pos=(0.2, 0.30), size=(0.2, 0.1),
+                            text='quit game')
+
+        self.layout.add_bottom([])
         self.layout.add_headline('gaem')
 
     def handle_clicks(self, key):
-        if key == 'quit':
+        if key == 'quit game':
             self.send_message('kill_self')
-        if key == 'start':
+        if key == 'start game':
             self.send_message('start_game')
         if key == 'options':
             self.send_message('menu_transition_+',

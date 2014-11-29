@@ -291,8 +291,8 @@ class Box(object):
         self.width = size[0]
         self.height = size[1]
         self.f_size = f_size
-        self.color = color
-        self.h_color = hcolor
+        self.color = color + (255,)
+        self.h_color = hcolor + (255,)
         self.outer_box = Rect(pos[0], pos[1], self.width, self.height,
                               self.color,
                               batch=batch)

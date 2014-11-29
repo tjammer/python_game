@@ -3,6 +3,7 @@ try:
     from pyglet.graphics import Batch
     from pyglet.window import key as key_
     from elements import MenuLayout
+    from pyglet.gl import *
 except:
     pass
 

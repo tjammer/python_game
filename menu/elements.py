@@ -2,11 +2,11 @@ import pyglet
 from graphics.primitives import Box, Rect, font
 from network_utils import protocol_pb2 as proto
 from pyglet.text.document import FormattedDocument as Doc
-from pyglet.text.layout import ScrollableTextLayout as Layout
+from pyglet.text.document import UnformattedDocument as UDoc
+from pyglet.text.layout import ScrollableTextLayout as Layout, TextLayout
 from player.cvec2 import cvec2 as vec2
 from pyglet.text import Label
 from itertools import chain
-from pyglet.graphics import OrderedGroup
 from graphics import CustomGroup
 
 inpt = proto.Input()
@@ -17,8 +17,171 @@ weaponsdict = {'melee': 'melee', 'sg': 'shotgun',
                'gl': 'grenades'}
 
 unity = vec2(1, 1)
+standardres = vec2(1280, 720)
+anchors = {'r': 0, 'c': 0.5, 'l': 1, 'b': 0, 't': 1}
 
 
+class ElementManager(object):
+    """docstring for ElementManager"""
+    def __init__(self, window, colors, buttons, batch, fontsize=25):
+        super(ElementManager, self).__init__()
+        self.window = window
+        self.scale = vec2(window.width, window.height)
+        self.colors = colors
+        self.buttons = buttons
+        self.batch = batch
+        self.font_size = fontsize * window.width / 1280.
+        self.elements = []
+
+    def add(self, element_class, **kwargs):
+        #active elements have text for identification
+        element = element_class(colors=self.colors, scalevec=self.scale,
+                                fontsize=self.font_size, **kwargs)
+        element.add(self.batch)
+        self.elements.append(element)
+
+        if 'text' in kwargs:
+            self.buttons[kwargs['text']] = element
+
+
+class Element(object):
+    """screen is seen as (0, 1) x (0, 1). can be scaled up later
+        size also in units from 0 to 1"""
+
+    def __init__(self, pos, size, colors, anchor_x='c', anchor_y='c', frame=0,
+                 scalevec=standardres, **kwargs):
+        super(Element, self).__init__()
+        self.pos = vec2(*pos)
+        #pos includes background and frames
+        self.size = vec2(*size)
+        #dict {'bg', 'bg_act', 'bg_selec', 'fg', 'fg_act', 'fg_selec',
+        #'font', 'font_act', 'font_sel', 'other'}
+        self.colors = colors
+        self.frame = frame
+        self.scalevec = scalevec
+        self.is_active = True
+
+        self.set_anchors(anchor_x, anchor_y)
+
+    def set_anchors(self, anchor_x, anchor_y):
+        self.pos = vec2(self.pos.x - self.size.x * anchors[anchor_x],
+                        self.pos.y - self.size.y * anchors[anchor_y])
+
+        self.center = vec2(self.pos.x + .5 * self.size.x,
+                           self.pos.y + .5 * self.size.y)
+
+    def in_box(self, mpos):
+        return (self.is_active and
+                self.pos.x < mpos[0] < self.pos.x + self.size.x and
+                self.pos.y < mpos[1] < self.pos.y + self.size.y)
+
+    def over_button(self, x, y):
+        return self.in_box([x, y])
+
+    def highlight(self):
+        pass
+
+    def restore(self):
+        pass
+
+    def activate(self):
+        pass
+
+    def scale(self):
+        self.pos *= self.scalevec
+        self.size *= self.scalevec
+        self.center *= self.scalevec
+
+    def add(self, batch):
+        pass
+
+    def remove(self):
+        pass
+
+
+class TextLabel(Element):
+    """docstring for TextLabel"""
+    def __init__(self, text, fontsize, font_align='center', *args, **kwargs):
+        super(TextLabel, self).__init__(*args, **kwargs)
+        self.font_align = font_align
+        self.draw_rect = self.colors['bg'][3] != 0
+        self.is_active = False
+        self.doc = UDoc(text)
+        self.doc.set_style(
+            0, 0, {'font_size': fontsize, 'color': self.colors['font'],
+                   'background_color': (0,) * 4})
+        self.scale()
+
+    def add(self, batch):
+        if self.draw_rect:
+            self.rect = Rect(
+                self.pos.x, self.pos.y, self.size.x, self.size.y,
+                self.colors['bg'], batch=batch)
+        else:
+            self.rect = None
+
+        self.layout = TextLayout(self.doc, batch=batch)
+        self.layout.y = self.center.y
+        if self.font_align == 'center':
+            self.layout.x = self.center.x
+        elif self.font_align == 'left':
+            self.layout.x = self.pos.x
+        elif self.font_align == 'right':
+            self.layout.x = self.pos.x + self.size.x
+        self.layout.anchor_x = self.font_align
+        self.layout.anchor_y = 'center'
+
+    def remove(self):
+        if self.rect:
+            self.rect.remove()
+        self.layout.delete()
+
+
+class LButton(Element):
+    """docstring for LButton"""
+    def __init__(self, text, fontsize, font_align='center', **kwargs):
+        super(LButton, self).__init__(**kwargs)
+        self.tl = TextLabel(text, fontsize, font_align, **kwargs)
+        self.activated = False
+        self.scale()
+
+    def add(self, batch):
+        self.tl.add(batch)
+        self.line = Rect(self.pos.x, self.pos.y, self.size.x, self.size.y / 10,
+                         self.colors['fg'], batch=batch)
+
+    def remove(self):
+        self.tl.remove()
+        self.line.remove()
+
+    def highlight(self):
+        self.line.update_color(self.colors['fg_selec'])
+
+    def restore(self):
+        if not self.activated:
+            self.line.update_color(self.colors['fg'])
+
+    def activate(self):
+        self.line.update_color(self.colors['fg_act'])
+        self.activated = True
+
+
+class VerticalLine(Element):
+    """docstring for VerticalLine"""
+    def __init__(self, **kwargs):
+        super(VerticalLine, self).__init__(**kwargs)
+        self.is_active = False
+        self.scale()
+
+    def add(self, batch):
+        self.line = Rect(self.pos.x, self.pos.y, self.size.x, self.size.y,
+                         color=self.colors['other'], batch=batch)
+
+    def remove(self):
+        self.line.remove()
+
+
+############old classes######
 class TextBoxFramed(object):
     """docstring for Textbox_framed"""
     def __init__(self, pos, text, size=[300, 100], f_size=2, batch=None,
@@ -79,10 +242,10 @@ class ColCheckBox(object):
         self.pos = vec2(*pos)
         self.target_pos = pos
         self.size = size
-        self.color = color
-        self.hcolor = hcolor
-        self.activecolor = activecolor
-        self.inactivecolor = inactivecolor
+        self.color = color + (255, )
+        self.hcolor = hcolor + (255, )
+        self.activecolor = activecolor + (255, )
+        self.inactivecolor = inactivecolor + (255, )
         self.box = Box(pos, size, color=inactivecolor, hcolor=hcolor,
                        batch=batch, innercol=color)
         self.ccolor = self.inactivecolor
@@ -440,8 +603,6 @@ class MenuLayout(object):
 
     def add_bottom(self, lst):
         #background
-        if len(lst) == 0:
-            return
         if len(self.bottom) == 0:
             self.bottom.append(Rect(x=0, y=0*self.scale.y,
                                width=1280*self.scale.x,
@@ -452,6 +613,9 @@ class MenuLayout(object):
                                height=self.lheight*self.scale.y,
                                color=botlinecolor, batch=self.batch))
             self.bottom.append(True)
+
+        if len(lst) == 0:
+            return
 
         spacing = 1280 / (len(lst) + 1)
 
