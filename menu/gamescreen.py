@@ -252,8 +252,11 @@ class GameScreen(Events):
         self.send_message('input', (self.player.input, self.time))
 
     def spec_send(self, dt):
-        self.time += int(dt * 1000000.)
-        self.send_message('input', (proto.Input(), self.time))
+        self.rest_time += dt
+        if self.rest_time >= timestep * 6:
+            self.time += int(timestep * 1000000.)
+            self.rest_time = 0
+            self.send_message('input', (proto.Input(), self.time))
 
     def draw(self):
         self.render.draw()
@@ -306,7 +309,23 @@ class GameScreen(Events):
         pass
 
     def idle_update(self, dt):
-        self.send_to_client(dt)
+        self.rest_time += dt
+        if not self.isSpec:
+            while self.rest_time >= timestep:
+                if not self.frozen:
+                    self.update_physics(timestep)
+                self.send_to_client(timestep)
+                self.rest_time -= timestep
+
+            #interpolate missing time
+            state = self.player.state.copy()
+            state = self.player.predict_step(self.rest_time, self.get_rect(),
+                                             state, self.player.input)
+            state.id = self.player.id
+            state.color = self.player.color
+            self.render.playerhook(state, update=True)
+        else:
+            self.spec_send(dt)
         self.gs_view.update(dt)
         self.proj_viewer.update(dt)
         self.hud.update(dt)
@@ -337,6 +356,7 @@ class GameScreen(Events):
         self.window.set_mouse_visible(False)
         self.window.set_exclusive_mouse(True)
         self.cancel_drag()
+        self.rest_time = 0
 
     def game_update(self, dt):
         self.rest_time += dt
