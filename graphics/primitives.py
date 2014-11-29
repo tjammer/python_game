@@ -1,7 +1,7 @@
 from pyglet import graphics
 from pyglet import gl
-from collision.caabb import cAABB as AABB
-from collision.aabb import Line, vec2
+from collision.caabb import cAABB as AABB, Line
+from player.cvec2 import cvec2 as vec2
 
 font = 'Helvetica'
 
@@ -11,21 +11,24 @@ class Rect(AABB):
     def __init__(self, x, y, width, height, color=(255, 255, 255),
                  isplayer=False, batch=None, **kwargs):
         super(Rect, self).__init__(x, y, width, height, color)
-        if not batch:
-            self.ver_list = graphics.vertex_list(4,
-                ('v2f/stream', (x, y, x, y + height,
-                 x + width, y + height, x + width, y)),
-                ('c3B', (self.color[0], self.color[1], self.color[2],
-                 self.color[0], self.color[1], self.color[2],
-                 self.color[0], self.color[1], self.color[2],
-                 self.color[0], self.color[1], self.color[2])))
+        if len(color) == 3:
+            self.alpha = 255
         else:
-            self.ver_list = batch.add(4, gl.GL_QUADS, None,
-                                     ('v2f/stream', (x, y, x, y + height,
-                                      x + width, y + height, x + width, y)),
-                                     ('c3B', [self.color[0],
-                                              self.color[1],
-                                              self.color[2]] * 4))
+            self.alpha = color[3]
+        if not batch:
+            self.ver_list = graphics.vertex_list(
+                4, ('v2f/stream', (x, y, x, y + height,
+                                   x + width, y + height, x + width, y)),
+                ('c4B', (self.color[0], self.color[1], self.color[2],
+                 self.alpha) * 4))
+        else:
+            self.ver_list = batch.add(
+                4, gl.GL_QUADS, None,
+                ('v2f/stream', (x, y, x, y + height,
+                                x + width, y + height, x + width, y)),
+                ('c4B', [self.color[0], self.color[1], self.color[2],
+                 self.alpha] * 4))
+
         self.isplayer = isplayer
 
     def draw(self):
@@ -39,7 +42,9 @@ class Rect(AABB):
                                   self.pos.x + self.width, self.pos.y]
 
     def update_color(self, color):
-        self.ver_list.colors = list(color) * 4
+        if len(color) == 3:
+            color = list(color) + [255]
+        self.ver_list.colors = color * 4
         self.color = color
 
     def remove(self):

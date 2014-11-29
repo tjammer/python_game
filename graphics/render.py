@@ -6,7 +6,7 @@ from player.player import DrawablePlayer
 from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect, DrawaAbleLine
 from gameplay.weapons import spread, ProjContainer, weaponcolors
-from collision.aabb import Line
+from collision.caabb import Line
 
 
 class Render(object):

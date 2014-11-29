@@ -130,3 +130,106 @@ cdef class cAABB:
                    width=self.width, isplayer=self.isplayer, color=self.color)
         rct.vel = cvec2(*self.vel)
         return rct
+
+
+cdef class Line:
+    """line is in principle aabb with width = 0"""
+    cdef public cvec2 pos, dir, unit
+    cdef public float length
+    def __init__(self, x, y, dx, dy, length=0):
+        super(Line, self).__init__()
+        self.pos = cvec2(x, y)
+        self.dir = cvec2(dx, dy)
+        self.unit = self.dir.normalize()
+        if length == 0:
+            self.length = float('Inf')
+        else:
+            self.length = length
+
+    def sweep(self, cAABB obj):
+        if self.dir.x > 0:
+            xdist_ent = obj.pos.x - self.pos.x
+            xdist_ext = obj.pos.x + obj.width - self.pos.x
+        else:
+            xdist_ent = obj.pos.x + obj.width - self.pos.x
+            xdist_ext = obj.pos.x - self.pos.x
+        if self.dir.y > 0:
+            ydist_ent = obj.pos.y - self.pos.y
+            ydist_ext = obj.pos.y + obj.height - self.pos.y
+        else:
+            ydist_ent = obj.pos.y + obj.height - self.pos.y
+            ydist_ext = obj.pos.y - self.pos.y
+        #find time for entry and exit
+        try:
+            xt_ent = xdist_ent / self.unit.x
+            xt_ext = xdist_ext / self.unit.x
+        except ZeroDivisionError:
+            xt_ent = -float('Inf')
+            xt_ext = float('Inf')
+
+        try:
+            yt_ent = ydist_ent / self.unit.y
+            yt_ext = ydist_ext / self.unit.y
+        except ZeroDivisionError:
+            yt_ent = -float('Inf')
+            yt_ext = float('Inf')
+
+        enter = max(xt_ent, yt_ent)
+        exit = min(xt_ext, yt_ext)
+
+        if enter > exit or (enter < 0 and exit < 0) or enter > self.length:
+            return False
+
+        return enter, exit
+
+    def collide(self, quadtree, playergen, int id):
+        mapcolls = []
+        cdef cAABB bnd, rect
+        rect = cAABB(*self.pos, width=0, height=0)
+        bnd = quadtree.retrieve_bound(rect)
+        while len(mapcolls) == 0:
+            mapgen = (rect_ for rect_ in quadtree.retrieve([], rect))
+            for rct in mapgen:
+                #print rct.pos.x
+                response = self.sweep(rct)
+                if response:
+                    enter, exit = response
+                    mapcolls.append(enter)
+            if len(mapcolls) == 0:
+                #bound = quadtree.retrieve_bound(rect)
+                try:
+                    enter, exit = self.sweep(bnd)
+                except TypeError:
+                    break
+                rect.pos += self.unit * (exit + 1)
+                bound = quadtree.retrieve_bound(rect)
+                if bound == bnd:
+                    break
+                bnd = bound
+        if mapcolls:
+            mapcoll = min(mapcolls)
+        else:
+            mapcoll = float('Inf')
+        p_resp = [(self.sweep(pl.rect), pl.id)
+                  for pl in playergen if pl.id != id]
+        try:
+            playercoll = min((p[0][0] for p in p_resp if p[0] is not False))
+        except ValueError:
+            playercoll = float('Inf')
+        coll = min(mapcoll, playercoll)
+        if coll == float('Inf'):
+            return False
+        elif mapcoll < playercoll:
+            return mapcoll, False
+        else:
+            return playercoll, [r[1]
+                                for r in p_resp if r[0][0] == playercoll][0]
+
+    def update(self, float x, float y, float mx, float my):
+        cdef float dx, dy
+        dx = mx - x
+        dy = my - y
+        self.pos.x, self.pos.y = x, y
+        self.dir.x, self.dir.y = dx, dy
+        self.unit = self.dir.normalize()
+        self.on_update()

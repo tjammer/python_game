@@ -1,5 +1,4 @@
-from collision.aabb import Line
-from collision.caabb import cAABB as Rectangle
+from collision.caabb import cAABB as Rectangle, Line
 from player.cvec2 import cvec2 as vec2
 from network_utils import protocol_pb2 as proto
 import math
