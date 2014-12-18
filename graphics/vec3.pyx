@@ -70,6 +70,14 @@ cdef class vec3:
         else:
             return vec3(0., 0., 0.)
 
+    def cross(self, vec3 other):
+        return vec3(self.y * other.z - self.z * other.y,
+                    self.z * other.x - self.x * other.z,
+                    self.x * other.y - self.y * other.x)
+
+    def dot(self, vec3 other):
+        return self.x * other.x + self.y * other.y * self.z * other.z
+
 
 def rotate_translate(object arr, float angle, float l, float m, float n,
                      float dx, float dy, float dz):

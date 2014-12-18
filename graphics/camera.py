@@ -2,6 +2,8 @@ from pyglet.gl import *
 from menu.menu_events import Events
 from player.cvec2 import cvec2 as vec2
 from player import player
+from matrix import Matrix
+from shader import Shader
 
 phext = player.phext
 ext = vec2(*phext)
@@ -27,6 +29,8 @@ class Camera(Events):
         self.aimpos = vec2(0, 0)
         self.scale = vec2(window.width / 1360., window.height / 765.)
         self.mpos_temp = vec2(0, 0)
+        #shader
+        self.shader = Shader('camera')
 
     def __enter__(self):
         self.set_camera()
@@ -49,33 +53,23 @@ class Camera(Events):
         self.send_message('mousepos', self.aimpos)
 
     def set_camera(self):
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(10, 16./9, 0.1, 10000)
+        mvp = Matrix.perspective(16, 9, 37, .8, 1000)
         x = self.campos.x
         y = self.campos.y
-        gluLookAt(x, y, 3300 * self.scale.x, x, y, 0, 0, 1, 0)
-        #glMatrixMode(GL_MODELVIEW)
-        #glTranslatef(-self.campos.x + 2 * self.wcoords.x,
-         #            -self.campos.y + self.wcoords.y, 2)
+        mvp = mvp.look_at(x, y, 900 * self.scale.x, x, y, 0, 0, 1, 0)
+        self.shader.set('mvp', mvp)
+        self.shader.push()
 
     def set_static(self):
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glOrtho(0, self.window.width, 0, self.window.height, -1000, 1000)
-
+        self.shader.pop()
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]
 
     def mpos_from_aim(self, aimpos):
         mpos = vec2(aimpos.x * self.scale.x,
-                    aimpos.y * self.scale.y) - self.campos + (self.wcoords
-                                                             + self.offset) * 2
+                    aimpos.y * self.scale.y) - self.campos + (
+            self.wcoords + self.offset) * 2
         self.mpos = vec2(*mpos)
 
     def interpolate_mpos(self):
@@ -85,3 +79,16 @@ class Camera(Events):
     def on_resize(self, width, height):
         self.h = height / 2
         self.width = width / 2
+
+
+def mat_mult(a, b):
+    c = [[0. for i in range(3)] for j in range(3)]
+    for i in range(3):
+        for j in range(3):
+            for k in range(3):
+                c[i][j] += a[i][k] * b[k][j]
+    return c
+
+
+def init_mat():
+    return [[float(i == j) for j in xrange(3)] for i in xrange(3)]

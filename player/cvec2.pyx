@@ -63,3 +63,7 @@ cdef class cvec2:
     def mag(self):
         """magnitude of the vector"""
         return sqrt(self.x * self.x + self.y * self.y)
+
+    def normalize(self):
+        cdef float mag = self.mag()
+        return cvec2(self.x / mag, self.y / mag)
