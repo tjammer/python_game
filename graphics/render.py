@@ -7,6 +7,8 @@ from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect, DrawaAbleLine
 from gameplay.weapons import spread, ProjContainer, weaponcolors
 from collision.caabb import Line
+from shader import OffscreenBuffer as FBO
+from model import Model
 
 
 class Render(object):
@@ -22,16 +24,24 @@ class Render(object):
         # scaling factors
         self.scale = vec2(window.width / 1360., window.height / 765.)
         self.players = {}
+        self.fbo = FBO(window.width, window.height)
+        self.model = Model(
+            '/home/tobi/Documents/blenders/firstchar/metatest.dae',
+            self.scale.x)
+        self.kf = 0
 
     def draw(self):
-        # with self.fbo:
-            # self.window.clear()
-        with self.camera:
-            self.scene_batch.draw()
-        self.static_batch.draw()
+        with self.fbo:
+            self.fbo.clear()
+            with self.camera:
+                #glEnable(GL_DEPTH_TEST)
+                self.scene_batch.draw()
+                self.model.draw()
+                #glDisable(GL_DEPTH_TEST)
 
-        # self.window.clear()
-        #self.fbo.texture.blit(0, 0)
+        self.window.clear()
+        self.fbo.texture.blit(0, 0)
+        self.static_batch.draw()
 
     def maphook(self, map, add=False, spawn=False, remove=False, taken=False):
         if spawn:
@@ -51,6 +61,18 @@ class Render(object):
         elif remove:
             self.players[id].remove()
             del self.players[id]
+
+    def move_ahead(self):
+        self.kf += 1
+        if self.kf > 10:
+            self.kf = 0
+        self.model.move(-1, [200, self.kf * 30])
+
+    def update(self, dt):
+        self.kf += dt * 2.8
+        if self.kf >= self.model.maxtime:
+            self.kf = 0
+        self.model.update(1, self.players[1].rect.pos, self.kf)
 
 
 class ProjectileViewer(object):

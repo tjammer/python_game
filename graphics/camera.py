@@ -5,8 +5,7 @@ from player import player
 from matrix import Matrix
 from shader import Shader
 
-phext = player.phext
-ext = vec2(*phext)
+pext = player.phext
 
 
 class Camera(Events):
@@ -18,7 +17,7 @@ class Camera(Events):
         self.window = window
         self.campos = vec2(- 2 * width, height / 2)
         self.target = vec2(self.campos.x, self.campos.y)
-        self.wcoords = vec2(width / 2, height / 2)
+        self.wcoords = vec2(width / 2., height / 2.)
         self.pos = vec2(0, 0)
         self.vel = vec2(0, 0)
         self.mul_easing = .3 * 30
@@ -31,6 +30,8 @@ class Camera(Events):
         self.mpos_temp = vec2(0, 0)
         #shader
         self.shader = Shader('camera')
+        self.zoom = 34
+        self.t = 0
 
     def __enter__(self):
         self.set_camera()
@@ -39,13 +40,14 @@ class Camera(Events):
         self.set_static()
 
     def update(self, dt, state):
-        self.pos, self.vel = state.pos + ext, state.vel
+        self.pos, self.vel = state.pos + pext , state.vel
         self.pos = vec2(*self.pos) * self.scale
+        self.set_zoom(dt)
         # velocity easing
         #if self.vel.x != 0:
         #self.eas_vel.x -= (self.eas_vel.x - self.vel.x) * dt
         #self.eas_vel.y -= (0*self.eas_vel.y + self.vel.y) * dt
-        self.target = self.mpos - self.wcoords + self.pos
+        self.target = (self.mpos - self.wcoords)*.63 + self.pos
         self.campos -= (self.campos - self.target) * self.mul_easing * dt
         self.aimpos = self.campos + self.mpos - self.wcoords
         self.aimpos = vec2(self.aimpos.x / self.scale.x,
@@ -53,15 +55,26 @@ class Camera(Events):
         self.send_message('mousepos', self.aimpos)
 
     def set_camera(self):
-        mvp = Matrix.perspective(16, 9, 37, .8, 1000)
+        mvp = Matrix.perspective(16, 9, self.zoom, .8, 2000)
         x = self.campos.x
         y = self.campos.y
-        mvp = mvp.look_at(x, y, 900 * self.scale.x, x, y, 0, 0, 1, 0)
+        mvp = mvp.look_at(x, y, 800 * self.scale.x, x, y, 0, 0, 1, 0)
         self.shader.set('mvp', mvp)
         self.shader.push()
 
     def set_static(self):
         self.shader.pop()
+
+    def ease(self, t, b, c, d):
+        t /= d
+        if (t < 1):
+            return c/2*t*t + b
+        t -= 1
+        return -c/2 * (t*(t-2) - 1) + b
+
+    def set_zoom(self, dt):
+        self.t -= (self.t - abs(self.vel.x))*dt
+        self.zoom = self.ease(self.t, 34, 20, 500)
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]
