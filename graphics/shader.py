@@ -124,6 +124,12 @@ class Shader(object):
         self.variables = {}
         self._build()
 
+    def __enter__(self):
+        self.push()
+
+    def __exit__(self, type, value, tb):
+        self.pop()
+
     def _compile(self, source, type=GL_VERTEX_SHADER):
         # Compile the GLSL source code, either as GL_FRAGMENT_SHADER or GL_VERTEX_SHADER.
         # If the source fails to compile, retrieve the error message and raise ShaderError.

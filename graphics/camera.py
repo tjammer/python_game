@@ -43,10 +43,6 @@ class Camera(Events):
         self.pos, self.vel = state.pos + pext, state.vel
         self.pos = vec2(*self.pos) * self.scale
         self.set_zoom(dt)
-        # velocity easing
-        #if self.vel.x != 0:
-        #self.eas_vel.x -= (self.eas_vel.x - self.vel.x) * dt
-        #self.eas_vel.y -= (0*self.eas_vel.y + self.vel.y) * dt
         self.target = (self.mpos - self.wcoords)*.63 + self.pos
         self.campos -= (self.campos - self.target) * self.mul_easing * dt
         self.aimpos = self.campos + self.mpos - self.wcoords
