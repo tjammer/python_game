@@ -26,17 +26,17 @@ class Render(object):
         self.players = {}
         self.fbo = FBO(window.width, window.height)
         self.model = Model(
-            '/home/tobi/Documents/blenders/firstchar/metatest.dae',
+            '/home/tobi/Documents/blenders/firstchar/collada.dae',
             self.scale.x)
         self.kf = 0
 
     def draw(self):
         with self.fbo:
             self.fbo.clear()
-            with self.camera:
+            with self.camera as mvp:
                 #glEnable(GL_DEPTH_TEST)
                 self.scene_batch.draw()
-                self.model.draw()
+                self.model.draw(mvp)
                 #glDisable(GL_DEPTH_TEST)
 
         self.window.clear()

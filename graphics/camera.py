@@ -34,13 +34,13 @@ class Camera(Events):
         self.t = 0
 
     def __enter__(self):
-        self.set_camera()
+        return self.set_camera()
 
     def __exit__(self, type, value, tb):
         self.set_static()
 
     def update(self, dt, state):
-        self.pos, self.vel = state.pos + pext , state.vel
+        self.pos, self.vel = state.pos + pext, state.vel
         self.pos = vec2(*self.pos) * self.scale
         self.set_zoom(dt)
         # velocity easing
@@ -61,6 +61,7 @@ class Camera(Events):
         mvp = mvp.look_at(x, y, 800 * self.scale.x, x, y, 0, 0, 1, 0)
         self.shader.set('mvp', mvp)
         self.shader.push()
+        return mvp
 
     def set_static(self):
         self.shader.pop()
