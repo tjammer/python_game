@@ -34,14 +34,24 @@ class ElementManager(object):
         self.elements = []
 
     def add(self, element_class, **kwargs):
-        #active elements have text for identification
-        element = element_class(colors=self.colors, scalevec=self.scale,
+        #set up colors
+        if 'colors' in kwargs:
+            self.add_colors(kwargs['colors'])
+        else:
+            kwargs['colors'] = self.colors
+
+        element = element_class(scalevec=self.scale,
                                 fontsize=self.font_size, **kwargs)
         element.add(self.batch)
         self.elements.append(element)
 
         if 'text' in kwargs:
             self.buttons[kwargs['text']] = element
+
+    def add_colors(self, colors):
+        for key in self.colors:
+            if key not in colors:
+                colors[key] = self.colors[key]
 
 
 class Element(object):

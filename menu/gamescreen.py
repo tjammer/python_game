@@ -56,6 +56,7 @@ class GameScreen(Events):
         if self.controls['rdy'] and not self.controls_old['rdy']:
             if not self.isSpec:
                 self.ready_up()
+            self.render.move_ahead()
 
         if self.controls['chat'] and not self.controls_old['chat']:
             self.send_message('menu_transition_+',
@@ -373,6 +374,7 @@ class GameScreen(Events):
         state.id = self.player.id
         state.color = self.player.color
         self.render.playerhook(state, update=True)
+        self.render.update(dt)
 
         self.camera.update(dt, self.player.state)
         self.proj_viewer.update(dt)
