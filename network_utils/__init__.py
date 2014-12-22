@@ -1,1 +1,1 @@
-timestep = 1. / 60.
+timestep = 1. / 40.

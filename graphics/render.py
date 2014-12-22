@@ -26,7 +26,7 @@ class Render(object):
         self.players = {}
         self.fbo = FBO(window.width, window.height)
         self.model = Model(
-            '/home/tobi/Documents/blenders/firstchar/collada.dae',
+            '/home/tobi/Documents/blenders/firstchar/metatest.dae',
             self.scale.x)
         self.kf = 0
 
@@ -62,17 +62,8 @@ class Render(object):
             self.players[id].remove()
             del self.players[id]
 
-    def move_ahead(self):
-        self.kf += 1
-        if self.kf > 10:
-            self.kf = 0
-        self.model.move(-1, [200, self.kf * 30])
-
     def update(self, dt):
-        self.kf += dt * 2.8
-        if self.kf >= self.model.maxtime:
-            self.kf = 0
-        self.model.update(1, self.players[1].rect.pos, self.kf)
+        self.model.update(dt, self.players[1].state)
 
 
 class ProjectileViewer(object):

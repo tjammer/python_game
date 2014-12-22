@@ -4,6 +4,8 @@ from libc.stdlib cimport malloc, free
 from cython.view cimport array
 from libc.math cimport sqrt, sin, cos, acos, fabs, asin, copysign
 from numpy cimport ndarray, dtype
+from shader import vector
+from ctypes import c_float
 
 cdef struct Joint:
     int ind
@@ -63,6 +65,7 @@ cdef class AnimatedModel:
     cdef int[:,:,:] face_data
     cdef double[:] weights
     cdef double[:,:] times
+    cdef int[:] animlen
     cdef int[:] vcounts
     cdef int[:] bone_weight_ids
     cdef int[:] weight_inds
@@ -71,7 +74,7 @@ cdef class AnimatedModel:
     cdef Transform[:] joint_currData
     cdef Transform[:] inverse
     cdef Transform[:] skin_matrix
-    cdef Transform[:,:] keyframes
+    cdef Transform[:,:,:] keyframes
     cdef Transform *point
     cdef Joint joints
     cdef double[2] pos
@@ -79,7 +82,7 @@ cdef class AnimatedModel:
 
     def __init__(self, verts, norms, faces, joint_data, joints_, skin_data,
                  anims, scale_):
-        cdef int l = len(joint_data), tt
+        cdef int l = len(joint_data), tt, lenanims
         cdef int i, j, k
         self.scale = scale_
 
@@ -165,23 +168,33 @@ cdef class AnimatedModel:
 
         self.joints = add(joints_)
 
+        #times for each animation
         l = len(anims)
-        self.la = l
-        tt = len(anims[0][0])
+        tt = max([len(anim[0][0]) for anim in anims])
         cyarr = array(shape=(l, tt), itemsize=sizeof(double), format="d")
         self.times = cyarr
         for i in range(l):
-            for j in range(tt):
-                self.times[i][j] = anims[i][0][j]
+            for j in range(len(anims[i][0][0])):
+                self.times[i][j] = anims[i][0][0][j]
 
-        l = len(anims)
-        nparr = ndarray((l, tt), dtype=transformtype)
-        self.keyframes = nparr
+        #number of times for each animation
+        cyarr = array(shape=(l,), itemsize=sizeof(int), format="i")
+        self.animlen = cyarr
         for i in range(l):
-            for j in range(tt):
-                tra = &self.keyframes[i][j]
-                mat4x4_to_transform(anims[i][1][j], tra)
+            self.animlen[i] = len(anims[i][0][0])
 
+        #transformation data for each animation
+        lenanims = len(anims)
+        l = len(anims[0])
+        nparr = ndarray((lenanims, l, tt), dtype=transformtype)
+        self.keyframes = nparr
+        for i in range(lenanims):
+            for j in range(l):
+                for k in range(len(anims[i][j][1])):
+                    tra = &self.keyframes[i][j][k]
+                    mat4x4_to_transform(anims[i][j][1][k], tra)
+
+        self.la = l
         nparr = ndarray((l,), dtype=transformtype)
         self.skin_matrix = nparr
         self.angles[0] = 0.
@@ -195,49 +208,112 @@ cdef class AnimatedModel:
                 self.vertices[i][j] = self.curr_verts[i][j]
 
 
-    def set_keyframe(self, int direc, lst, pos, double time):
-        cdef int j, k
+    def get_bindpose(self):
+        cdef int i
+        transout = [(vector((self.skin_matrix[i].q.x,
+                            self.skin_matrix[i].q.y,
+                            self.skin_matrix[i].q.z,
+                            self.skin_matrix[i].q.w)),
+                     vector((self.skin_matrix[i].vec.x,
+                            self.skin_matrix[i].vec.y,
+                            self.skin_matrix[i].vec.z,
+                            self.skin_matrix[i].vec.w)))
+                            for i in range(self.la)]
+        return zip(*transout)
+
+    #def set_keyframe(self, int direc, pos, double time):
+    def set_keyframe(self, int direc, pos, dict weights_, dict times_):
+        cdef int i, j, k
+        cdef float weight
+        #set up anim data
+        cdef int ln = len(weights_)
+        cdef int *indices = <int *>malloc(ln * sizeof(int))
+        cdef float *weights = <float *>malloc(ln * sizeof(float))
+        cdef float *times = <float *>malloc(ln * sizeof(float))
+        for k, (j, weight) in enumerate(weights_.iteritems()):
+            indices[k] = j
+            weights[k] = weight
+            times[k] = times_[j]
+
         self.pos[0] = <double>pos[0] / self.scale
         self.pos[1] = <double>pos[1] / self.scale
-        if direc > 0:
-            self.angles[1] = -1.570796326794
-        else:
-            self.angles[1] = 1.570796326794
-        self._set_keyframe(time)
-        for i in range(self.lf):
-            for j in range(self.face_data[i][0][0]):
-                for k in range(3):
-                    lst[i][j*3+k] = self.curr_verts[self.face_data[i][1][j]][k]
-
+        self.angles[1] = -1.570796326794 * direc
+        self._set_world_matrix(self.joints, 0, indices, weights, times, ln)
+        transout = [(vector((self.skin_matrix[i].q.x,
+                            self.skin_matrix[i].q.y,
+                            self.skin_matrix[i].q.z,
+                            self.skin_matrix[i].q.w)),
+                     vector((self.skin_matrix[i].vec.x,
+                            self.skin_matrix[i].vec.y,
+                            self.skin_matrix[i].vec.z,
+                            self.skin_matrix[i].vec.w)))
+                            for i in range(self.la)]
+        free(indices)
+        free(weights)
+        free(times)
+        return zip(*transout)
 
     #C functions
-    cdef void _set_keyframe(self, double time):
-        self._set_world_matrix(self.joints, 0, time)
-        self._skin_vertices()
+    cdef void _set_keyframe(self, int *inds, float *weights, float *times,
+                            int ln):
+        #self._set_world_matrix(self.joints, 0, time)
+        #self._skin_vertices()
+        pass
 
-    cdef void _set_world_matrix(self, Joint joint, int parent, double time):
+    cdef void _set_world_matrix(self, Joint joint, int parent,
+                        int *inds, float *weights, float *times, int ln):
+        cdef int i, j, k
+        cdef float weight
         cdef Timestep ipol
-        cdef Transform slerped
+        cdef Transform blended
+        cdef Transform *nlerped = <Transform *>malloc(ln * sizeof(Transform))
+        #all bones except hip
         if not joint.ind == 0:
-            ipol = time_frac(time, self.times[joint.ind], self.la)
-            self.point = &slerped
-            nlerp(self.keyframes[joint.ind][ipol.i1],
-                  self.keyframes[joint.ind][ipol.i2], ipol.frac, self.point)
+            #compute lerped transform for each blended animation
+            for i in range(ln):
+                ipol = time_frac(
+                    times[i], self.times[inds[i]], self.animlen[inds[i]])
+
+                self.point = &nlerped[i]
+                nlerp(self.keyframes[i][joint.ind][ipol.i1],
+                  self.keyframes[i][joint.ind][ipol.i2], ipol.frac, self.point)
+            #blend animations
+            blended = nlerped[0]
+            for i in range(ln-1):
+                self.point = &blended
+                weight = 0
+                for j in range(i+1):
+                    weight += weights[i]
+                weight = 1 - weight / (weight + weights[i+1])
+                nlerp(blended, nlerped[i+1], weight, self.point)
 
             self.point = &self.joint_currData[joint.ind]
             trans_mult(self.joint_currData[parent],
-                       slerped, self.point)
+                       blended, self.point)
+        #hip
         else:
             self.point = &self.to_world
             euler_to_trans(self.angles, self.pos, self.point, self.scale)
-            ipol = time_frac(time, self.times[joint.ind], self.la)
+            #compute lerped transform for each blended animation
+            for i in range(ln):
+                ipol = time_frac(
+                    times[i], self.times[inds[i]], self.animlen[inds[i]])
 
-            self.point = &slerped
-            nlerp(self.keyframes[joint.ind][ipol.i1],
-                  self.keyframes[joint.ind][ipol.i2], ipol.frac, self.point)
+                self.point = &nlerped[i]
+                nlerp(self.keyframes[i][joint.ind][ipol.i1],
+                  self.keyframes[i][joint.ind][ipol.i2], ipol.frac, self.point)
+            #blend animations
+            blended = nlerped[0]
+            for i in range(ln-1):
+                self.point = &blended
+                weight = 0
+                for j in range(i+1):
+                    weight += weights[i]
+                weight = 1 - weight / (weight + weights[i+1])
+                nlerp(blended, nlerped[i+1], weight, self.point)
 
             self.point = &self.joint_currData[joint.ind]
-            trans_mult(self.to_world, slerped,
+            trans_mult(self.to_world, blended,
                        self.point)
 
         #set skinning matrix
@@ -245,9 +321,11 @@ cdef class AnimatedModel:
         trans_mult(self.joint_currData[joint.ind],
                    self.inverse[joint.ind], self.point)
 
-        cdef int i
         for i in range(joint.len):
-            self._set_world_matrix(joint.nodes[i], joint.ind, time)
+            self._set_world_matrix(joint.nodes[i], joint.ind, inds, weights,
+                                   times, ln)
+
+        free(nlerped)
 
 
     cdef void _skin_vertices(self):

@@ -65,7 +65,9 @@ def parse_dae(filename, scale=0.94):
     skin_arr = (skin_weights, vcount, bone_weigth_ids, weight_inds, inverse_m)
 
     #animation data
-    anims = [None for i in range(len(joint_names))]
+    anim_count = count_anims(root.iter(pre + 'animation'))
+    anims = [[None for i in range(len(joint_names))]
+             for j in range(anim_count)]
 
     for animation in root.iter(pre + 'animation'):
         for child in animation.getchildren():
@@ -77,7 +79,14 @@ def parse_dae(filename, scale=0.94):
                     matrices = pair(m_arr, 16)
             if 'target' in child.keys():
                 index = joint_names.index(child.attrib['target'].split('/')[0])
-        anims[index] = (times, matrices)
+        for i in range(anim_count):
+            step = 100. / 24
+            temp = [time for time in times if i*step < time < (i+1)*step]
+            an_times = [time - temp[0] for time in temp]
+            an_matrices = [matrices[times.index(time)] for time in temp]
+            anims[i][index] = (an_times, an_matrices)
+
+        #anims[index] = (times, matrices)
 
     return vertices, normals, faces, joint_data, joints, skin_arr, anims, scale
 
@@ -106,3 +115,16 @@ class Joint(object):
         self.len = len(self.nodes)
         for node in self.nodes:
             node.set_index(names)
+
+
+def count_anims(animgen):
+    for animation in animgen:
+        for child in animation.getchildren():
+            if 'id' in child.keys():
+                if 'input' in child.attrib['id']:
+                    times = map(float, child.getchildren()[0].text.split())
+                    maxt = max(times)
+                    #blender runs animation at 24 fps
+                    step = 100. / 24
+                    return int(maxt // step) + 1
+    return 0

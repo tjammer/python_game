@@ -222,10 +222,13 @@ class DrawablePlayer(object):
         self.rect.add(self.batch)
 
     def update(self, state, fac):
-        pos, color = state.pos, state.color
+        pos = state.pos
         self.rect.update(*(vec2(*pos) * fac))
-        if color != self.rect.color:
-            self.rect.update_color(color)
+        self.state = state
+        self.state.pos = vec2(*state.pos) * fac
+        #if color != self.rect.color:
+            #print color, self.rect.color
+            #self.rect.update_color(color)
 
     def remove(self):
         self.rect.remove()
