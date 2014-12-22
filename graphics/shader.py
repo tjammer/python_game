@@ -10,6 +10,7 @@ from pyglet.gl import *
 from pyglet.image import Texture
 from matrix import Matrix
 from os import path
+from ctypes import cast, POINTER
 
 
 def next(generator, default=None):
@@ -210,7 +211,10 @@ class Shader(object):
                 glUniform4f(address, value[0], value[1], value[2], value[3])
         # A list representing an array of ints or floats.
         elif isinstance(value, (list, tuple)):
-            if next((v for v in value if isinstance(v, float))) is not None:
+            if next((v for v in value if isinstance(v, vector))) is not None:
+                data = ((GLfloat * 4)*33)(*value)
+                glUniform4fv(address, 33, cast(data, POINTER(GLfloat)))
+            elif next((v for v in value if isinstance(v, float))) is not None:
                 array = c_float * len(value)
                 glUniform1fv(address, len(value), array(*value))
             else:
