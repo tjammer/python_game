@@ -143,17 +143,9 @@ class AnimationUpdater(object):
 
         #specials
         avel = abs(state.vel.x)
-        if state.conds.onGround:
+        if 0 in self.weights:
             self.weights[0] = min(1., avel / 480.)
             self.weights[1] = max(0., 1 - avel / 480)
-            """if not 1 in self.times:
-                self.times[1] = 0.
-            else:
-                self.times[1] += dt"""
-        else:
-            """if 1 in self.times:
-                del self.times[1]
-                del self.weights[1]"""
 
         #normalize weights
         norm = sum(w for w in self.weights.values())
@@ -180,7 +172,7 @@ class MetaAnimation(object):
         self.timescale = timescales[index]
 
         self.weight = 0.
-        self.faderate = 2.
+        self.faderate = 4.
 
     def update(self, dt, conds, weights, times):
         if conds.__getattribute__(conditions[self.index]):
@@ -205,10 +197,17 @@ class MetaAnimation(object):
 
     def deactivate(self, dt, weights, times):
         self.active = False
-        self.timer = 0.
         if self.weight:
             self.weight -= dt * self.faderate
+            self.timer += dt * self.timescale
+            if self.timer >= self.maxtime:
+                while self.timer >= self.maxtime:
+                    self.timer -= self.maxtime
+            weights[self.index] = self.weight
+            times[self.index] = self.timer
+
             if self.weight <= 0.:
                 self.weight = 0
                 del weights[self.index]
                 del times[self.index]
+                self.timer = 0.
