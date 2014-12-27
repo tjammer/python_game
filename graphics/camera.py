@@ -71,7 +71,7 @@ class Camera(Events):
 
     def set_zoom(self, dt):
         self.t -= (self.t - abs(self.vel.x))*dt
-        self.zoom = self.ease(self.t, 34, 20, 500)
+        self.zoom = self.ease(self.t, 30, 24, 500)
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]
