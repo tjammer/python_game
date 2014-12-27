@@ -9,6 +9,7 @@ from gameplay.weapons import spread, ProjContainer, weaponcolors
 from collision.caabb import Line
 from shader import OffscreenBuffer as FBO
 from model import Model
+from os import path
 
 
 class Render(object):
@@ -25,9 +26,7 @@ class Render(object):
         self.scale = vec2(window.width / 1360., window.height / 765.)
         self.players = {}
         self.fbo = FBO(window.width, window.height)
-        self.model = Model(
-            '/home/tobi/Documents/blenders/firstchar/metatest.dae',
-            self.scale.x)
+        self.model = Model(path.join('graphics', 'metatest.dae'), self.scale.x)
         self.kf = 0
 
     def draw(self):
