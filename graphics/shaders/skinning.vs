@@ -4,6 +4,9 @@ uniform mat4 mvp;
 uniform vec4 quats[33];
 uniform vec4 vecs[33];
 uniform float scale;
+layout(location = 0) in vec4 vert;
+layout(location = 1) in vec4 norm;
+layout(location = 2) in vec4 o_col;
 layout(location = 3) in vec4 weights;
 layout(location = 4) in int count;
 layout(location = 5) in vec4 bone_ids;
@@ -16,9 +19,9 @@ vec4 transform(in vec4 quat, in vec4 vec, in float scale, in vec4 o_pos){
 }
 
 void main(){
-    col = gl_Color;
+    col = o_col;
     int ct = count;
-    vec4 old_pos = gl_Vertex;
+    vec4 old_pos = vert;
     ivec4 indices = ivec4(bone_ids);
     vec4 new_pos = transform(
         quats[indices.x], vecs[indices.x], scale, old_pos) * weights.x;
