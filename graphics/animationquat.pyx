@@ -424,7 +424,7 @@ cdef void mat4x4_to_transf1orm(list m, Transform *t):
     t.vec.y = m[7]
     t.vec.z = m[11]
 
-cdef void mat4_mat_3(list m, double[3][3] mat):
+cdef void mat4_mat_3(list m, double mat[3][3]):
     cdef i, j
     for i in range(3):
         for j in range(3):
@@ -432,7 +432,7 @@ cdef void mat4_mat_3(list m, double[3][3] mat):
 
 #blender
 cdef void mat4x4_to_transform(list m, Transform *t):
-    cdef double[3][3] mat
+    cdef double mat[3][3]
     mat4_mat_3(m, mat)
     cdef double tr = (mat[0][0] + mat[1][1] + mat[2][2] + 1.) * 0.25
     cdef double S
