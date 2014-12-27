@@ -70,9 +70,9 @@ class Mesh(object):
         length = len(self.verts) / 3
         self.vertex_list = batch.add_indexed(
             length, self.mode, group,
-            indices, *[('v3f/dynamic', self.verts),
-                       ('n3f/dynamic', self.norms),
-                       ('c4f/static', self.color * length),
+            indices, *[('0g3f/stream', self.verts),
+                       ('1g3f/stream', self.norms),
+                       ('2g4f/static', self.color * length),
                        ('3g4f/static', weights), ('4g1i/static', w_lens),
                        ('5g4i/static', w_bone_ids)])
 
@@ -116,7 +116,7 @@ class Model(object):
             self.batch.draw()
 
 animations = {'run': 0, 'stand': 1}
-conditions = {0: 'onGround', 1: 'onGround'}
+conditions = {0: 'onGround', 1: 'onGround', 2: 'ascending'}
 
 
 class AnimationUpdater(object):
@@ -143,7 +143,7 @@ class AnimationUpdater(object):
 
         #specials
         avel = abs(state.vel.x)
-        if 0 in self.weights:
+        if state.conds.onGround:
             self.weights[0] = min(1., avel / 480.)
             self.weights[1] = max(0., 1 - avel / 480)
 
@@ -158,7 +158,7 @@ class AnimationUpdater(object):
         return quats, verts
 
 
-timescales = {0: 2.8, 1: 1}
+timescales = {0: 2.8, 1: 1, 2: 2.5}
 
 
 class MetaAnimation(object):
@@ -177,10 +177,7 @@ class MetaAnimation(object):
     def update(self, dt, conds, weights, times):
         if conds.__getattribute__(conditions[self.index]):
             self.activate(dt)
-            self.timer += dt * self.timescale
-            if self.timer >= self.maxtime:
-                while self.timer >= self.maxtime:
-                    self.timer -= self.maxtime
+            self._step(dt)
 
             weights[self.index] = self.weight
             times[self.index] = self.timer
@@ -199,10 +196,7 @@ class MetaAnimation(object):
         self.active = False
         if self.weight:
             self.weight -= dt * self.faderate
-            self.timer += dt * self.timescale
-            if self.timer >= self.maxtime:
-                while self.timer >= self.maxtime:
-                    self.timer -= self.maxtime
+            self._step(dt)
             weights[self.index] = self.weight
             times[self.index] = self.timer
 
@@ -211,3 +205,15 @@ class MetaAnimation(object):
                 del weights[self.index]
                 del times[self.index]
                 self.timer = 0.
+
+    def _step(self, dt, pos=True):
+        if pos:
+            self.timer += dt * self.timescale
+            if self.timer >= self.maxtime:
+                while self.timer >= self.maxtime:
+                    self.timer -= self.maxtime
+        else:
+            self.timer -= dt * self.timescale
+            if self.timer <= 0.:
+                while self.timer <= 0.:
+                    self.timer += 0.

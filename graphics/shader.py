@@ -10,7 +10,8 @@ from pyglet.gl import *
 from pyglet.image import Texture
 from matrix import Matrix
 from os import path
-from ctypes import cast, POINTER
+from ctypes import *
+from extensions.glext_arb import *
 
 
 def next(generator, default=None):
@@ -317,9 +318,12 @@ def shader(name=DEFAULT_VERTEX_SHADER, silent=True):
 # http://www.gamedev.net/reference/articles/article2331.asp
 
 _UID = 0
+
+
 def _uid():
     # Each FBO has a unique ID.
-    global _UID; _UID+=1; return _UID;
+    global _UID; _UID += 1; return _UID;
+
 
 def _texture(width, height):
     # Returns an empty texture of the given width and height.
@@ -347,26 +351,24 @@ def glCurrentViewport(x=None, y=None, width=None, height=None):
 # filters or nested render() calls, this is the previous FBO.
 _FBO_STACK = []
 
+
 class OffscreenBufferError(Exception):
     pass
 
 class OffscreenBuffer(object):
 
     def __init__(self, width, height):
-        """ "FBO" is an OpenGL extension to do "Render to Texture", drawing in an offscreen buffer.
-            It is useful as a place to chain multiple shaders,
-            since each shader has its own program and we can only install one program at a time.
-        """
         self.id = c_uint(_uid())
-        try:
-            glGenFramebuffersEXT(1, byref(self.id))
-        except:
-            raise (OffscreenBufferError, "offscreen buffer not supported.")
+        #try:
+        glGenFramebuffers(1, byref(self.id))
+        #except:
+        #    raise (OffscreenBufferError, "offscreen buffer not supported.")
         self.texture = None
-        self._viewport = (None, None, None, None) # The canvas bounds, set in OffscreenBuffer.push().
+         # The canvas bounds, set in OffscreenBuffer.push().
+        self._viewport = (None, None, None, None)
         self._active = False
         self._init(width, height)
-        self._init_depthbuffer()
+        self._init_depthbuffer(width, height)
 
     def __enter__(self):
         self.clear()
@@ -377,6 +379,11 @@ class OffscreenBuffer(object):
 
     def _init(self, width, height):
         self.texture = _texture(int(width), int(height))
+        glBindTexture(self.texture.target, self.texture.id)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.id.value)
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, self.texture.target,
+            self.texture.id, self.texture.level)
 
     @property
     def width(self):
@@ -391,76 +398,20 @@ class OffscreenBuffer(object):
         return self._active
 
     def push(self):
-        """ Between push() and pop(), all drawing is done offscreen in OffscreenBuffer.texture.
-            The offscreen buffer has its own transformation state,
-            so any translate(), rotate() etc. does not affect the onscreen canvas.
-        """
         _FBO_STACK.append(self)
-        glBindTexture(self.texture.target, self.texture.id)
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.id.value)
-        glFramebufferTexture2DEXT(
-            GL_FRAMEBUFFER_EXT,
-            GL_COLOR_ATTACHMENT0_EXT,
-            self.texture.target,
-            self.texture.id,
-            self.texture.level)
-        glFramebufferRenderbufferEXT(
-            GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
-            GL_RENDERBUFFER_EXT, self._depthbuffer)
-        # FBO's can fail when not supported by the graphics hardware,
-        # or when supplied an image of size 0 or unequal width/height.
-        # Check after glBindFramebufferEXT() and glFramebufferTexture2DEXT().
-        if glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT:
-            msg = self.texture.width == self.texture.height == 0 and "width=0, height=0." or ""
-            raise OffscreenBufferError, msg
-        # Separate the offscreen from the onscreen transform state.
-        # Separate the offscreen from the onscreen canvas size.
-        self._viewport = glCurrentViewport()
-        glPushMatrix()
-        glLoadIdentity()
-        glCurrentViewport(0, 0, self.texture.width, self.texture.height)
-        glColor4f(1.0, 1.0, 1.0, 1.0)
-        # FBO's work with a simple GL_LINE_SMOOTH anti-aliasing.
-        # The instructions on how to enable framebuffer multisampling are pretty clear:
-        # (http://www.opengl.org/wiki/GL_EXT_framebuffer_multisample)
-        # but glRenderbufferStorageMultisampleEXT doesn't appear to work (yet),
-        # plus there is a performance drop.
-        glEnable(GL_LINE_SMOOTH)
-        # Blending transparent images in a transparent FBO is a bit tricky
-        # because alpha is premultiplied, an image with 50% transparency
-        # will come out 25% transparency with glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA).
-        # http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=257630
-        # http://www.openframeworks.cc/forum/viewtopic.php?f=9&t=2215
-        # This blend mode gives better results:
-        glEnable(GL_BLEND)
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.id.value)
+        if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
+            raise OffscreenBufferError
         glEnable(GL_DEPTH_TEST)
         self._active = True
 
     def pop(self):
-        """ Reverts to the onscreen canvas.
-            The contents of the offscreen buffer can be retrieved with OffscreenBuffer.texture.
-        """
-        # Switch to onscreen canvas size and transformation state.
-        # Switch to onscreen canvas.
-        # Reset to the normal blending mode.
         _FBO_STACK.pop(-1)
-        glCurrentViewport(*self._viewport)
-        glPopMatrix()
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _FBO_STACK and _FBO_STACK[-1].id or 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, _FBO_STACK and _FBO_STACK[-1].id or 0)
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
         #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glDisable(GL_DEPTH_TEST)
         self._active = False
-
-    def render(self):
-        """ Executes the drawing commands in OffscreenBuffer.draw() offscreen and returns image.
-            This is useful if you have a class that inherits from FBO with a draw() method.
-        """
-        self.push()
-        self.draw()
-        self.pop()
-        return self.texture
 
     def draw(self):
         pass
@@ -490,23 +441,21 @@ class OffscreenBuffer(object):
         glClear(GL_DEPTH_BUFFER_BIT)
         glClear(GL_STENCIL_BUFFER_BIT)
 
-    def _init_depthbuffer(self):
+    def _init_depthbuffer(self, width, height):
         self._depthbuffer = c_uint(_uid())
-        glGenRenderbuffersEXT(1, byref(self._depthbuffer))
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, self._depthbuffer)
-        glRenderbufferStorageEXT(
-            GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, self.width, self.height)
-        #glFramebufferRenderbufferEXT(
-        #    GL_FRAMEBUFFER_EXT,
-       #     GL_DEPTH_ATTACHMENT_EXT,
-      #      GL_RENDERBUFFER_EXT,
-      #      self._depthbuffer)
+        glGenRenderbuffers(1, byref(self._depthbuffer))
+        glBindRenderbuffer(GL_RENDERBUFFER, self._depthbuffer)
+        glRenderbufferStorage(
+            GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, int(width), int(height))
+        glFramebufferRenderbuffer(
+            GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+            GL_RENDERBUFFER, self._depthbuffer)
 
     def __del__(self):
         try:
-            if glDeleteFramebuffersEXT:
-                glDeleteFramebuffersEXT(1, self.id)
-            if glDeleteRenderbuffersEXT and hasattr(self, "_depthbuffer"):
-                glDeleteRenderbuffersEXT(1, self._depthbuffer)
+            if glDeleteFramebuffers:
+                glDeleteFramebuffers(1, self.id)
+            if glDeleteRenderbuffers and hasattr(self, "_depthbuffer"):
+                glDeleteRenderbuffers(1, self._depthbuffer)
         except:
             pass
