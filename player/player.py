@@ -8,7 +8,7 @@ from options import colors, Options
 try:
     from graphics.primitives import Rect
 except:
-    from collision.caabb import cAABB as Rect
+    from collision.aabb import AABB as Rect
 
 pext = vec2(32, 72)
 phext = pext / 2
@@ -103,13 +103,14 @@ class Player(Events):
         try:
             xt = min(col[1] for col in cols if col[0].x != 0)
             xnorm, rct = [(col[0].x, rectgen[all_cols.index(col)])
-                          for col in cols if col[1] == xt][0]
+                          for col in cols if col[1] == xt and col[0].x != 0][0]
         except ValueError:
             xt = dt
             xnorm = 0.
         try:
             yt = min(col[1] for col in cols if col[0].y != 0)
-            ynorm = [col[0].y for col in cols if col[1] == yt][0]
+            ynorm = [col[0].y for col in cols
+                     if col[1] == yt and col[0].y != 0][0]
         except ValueError:
             yt = dt
             ynorm = 0.
@@ -151,23 +152,6 @@ class Player(Events):
         elif normal.x == 0. and normal.y == 0.:
             self.determine_state(state)
         return state
-
-    """def resolve_collision(self, ovrlap, axis, angle):
-        self.state.pos[0] = self.rect.x1 - ovrlap * axis[0]
-        self.state.pos[1] = self.rect.y1 - ovrlap * axis[1]
-        self.state.vel[0] *= axis[1] > 0
-        self.state.vel[1] *= axis[0] > 0
-        self.rect.update(*self.state.pos)
-        self.move.resolve_coll(self.state.pos, self.state.vel)
-        if axis[1] > 0 and ovrlap < 0:
-            #self.move.conds['on_ground'] = True
-            self.state.set_cond('onGround')
-            #self.move.angle = angle
-        elif axis[0] > 0:
-            if ovrlap > 0:
-                self.state.set_cond('onRightWall')
-            elif ovrlap < 0:
-                self.state.set_cond('onLeftWall')"""
 
     def determine_state(self, state):
         if state.vel.y < 0:
@@ -219,7 +203,7 @@ class DrawablePlayer(object):
         self.rect.pos *= fac
         self.rect.width *= fac.x
         self.rect.height *= fac.y
-        self.rect.add(self.batch)
+        #self.rect.add(self.batch)
 
     def update(self, state, fac):
         pos = state.pos
