@@ -89,16 +89,3 @@ class Camera(Events):
     def on_resize(self, width, height):
         self.h = height / 2
         self.width = width / 2
-
-
-def mat_mult(a, b):
-    c = [[0. for i in range(3)] for j in range(3)]
-    for i in range(3):
-        for j in range(3):
-            for k in range(3):
-                c[i][j] += a[i][k] * b[k][j]
-    return c
-
-
-def init_mat():
-    return [[float(i == j) for j in xrange(3)] for i in xrange(3)]
