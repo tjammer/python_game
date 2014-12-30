@@ -2,15 +2,17 @@
 #cython: boundscheck=False, wraparound=False, initializedcheck=False, cdivison=True
 from libc.stdlib cimport malloc, free
 from cython.view cimport array
-from libc.math cimport sqrt, sin, cos, acos, fabs, asin, copysign
+from libc.math cimport sqrt, sin, cos, copysign
 from numpy cimport ndarray, dtype
 from shader import vector
 from ctypes import c_float
+
 
 cdef struct Joint:
     int ind
     int len
     Joint *nodes
+
 
 cdef Joint add(object joint_):
     cdef Joint joint
@@ -21,16 +23,13 @@ cdef Joint add(object joint_):
         joint.nodes[i] = add(joint_.nodes[i])
     return joint
 
+
 cdef struct Quat:
     double w
     double x
     double y
     double z
 
-cdef Quat gen_quat():
-    cdef Quat q
-    q.w = q.x = q.y = q.z = 0
-    return q
 
 cdef struct Vec4:
     double w
@@ -38,10 +37,6 @@ cdef struct Vec4:
     double y
     double z
 
-cdef Vec4 gen_vec4():
-    cdef Vec4 v
-    v.w = v.x = v.y = v.z = 0
-    return v
 
 cdef struct Transform:
     Quat q
@@ -52,6 +47,8 @@ transformtype = dtype([('q.w', 'd'), ('q.x', 'd'), ('q.y', 'd'),
                  ('q.z', 'd'), ('vec.w', 'd'), ('vec.x', 'd'),
                  ('vec.y', 'd'), ('vec.z', 'd'), ('active', 'i4')],
                  align=True)
+
+cdef float pih = 1.570796326794
 
 
 cdef class AnimatedModel:
@@ -222,9 +219,11 @@ cdef class AnimatedModel:
         return zip(*transout)
 
     #def set_keyframe(self, int direc, pos, double time):
-    def set_keyframe(self, int direc, pos, dict weights_, dict times_):
-        cdef int i, j, k
+    def set_keyframe(self, float direc, pos, dict weights_, dict times_,
+                     dict pikdict, float frc):
+        cdef int i, j, k, ln2
         cdef float weight
+        cdef double angle
         #set up anim data
         cdef int ln = len(weights_)
         cdef int *indices = <int *>malloc(ln * sizeof(int))
@@ -235,10 +234,17 @@ cdef class AnimatedModel:
             weights[k] = weight
             times[k] = times_[j]
 
+        #set up pseudo ik data
+        ln2 = len(pikdict)
+        cdef PseudoIK *piks = <PseudoIK *>malloc(ln2 * sizeof(PseudoIK))
+        for k, (j, angle) in enumerate(pikdict.iteritems()):
+            piks[k] = pik_from_dict(j, angle, direc, frc)
+
         self.pos[0] = <double>pos[0] / self.scale
         self.pos[1] = <double>pos[1] / self.scale
-        self.angles[1] = -1.570796326794 * direc
-        self._set_world_matrix(self.joints, 0, indices, weights, times, ln)
+        self.angles[1] = -pih * direc
+        self._set_world_matrix(
+            self.joints, 0, indices, weights, times, ln, piks, ln2)
         transout = [(vector((self.skin_matrix[i].q.x,
                             self.skin_matrix[i].q.y,
                             self.skin_matrix[i].q.z,
@@ -251,6 +257,7 @@ cdef class AnimatedModel:
         free(indices)
         free(weights)
         free(times)
+        free(piks)
         return zip(*transout)
 
     #C functions
@@ -260,32 +267,43 @@ cdef class AnimatedModel:
         #self._skin_vertices()
         pass
 
-    cdef void _set_world_matrix(self, Joint joint, int parent,
-                        int *inds, float *weights, float *times, int ln):
-        cdef int i, j, k
+    cdef void _set_world_matrix(
+        self, Joint joint, int parent, int *inds, float *weights, float *times,
+        int ln, PseudoIK *piks, int ln2):
+        cdef int i, j, k, pikind
         cdef float weight
         cdef Timestep ipol
         cdef Transform blended
         cdef Transform *nlerped = <Transform *>malloc(ln * sizeof(Transform))
+        cdef Transform test
         #all bones except hip
         if not joint.ind == 0:
+
             #compute lerped transform for each blended animation
             for i in range(ln):
                 ipol = time_frac(
                     times[i], self.times[inds[i]], self.animlen[inds[i]])
 
                 self.point = &nlerped[i]
-                nlerp(self.keyframes[i][joint.ind][ipol.i1],
-                  self.keyframes[i][joint.ind][ipol.i2], ipol.frac, self.point)
+                nlerp(self.keyframes[inds[i]][joint.ind][ipol.i1],
+                  self.keyframes[inds[i]][joint.ind][ipol.i2],
+                  ipol.frac,self.point)
+
             #blend animations
             blended = nlerped[0]
             for i in range(ln-1):
                 self.point = &blended
                 weight = 0
                 for j in range(i+1):
-                    weight += weights[i]
+                    weight += weights[j]
                 weight = 1 - weight / (weight + weights[i+1])
                 nlerp(blended, nlerped[i+1], weight, self.point)
+
+            #test pseudo ik
+            pikind = ind_in_pikarr(joint.ind, ln2, piks)
+            if pikind != -1:
+                self.point = &blended
+                trans_mult(blended, piks[pikind].t, self.point)
 
             self.point = &self.joint_currData[joint.ind]
             trans_mult(self.joint_currData[parent],
@@ -293,15 +311,18 @@ cdef class AnimatedModel:
         #hip
         else:
             self.point = &self.to_world
-            euler_to_trans(self.angles, self.pos, self.point, self.scale)
+            euler_to_trans(self.angles, self.pos, self.point)
+
             #compute lerped transform for each blended animation
             for i in range(ln):
                 ipol = time_frac(
                     times[i], self.times[inds[i]], self.animlen[inds[i]])
 
                 self.point = &nlerped[i]
-                nlerp(self.keyframes[i][joint.ind][ipol.i1],
-                  self.keyframes[i][joint.ind][ipol.i2], ipol.frac, self.point)
+                nlerp(self.keyframes[inds[i]][joint.ind][ipol.i1],
+                  self.keyframes[inds[i]][joint.ind][ipol.i2],
+                  ipol.frac, self.point)
+
             #blend animations
             blended = nlerped[0]
             for i in range(ln-1):
@@ -322,11 +343,10 @@ cdef class AnimatedModel:
                    self.inverse[joint.ind], self.point)
 
         for i in range(joint.len):
-            self._set_world_matrix(joint.nodes[i], joint.ind, inds, weights,
-                                   times, ln)
+            self._set_world_matrix(
+                joint.nodes[i], joint.ind, inds, weights, times, ln, piks, ln2)
 
         free(nlerped)
-
 
     cdef void _skin_vertices(self):
         cdef int i, j, jointid
@@ -379,51 +399,6 @@ cdef void add_memv_f3(double[:] a, double[:] b):
         a[i] += b[i]
 
 
-cdef Transform gen_transform(int active):
-    cdef Transform trans
-    trans.q = gen_quat()
-    trans.vec = gen_vec4()
-    trans.active = active
-    return trans
-
-
-cdef void mat4x4_to_transf1orm(list m, Transform *t):
-    cdef double tr = m[0] + m[5] + m[10]
-    cdef double S
-    """ 0, 1, 2, 3      m00 m01 m02
-        4, 5, 6, 7      m10 m11 m12
-        8, 9, 10, 11    m20 m21 m22"""
-
-    if tr > 0:
-        S = sqrt(tr + 1.) * 2
-        t.q.w = 0.25 * S
-        t.q.x = (m[9] - m[6]) / S
-        t.q.y = (m[2] - m[8]) / S
-        t.q.z = (m[4] - m[1]) / S
-    elif m[0] > m[5] and m[0] > m[10]:
-        S = sqrt(1. + m[0] - m[5] - m[10]) * 2
-        t.q.w = (m[9] - m[6]) / S
-        t.q.x = 0.25 * S
-        t.q.y = (m[1] + m[4]) / S
-        t.q.z = (m[2] + m[8]) / S
-    elif m[5] > m[10]:
-        S = sqrt(1. + m[5] - m[0] - m[10]) * 2
-        t.q.w = (m[2] - m[8]) / S
-        t.q.x = (m[1] + m[4]) / S
-        t.q.y = 0.25 * S
-        t.q.z = (m[6] + m[9]) / S
-    else:
-        S = sqrt(1. + m[10] - m[0] - m[5]) * 2
-        t.q.w = (m[4] - m[1]) / S
-        t.q.x = (m[2] + m[8]) / S
-        t.q.y = (m[6] + m[9]) / S
-        t.q.z = 0.25 * S
-
-    t.vec.w = m[15]
-    t.vec.x = m[3]
-    t.vec.y = m[7]
-    t.vec.z = m[11]
-
 cdef void mat4_mat_3(list m, double mat[3][3]):
     cdef i, j
     for i in range(3):
@@ -472,26 +447,6 @@ cdef void mat4x4_to_transform(list m, Transform *t):
     t.vec.z = m[11]
 
 
-cdef void transform_to_mat4x4(Transform t, list m):
-
-    m[0] = 1. - 2 * t.q.y * t.q.y - 2 * t.q.z * t.q.z
-    m[1] = 2 * t.q.x * t.q.y - 2 * t.q.z * t.q.w
-    m[2] = 2 * t.q.x * t.q.z + 2 * t.q.y * t.q.w
-    m[3] = t.vec.x
-    m[4] = 2 * t.q.x * t.q.y + 2 * t.q.z * t.q.w
-    m[5] = 1. - 2 * t.q.x * t.q.x - 2 * t.q.z * t.q.z
-    m[6] = 2 * t.q.y * t.q.z - 2 * t.q.x * t.q.w
-    m[7] = t.vec.y
-    m[8] = 2 * t.q.x * t.q.z - 2 * t.q.y * t.q.w
-    m[9] = 2 * t.q.y * t.q.z + 2 * t.q.x * t.q.w
-    m[10] = 1. - 2 * t.q.x * t.q.x - 2 * t.q.y * t.q.y
-    m[11] = t.vec.z
-    m[12] = 0.
-    m[13] = 0.
-    m[14] = 0.
-    m[15] = t.vec.w
-
-
 cdef void trans_vector_mult(Transform t, double[:] v, double[:] target,
                             double w, double scale):
     cdef double x = v[0]
@@ -537,8 +492,7 @@ cdef void trans_mult(Transform a, Transform b, Transform *t):
     t.vec.w = 1.
 
 
-cdef void euler_to_trans(double[3] angles, double[2] displacement, Transform *t,
-                         double scale):
+cdef void euler_to_trans(double[3] angles, double[2] disp, Transform *t):
     cdef double c1 = cos(angles[0] * 0.5)
     cdef double c2 = cos(angles[1] * 0.5)
     cdef double c3 = cos(angles[2] * 0.5)
@@ -551,9 +505,19 @@ cdef void euler_to_trans(double[3] angles, double[2] displacement, Transform *t,
     t.q.y = s1 * c2 * c3 + c1 * s2 * s3
     t.q.z = c1 * s2 * s3 - s1 * c2 * c3
 
-    t.vec.x = displacement[0] + 16 * 2. / 72.
-    t.vec.y = displacement[1]
+    t.vec.x = disp[0] + 16 * 2. / 72.
+    t.vec.y = disp[1]
     t.vec.z = 0.
+
+
+cdef axis_to_trans(double axis[3], double angle_, Transform *t):
+    cdef double angle = angle_
+    cdef double cosangle = cos(angle / 2)
+    cdef double sinangle = sin(angle / 2)
+    t.q.w = cosangle
+    t.q.x = axis[0] * sinangle
+    t.q.y = axis[1] * sinangle
+    t.q.z = axis[2] * sinangle
 
 
 cdef void nlerp(Transform a, Transform b, double t, Transform *target):
@@ -619,3 +583,38 @@ cdef Timestep time_frac(double time, double[:] times, int len_times):
     ts.i1 = len_times - 2
     ts.i2 = len_times - 1
     return ts
+
+
+cdef struct PseudoIK:
+    int index
+    Transform t
+
+
+cdef normalize(double a[3]):
+    cdef double sm = 0
+    cdef int i
+    for i in range(3):
+        sm += a[i] * a[i]
+    sm = sqrt(sm)
+    for i in range(3):
+        a[i] /= sm
+
+
+cdef PseudoIK pik_from_dict(int key, double angle, float direc, float frac):
+    cdef PseudoIK pik
+    pik.index = key
+    cdef double aangle = abs(angle)
+    cdef double axis[3]
+    axis[:] = [-(1-abs(frac)), -copysign(frac, frac*direc), 0]
+    normalize(axis)
+    cdef Transform *p = &pik.t
+    axis_to_trans(axis, angle, p)
+    return pik
+
+
+cdef int ind_in_pikarr(int ind, int l, PseudoIK *arr):
+    cdef int i
+    for i in range(l):
+        if ind == arr[i].index:
+            return i
+    return -1

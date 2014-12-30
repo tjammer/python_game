@@ -320,11 +320,8 @@ class GameScreen(Events):
 
             #interpolate missing time
             state = self.player.state.copy()
-            state = self.player.predict_step(self.rest_time, self.get_rect(),
-                                             state, self.player.input)
-            state.id = self.player.id
-            state.color = self.player.color
-            self.render.playerhook(state, update=True)
+            self.player.predict_step(self.rest_time, self.get_rect(),
+                                     state, self.player.input)
         else:
             self.spec_send(dt)
         self.gs_view.update(dt)
@@ -369,11 +366,12 @@ class GameScreen(Events):
 
         #interpolate missing time
         state = self.player.state.copy()
-        state = self.player.predict_step(self.rest_time, self.get_rect(),
-                                         state, self.player.input)
-        state.id = self.player.id
-        state.color = self.player.color
-        self.render.playerhook(state, update=True)
+        self.player.predict_step(self.rest_time, self.get_rect(),
+                                 state, self.player.input)
+        #state.id = self.player.id
+        #state.mpos = vec2(self.player.input.mx, self.player.input.my)
+        #state.color = self.player.color
+        #self.render.playerhook(state, update=True)
         self.render.update(dt)
 
         self.camera.update(dt, self.player.state)

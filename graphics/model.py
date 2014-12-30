@@ -3,7 +3,7 @@ from pyglet.gl import *
 import parsedae
 from animationquat import AnimatedModel
 from shader import Shader
-from math import copysign
+from math import copysign, acos
 
 
 def load_material(libname, material_name):
@@ -116,7 +116,10 @@ class Model(object):
             self.batch.draw()
 
 animations = {'run': 0, 'stand': 1}
-conditions = {0: 'onGround', 1: 'onGround', 2: 'ascending'}
+conditions = {0: ('onGround',), 1: ('onGround',),
+              2: ('ascending', 'onRightWall', 'onLeftWall'),
+              3: ('descending',), 4: ('landing',)}
+timescales = {0: 2.8, 1: 1, 2: 2, 3: 3, 4: 1, 5: 1.5, 6: 1.3}
 
 
 class AnimationUpdater(object):
@@ -128,37 +131,56 @@ class AnimationUpdater(object):
         for i, ad in enumerate(animdata):
             times, mats = ad[0]
             self.metas.append(MetaAnimation(i, max(times)))
+        self.metas[3].fadeoutrate = 8.
+        self.metas[4].fadeinrate = 8.
         self.animator = animator
         self.weights = {}
         self.times = {}
+        #for direction
+        self.t = 0
+        self.dir = 1.
 
     def __iter__(self):
         return iter(self.weights)
 
     def update(self, dt, state):
         #if state.conds.onGround:
-        direc = copysign(1, state.vel.x)
+        self.set_dir(dt, state)
         for meta in self.metas:
             meta.update(dt, state.conds, self.weights, self.times)
 
         #specials
         avel = abs(state.vel.x)
         if state.conds.onGround:
-            self.weights[0] = min(1., avel / 480.)
-            self.weights[1] = max(0., 1 - avel / 480)
+            self.weights[animations['run']] *= min(1., avel / 480.)
+            if not 4 in self.weights:
+                self.weights[animations['stand']] *= max(0., 1 - avel / 480.)
 
         #normalize weights
         norm = sum(w for w in self.weights.values())
         for key, val in self.weights.iteritems():
             self.weights[key] = val / norm
 
-        pos = state.pos
-        quats, verts = self.animator.set_keyframe(direc, pos, self.weights,
-                                                  self.times)
+        cosangle = state.mpos.normalize()
+        angle = copysign(acos(cosangle.x), cosangle.y)
+        frc = angle / 3.1415926535897
+        pikdict = {1: angle / 6, 2: angle / 3, 3: angle / 2}
+        quats, verts = self.animator.set_keyframe(
+            self.dir, state.pos, self.weights, self.times, pikdict, frc)
         return quats, verts
 
-
-timescales = {0: 2.8, 1: 1, 2: 2.5}
+    def set_dir(self, dt, state):
+        if state.vel.x != 0:
+            self.t -= (self.t - copysign(1, state.vel.x)) * 15. * dt
+            self.dir = easeout(self.t + 1, -1, 2, 2)
+        else:
+            if state.conds.onRightWall:
+                self.dir = 1.
+            elif state.conds.onLeftWall:
+                self.dir = -1.
+            else:
+                self.t -= (self.t - copysign(1, self.dir)) * 15. * dt
+                self.dir = easeout(self.t + 1, -1, 2, 2)
 
 
 class MetaAnimation(object):
@@ -172,12 +194,16 @@ class MetaAnimation(object):
         self.timescale = timescales[index]
 
         self.weight = 0.
-        self.faderate = 4.
+        self.fadeinrate = 4.
+        self.fadeoutrate = 4.
 
-    def update(self, dt, conds, weights, times):
-        if conds.__getattribute__(conditions[self.index]):
+    def update(self, dt, conds, weights, times, force=False):
+        if (True in (conds.__getattribute__(c) for c in conditions[self.index])
+           or force):
             self.activate(dt)
             self._step(dt)
+            if force:
+                self._step(dt)
 
             weights[self.index] = self.weight
             times[self.index] = self.timer
@@ -188,14 +214,14 @@ class MetaAnimation(object):
     def activate(self, dt):
         self.active = True
         if self.weight < 1.:
-            self.weight += dt * self.faderate
+            self.weight += dt * self.fadeinrate
             if self.weight >= 1.:
                 self.weight = 1.
 
     def deactivate(self, dt, weights, times):
         self.active = False
         if self.weight:
-            self.weight -= dt * self.faderate
+            self.weight -= dt * self.fadeoutrate
             self._step(dt)
             weights[self.index] = self.weight
             times[self.index] = self.timer
@@ -217,3 +243,8 @@ class MetaAnimation(object):
             if self.timer <= 0.:
                 while self.timer <= 0.:
                     self.timer += 0.
+
+
+def easeout(t, b, c, d):
+    t /= d
+    return -c * t * (t-2) + b
