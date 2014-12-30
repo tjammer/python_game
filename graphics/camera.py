@@ -62,16 +62,9 @@ class Camera(Events):
     def set_static(self):
         self.shader.pop()
 
-    def ease(self, t, b, c, d):
-        t /= d
-        if (t < 1):
-            return c/2*t*t + b
-        t -= 1
-        return -c/2 * (t*(t-2) - 1) + b
-
     def set_zoom(self, dt):
         self.t -= (self.t - abs(self.vel.x))*dt
-        self.zoom = self.ease(self.t, 30, 24, 500)
+        self.zoom = ease(self.t, 30, 24, 500)
 
     def receive_m_pos(self, event, msg):
         self.mpos.x, self.mpos.y = msg[0], msg[1]
@@ -89,3 +82,11 @@ class Camera(Events):
     def on_resize(self, width, height):
         self.h = height / 2
         self.width = width / 2
+
+
+def ease(t, b, c, d):
+    t /= d
+    if (t < 1):
+        return c/2*t*t + b
+    t -= 1
+    return -c/2 * (t*(t-2) - 1) + b
