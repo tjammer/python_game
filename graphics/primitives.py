@@ -253,7 +253,7 @@ class CrossHair(object):
                                 self.y, self.x + self.size, self.y,
                                 self.x, self.y - self.size,
                                 self.x, self.y + self.size)),
-                               ('c3B', [255] * 12))
+                               ('c3B', [255, 255, 0] * 4))
         self.drawable = True
 
     def update(self, x, y):
@@ -279,7 +279,7 @@ class CrossHair(object):
                                     self.y, self.x + self.size, self.y,
                                     self.x, self.y - self.size,
                                     self.x, self.y + self.size)),
-                                   ('c3B', [255] * 12))
+                                   ('c3B', [255, 0, 255] * 4))
 
 
 class Box(object):
