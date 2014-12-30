@@ -80,7 +80,7 @@ class Movement(object):
 
     def jump(self, state, sign):
         self.vel.y = self.jump_vel
-        self.vel.x += sign * (900 - abs(self.vel.x)) * 0.2
+        #self.vel.x += sign * (900 - abs(self.vel.x)) * 0.2
         state.set_cond('ascending')
 
     def walljump(self, state, conds, sign):
