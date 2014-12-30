@@ -87,7 +87,7 @@ cdef class cAABB:
             else:
                 xt_ent = xdist_ent / self.vel.x
                 xt_ext = xdist_ext / self.vel.x
-            if self.vel.y == 0:
+            if -0.0001 < self.vel.y < 0.0001:
                 yt_ent = -float('Inf')
                 yt_ext = float('Inf')
                 if ydist_ent * ydist_ext > 0:
