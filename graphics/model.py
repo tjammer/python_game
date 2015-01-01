@@ -2,7 +2,7 @@ import pyglet
 from pyglet.gl import *
 import parsedae
 from animationquat import AnimatedModel
-from shader import Shader, vector
+from shader import Shader
 from math import copysign, acos
 
 
@@ -100,7 +100,6 @@ class Model(object):
         self.shader.set('quats', self.quats)
         self.shader.set('vecs', self.vecs)
         self.shader.set('scale', fsc)
-        self.shader.set('lightPos', vector((-20, 20, 10)))
 
     def add(self, batch):
         for mesh in self.meshes:
@@ -120,7 +119,8 @@ animations = {'run': 0, 'stand': 1}
 conditions = {0: ('onGround',), 1: ('onGround',),
               2: ('ascending', 'onRightWall', 'onLeftWall'),
               3: ('descending',), 4: ('landing',)}
-timescales = {0: 3, 1: 1, 2: 2, 3: 3, 4: 1, 5: 1.5, 6: 1.3}
+timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 1.5, 6: 1.3}
+loops = {0: 1, 1: 1, 2: 0, 3: 0, 4: 0}
 
 
 class AnimationUpdater(object):
@@ -240,7 +240,10 @@ class MetaAnimation(object):
             self.timer += dt * self.timescale
             if self.timer >= self.maxtime:
                 while self.timer >= self.maxtime:
-                    self.timer -= self.maxtime
+                    if loops[self.index]:
+                        self.timer -= self.maxtime
+                    else:
+                        self.timer = self.maxtime - dt
         else:
             self.timer -= dt * self.timescale
             if self.timer <= 0.:
