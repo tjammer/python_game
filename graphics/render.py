@@ -4,18 +4,16 @@ from player.cvec2 import cvec2 as vec2
 from maps.map import DrawableMap
 from player.player import DrawablePlayer
 from network_utils import protocol_pb2 as proto
-from graphics.primitives import Rect, DrawaAbleLine
+from graphics.primitives import Rect, DrawaAbleLine, TexQuad
 from gameplay.weapons import spread, ProjContainer, weaponcolors
 from collision.caabb import Line
-from shader import OffscreenBuffer as FBO
+from shader import OffscreenBuffer as FBO, Shader, vector
 from model import Model
 from os import path
+from matrix import Matrix
 
 
 class Render(object):
-
-    """docstring for Render"""
-
     def __init__(self, camera, window):
         super(Render, self).__init__()
         self.scene_batch = pyglet.graphics.Batch()
@@ -27,19 +25,34 @@ class Render(object):
         self.players = {}
         self.fbo = FBO(window.width, window.height)
         self.model = Model(path.join('graphics', 'metatest.dae'), self.scale.x)
-        self.kf = 0
+        self.lighting = Shader('lighting')
+        self.lighting.set('mvp', Matrix.orthographic(
+            0., window.width, 0., window.height, 0, 1))
+        self.lighting.set('lightPos', vector((-15, 15, 10)))
+        self.screen = TexQuad(
+            0, 0, window.width, window.height, self.fbo.textures[0].tex_coords)
 
     def draw(self):
         with self.fbo:
             self.fbo.clear()
             with self.camera as mvp:
-                #glEnable(GL_DEPTH_TEST)
                 self.scene_batch.draw()
                 self.model.draw(mvp)
-                #glDisable(GL_DEPTH_TEST)
 
+        #send texture data to shader
+        for i in range(3):
+            glActiveTexture(GL_TEXTURE0 + i)
+            glBindTexture(GL_TEXTURE_2D, self.fbo.textures[i].id)
+        arr = c_int * 3
+        self.lighting.set('texs', arr(self.fbo.textures[0].id,
+                                      self.fbo.textures[1].id,
+                                      self.fbo.textures[2].id))
+        glActiveTexture(GL_TEXTURE0)
+
+        #draw; for now scene batch like this, eventually it will also be 3d
         self.window.clear()
-        self.fbo.texture.blit(0, 0)
+        with self.lighting:
+            self.screen.draw()
         self.static_batch.draw()
 
     def maphook(self, map, add=False, spawn=False, remove=False, taken=False):

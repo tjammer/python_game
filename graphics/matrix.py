@@ -199,29 +199,12 @@ class Matrix(object):
         t = y
         b = -y
 
-        """xymax = n * tan(fov * pi / 360.)
-        ymin = -xymax
-        xmin = -xymax
-        width = xymax - xmin
-        height = xymax - ymin
-        d = float(f - n)
-        q = -(f + n) / d
-        qn = - 2. * (f - n) / d
-        w = 2. * n / width
-        w = w / aspect
-        h = 2. * n / height"""
-
         return cls(
             (2.0*n)/(r-l),  0.0,            (r+l)/(r-l),    0.0,
             0.0,            (2.0*n)/(t-b),  (t+b)/(t-b),    0.0,
             0.0,            0.0,            -(f+n)/(f-n),   (-2.0*f*n)/(f-n),
             0.0,            0.0,            -1.0,           0.0,
         )
-        """return cls(
-            w, 0., 0., 0.,
-            0., h, 0., 0.,
-            0., 0, q, qn,
-            0., 0., -1, 0.)"""
 
     @classmethod
     def inverse_perspective(cls, width, height, fov, n, f):
@@ -240,6 +223,14 @@ class Matrix(object):
             0.0,            0.0,            0.0,                -1.0,
             0.0,            0.0,     -(f-n)/(2.0*f*n),   (f+n)/(2.0*f*n),
         )
+
+    @classmethod
+    def orthographic(cls, left, right, bottom, top, near, far):
+        return cls(
+            2. / (right - left), 0, 0, - (right + left) / (right - left),
+            0, 2. / (top - bottom), 0, - (top + bottom) / (top - bottom),
+            0, 0, - 2. / (far - near), (far + near) / (far - near),
+            0, 0, 0, 1.)
 
     def do_set(self, location):
         glUniformMatrix4fv(location, 1, GL_FALSE, self.values)

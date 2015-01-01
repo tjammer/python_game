@@ -114,6 +114,21 @@ class DrawaAbleLine(Line):
                                   ('c3B', self.color * 2))
 
 
+class TexQuad(object):
+    """docstring for TexQuad"""
+    def __init__(self, x, y, width, height, tex_coords):
+        super(TexQuad, self).__init__()
+        tex_coords = [t for i, t in enumerate(tex_coords) if (i+1) % 3]
+        self.ver_list = graphics.vertex_list(
+            4, ('0g2f',
+                (x, y, x + width, y, x + width, y + height, x, y + height)),
+               ('1g2f',
+                tex_coords))
+
+    def draw(self):
+        self.ver_list.draw(gl.GL_QUADS)
+
+
 class Triangle(object):
     """docstring for Triangle"""
     def __init__(self, x, y, width, height, color, batch, ind, keystr):

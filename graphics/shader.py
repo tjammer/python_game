@@ -20,64 +20,6 @@ def next(generator, default=None):
     except StopIteration:
         return default
 
-#============================================================================
-# [1, 2, 4, 8, 16, 32, 64, ...]
-pow2 = [2**n for n in range(20)]
-
-
-def ceil2(x):
-    """ Returns the nearest power of 2 that is higher than x, e.g. 700 => 1024.
-    """
-    for y in pow2:
-        if y >= x:
-            return y
-
-
-def extent2(texture):
-    """ Returns the extent of the image data (0.0-1.0, 0.0-1.0) inside its texture owner.
-        Textures have a size power of 2 (512, 1024, ...), but the actual image can be smaller.
-        For example: a 400x250 image will be loaded in a 512x256 texture.
-        Its extent is (0.78, 0.98), the remainder of the texture is transparent.
-    """
-    return (texture.tex_coords[3], texture.tex_coords[7])
-
-
-def ratio2(texture1, texture2):
-    """ Returns the size ratio (0.0-1.0, 0.0-1.0) of two texture owners.
-    """
-    return (
-        float(ceil2(texture1.width)) / ceil2(texture2.width),
-        float(ceil2(texture1.height)) / ceil2(texture2.height)
-    )
-
-#=============================================================================
-
-#--- SHADER ------------------------------------------------------------------
-# A shader is a pixel effect (motion blur, fog, glow) executed on the GPU.
-# The effect has two distinct parts: a vertex shader and a fragment shader.
-# The vertex shader retrieves the coordinates of the current pixel.
-# The fragment shader manipulates the color of the current pixel.
-# http://www.lighthouse3d.com/opengl/glsl/index.php?fragmentp
-# Shaders are written in GLSL and expect their variables to be set from glUniform() calls.
-# The Shader class compiles the source code and has an easy way to pass variables to GLSL.
-# e.g. shader = Shader(fragment=open("colorize.frag").read())
-#      shader.set("color", vec4(1, 0.8, 1, 1))
-#      shader.push()
-#      image("box.png", 0, 0)
-#      shader.pop()
-
-DEFAULT = "default"
-DEFAULT_VERTEX_SHADER = '''
-void main() {
-    gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_Position = ftransform();
-}'''
-DEFAULT_FRAGMENT_SHADER = '''
-uniform sampler2D src;
-void main() {
-    gl_FragColor = texture2D(src, gl_TexCoord[0].xy);
-}'''
-
 
 class vector(tuple):
     pass
@@ -108,12 +50,6 @@ class ShaderError(Exception):
 class Shader(object):
 
     def __init__(self, name):
-        """ A per-pixel shader effect (blur, fog, glow, ...) executed on the GPU.
-            Shader wraps a compiled GLSL program and facilitates passing parameters to it.
-            The fragment and vertex parameters contain the GLSL source code to execute.
-            Raises a ShaderError if the source fails to compile.
-            Once compiled, you can set uniform variables in the GLSL source with Shader.set().
-        """
         with open(path.join('graphics', 'shaders', name + '.vs'), 'r') as f:
             vertex = f.read()
         with open(path.join('graphics', 'shaders', name + '.fs'), 'r') as f:
@@ -272,44 +208,6 @@ class Shader(object):
         except:
             pass
 
-class ShaderFacade:
-    def __init__(self, vertex=None, fragment=None):
-        # Acts like a shader but doesn't do anything.
-        pass
-    @property
-    def variables(self):
-        return {}
-    @property
-    def active(self):
-        return None
-    def get(self, name):
-        return None
-    def set(self, name, value):
-        pass
-    def push(self):
-        pass
-    def pop(self):
-        pass
-
-SUPPORTED = True # Graphics hardware supports shaders?
-
-#def shader(vertex=DEFAULT_VERTEX_SHADER, fragment=DEFAULT_FRAGMENT_SHADER, silent=True):
-def shader(name=DEFAULT_VERTEX_SHADER, silent=True):
-    """ Returns a compiled Shader from the given GLSL source code.
-        With silent=True, never raises an error but instead returns a ShaderFacade.
-        During startup, a number of Shaders are created.
-        This mechanisms ensures that the module doesn't crash while doing this,
-        instead the shader simply won't have any visible effect and SUPPORTED will be False.
-    """
-    if not silent:
-        return Shader(name)
-    try:
-        return Shader(name)
-    except Exception, e:
-        print e
-        SUPPORTED = False
-        return ShaderFacade()
-
 
 #=====================================================================================================
 
@@ -329,41 +227,29 @@ def _texture(width, height):
     # Returns an empty texture of the given width and height.
     return Texture.create(width, height)
 
-def glCurrentViewport(x=None, y=None, width=None, height=None):
-    """ Returns a (x, y, width, height)-tuple with the current viewport bounds.
-        If x, y, width and height are given, set the viewport bounds.
-    """
-    # Why? To switch between the size of the onscreen canvas and the offscreen buffer.
-    # The canvas could be 256x256 while an offscreen buffer could be 1024x1024.
-    # Without switching the viewport, information from the buffer would be lost.
-    if x is not None and y is not None and width is not None and height is not None:
-        glViewport(x, y, width, height)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(x, width, y, height, -1, 1)
-        glMatrixMode(GL_MODELVIEW)
-    xywh = (GLint*4)(); glGetIntegerv(GL_VIEWPORT, xywh)
-    return tuple(xywh)
 
-# The FBO stack keeps track of nested FBO's.
-# When OffscreenBuffer.pop() is called, we revert to the previous buffer.
-# Usually, this is the onscreen canvas, but in a render() function that contains
-# filters or nested render() calls, this is the previous FBO.
-_FBO_STACK = []
+attachements = (GL_COLOR_ATTACHMENT0,
+                GL_COLOR_ATTACHMENT1,
+                GL_COLOR_ATTACHMENT2)
+deferred_texs = ('diffuse', 'verts', 'norms')
 
 
 class OffscreenBufferError(Exception):
     pass
 
+
 class OffscreenBuffer(object):
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, mult=3):
         self.id = c_uint(_uid())
-        #try:
-        glGenFramebuffers(1, byref(self.id))
-        #except:
-        #    raise (OffscreenBufferError, "offscreen buffer not supported.")
-        self.texture = None
+        try:
+            glGenFramebuffers(1, byref(self.id))
+        except:
+            raise (OffscreenBufferError, "offscreen buffer not supported.")
+        assert mult <= len(attachements)
+        self.mult = mult
+        self.textures = []
+        self.buffers = None
          # The canvas bounds, set in OffscreenBuffer.push().
         self._viewport = (None, None, None, None)
         self._active = False
@@ -377,13 +263,20 @@ class OffscreenBuffer(object):
     def __exit__(self, type, value, tb):
         self.pop()
 
+    def __iter__(self):
+        return iter(self.textures)
+
     def _init(self, width, height):
-        self.texture = _texture(int(width), int(height))
-        glBindTexture(self.texture.target, self.texture.id)
         glBindFramebuffer(GL_FRAMEBUFFER, self.id.value)
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, self.texture.target,
-            self.texture.id, self.texture.level)
+        for i in range(self.mult):
+            self.textures.append(_texture(int(width), int(height)))
+            glBindTexture(self.textures[i].target, self.textures[i].id)
+            glFramebufferTexture2D(
+                GL_FRAMEBUFFER, attachements[i], self.textures[i].target,
+                self.textures[i].id, self.textures[i].level)
+        buffers = GLenum * self.mult
+        self.buffers = buffers(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+                               GL_COLOR_ATTACHMENT2)
 
     @property
     def width(self):
@@ -398,23 +291,22 @@ class OffscreenBuffer(object):
         return self._active
 
     def push(self):
-        _FBO_STACK.append(self)
         glBindFramebuffer(GL_FRAMEBUFFER, self.id.value)
+        glDrawBuffers(self.mult, self.buffers)
         if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
             raise OffscreenBufferError
         glEnable(GL_DEPTH_TEST)
         self._active = True
 
     def pop(self):
-        _FBO_STACK.pop(-1)
-        glBindFramebuffer(GL_FRAMEBUFFER, _FBO_STACK and _FBO_STACK[-1].id or 0)
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-        #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE,
+                            GL_ONE_MINUS_SRC_ALPHA)
         glDisable(GL_DEPTH_TEST)
         self._active = False
 
     def draw(self):
-        pass
+        self.textures[0].blit(0, 0)
 
     def slice(self, x, y, width, height):
         """ Returns a portion of the offscreen buffer as an image.
