@@ -2,7 +2,7 @@ import pyglet
 from pyglet.gl import *
 import parsedae
 from animationquat import AnimatedModel
-from shader import Shader
+from shader import Shader, vector
 from math import copysign, acos
 
 
@@ -100,6 +100,7 @@ class Model(object):
         self.shader.set('quats', self.quats)
         self.shader.set('vecs', self.vecs)
         self.shader.set('scale', fsc)
+        self.shader.set('lightPos', vector((-20, 20, 10)))
 
     def add(self, batch):
         for mesh in self.meshes:
@@ -119,7 +120,7 @@ animations = {'run': 0, 'stand': 1}
 conditions = {0: ('onGround',), 1: ('onGround',),
               2: ('ascending', 'onRightWall', 'onLeftWall'),
               3: ('descending',), 4: ('landing',)}
-timescales = {0: 2.8, 1: 1, 2: 2, 3: 3, 4: 1, 5: 1.5, 6: 1.3}
+timescales = {0: 3, 1: 1, 2: 2, 3: 3, 4: 1, 5: 1.5, 6: 1.3}
 
 
 class AnimationUpdater(object):
@@ -129,8 +130,9 @@ class AnimationUpdater(object):
         self.animdata = animdata
         self.metas = []
         for i, ad in enumerate(animdata):
-            times, mats = ad[0]
-            self.metas.append(MetaAnimation(i, max(times)))
+            if i in conditions:
+                times, mats = ad[0]
+                self.metas.append(MetaAnimation(i, max(times)))
         self.metas[3].fadeoutrate = 8.
         self.metas[4].fadeinrate = 8.
         self.animator = animator
@@ -161,6 +163,7 @@ class AnimationUpdater(object):
         for key, val in self.weights.iteritems():
             self.weights[key] = val / norm
 
+        state.mpos.x *= copysign(1, self.dir)
         cosangle = state.mpos.normalize()
         angle = copysign(acos(cosangle.x), cosangle.y)
         frc = angle / 3.1415926535897
@@ -171,7 +174,7 @@ class AnimationUpdater(object):
 
     def set_dir(self, dt, state):
         if state.vel.x != 0:
-            self.t -= (self.t - copysign(1, state.vel.x)) * 15. * dt
+            self.t -= (self.t - copysign(1, state.vel.x)) * 11. * dt
             self.dir = easeout(self.t + 1, -1, 2, 2)
         else:
             if state.conds.onRightWall:
@@ -179,7 +182,7 @@ class AnimationUpdater(object):
             elif state.conds.onLeftWall:
                 self.dir = -1.
             else:
-                self.t -= (self.t - copysign(1, self.dir)) * 15. * dt
+                self.t -= (self.t - copysign(1, self.dir)) * 11. * dt
                 self.dir = easeout(self.t + 1, -1, 2, 2)
 
 

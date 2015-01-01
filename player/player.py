@@ -9,6 +9,7 @@ try:
     from graphics.primitives import Rect
 except:
     from collision.aabb import AABB as Rect
+from math import copysign
 
 pext = vec2(32, 72)
 phext = pext / 2
@@ -52,7 +53,11 @@ class Player(Events):
         newrect = self.rect.copy()
         newrect.vel = self.move.get_vel(dt, state, input)
         newrect.update(*state.pos)
-        return self.collide(dt, rectgen, state, newrect)
+        state = self.collide(dt, rectgen, state, newrect)
+        state.mpos = vec2(self.input.mx, self.input.my)
+        state.id = self.id
+        if self.renderhook:
+            self.renderhook(state, update=True)
 
     def specupdate(self, dt):
         if self.input.up:
@@ -80,16 +85,20 @@ class Player(Events):
         self.rect.update(*self.state.pos)
         self.state.update(0, s_state)
         self.state.conds = s_state.conds
+        self.state.id = self.id
+        self.state.mpos = vec2(self.input.mx, self.input.my)
         if self.renderhook:
-            self.renderhook(self, update=True)
+            self.renderhook(self.state, update=True)
 
     def predict(self, dt, rectgen):
         self.rect.vel = self.move.get_vel(dt, self.state, self.input)
         self.rect.update(*self.state.pos)
         self.collide(dt, rectgen, self.state)
         self.weapons.update(dt, self.state, self.input)
+        self.state.id = self.id
+        self.state.mpos = vec2(self.input.mx, self.input.my)
         if self.renderhook:
-            self.renderhook(self, update=True)
+            self.renderhook(self.state, update=True)
 
     def draw(self):
         self.rect.draw()
@@ -206,13 +215,11 @@ class DrawablePlayer(object):
         #self.rect.add(self.batch)
 
     def update(self, state, fac):
-        pos = state.pos
-        self.rect.update(*(vec2(*pos) * fac))
+        pos = vec2(*state.pos) * fac
+        self.rect.update(*pos)
         self.state = state
-        self.state.pos = vec2(*state.pos) * fac
-        #if color != self.rect.color:
-            #print color, self.rect.color
-            #self.rect.update_color(color)
+        self.state.mpos = state.mpos - state.pos - vec2(16, 36)
+        self.state.pos = pos
 
     def remove(self):
         self.rect.remove()
