@@ -42,8 +42,9 @@ cdef class cAABB:
         pass
 
     def overlaps(self, cAABB aabb):
-        distancex = self.center.x - aabb.center.x
-        xovr = abs(distancex) - self.hwidth - aabb.hwidth
+        cdef float distancey, yovr
+        cdef float distancex = self.center.x - aabb.center.x
+        cdef float xovr = abs(distancex) - self.hwidth - aabb.hwidth
         if xovr < 0:
             distancey = self.center.y - aabb.center.y
             yovr = abs(distancey) - self.hheight - aabb.hheight
@@ -79,10 +80,10 @@ cdef class cAABB:
                 ydist_ent = obj.pos.y + obj.height - self.pos.y
                 ydist_ext = obj.pos.y - self.pos.y - self.height
             #find time for entry and exit
-            if self.vel.x == 0:
+            if -0.0001 < self.vel.x < 0.0001:
                 xt_ent = -float('Inf')
                 xt_ext = float('Inf')
-                if xdist_ent * xdist_ext > 0:
+                if xdist_ent * xdist_ext >= 0:
                     return False
             else:
                 xt_ent = xdist_ent / self.vel.x
@@ -90,7 +91,7 @@ cdef class cAABB:
             if -0.0001 < self.vel.y < 0.0001:
                 yt_ent = -float('Inf')
                 yt_ext = float('Inf')
-                if ydist_ent * ydist_ext > 0:
+                if ydist_ent * ydist_ext >= 0:
                     return False
             else:
                 yt_ent = ydist_ent / self.vel.y
