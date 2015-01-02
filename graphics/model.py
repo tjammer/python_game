@@ -239,7 +239,7 @@ class MetaAnimation(object):
         if pos:
             self.timer += dt * self.timescale
             if self.timer >= self.maxtime:
-                while self.timer >= self.maxtime:
+                while self.timer > self.maxtime:
                     if loops[self.index]:
                         self.timer -= self.maxtime
                     else:

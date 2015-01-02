@@ -225,7 +225,7 @@ def _uid():
 
 def _texture(width, height):
     # Returns an empty texture of the given width and height.
-    return Texture.create(width, height)
+    return Texture.create(width, height, internalformat=GL_RGBA32F)
 
 
 attachements = (GL_COLOR_ATTACHMENT0,
@@ -275,8 +275,7 @@ class OffscreenBuffer(object):
                 GL_FRAMEBUFFER, attachements[i], self.textures[i].target,
                 self.textures[i].id, self.textures[i].level)
         buffers = GLenum * self.mult
-        self.buffers = buffers(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-                               GL_COLOR_ATTACHMENT2)
+        self.buffers = buffers(*attachements[:self.mult])
 
     @property
     def width(self):

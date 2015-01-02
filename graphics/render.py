@@ -28,7 +28,7 @@ class Render(object):
         self.lighting = Shader('lighting')
         self.lighting.set('mvp', Matrix.orthographic(
             0., window.width, 0., window.height, 0, 1))
-        self.lighting.set('lightPos', vector((-15, 15, 10)))
+        self.lighting.set('lightPos', vector((-20., 20, 10)))
         self.screen = TexQuad(
             0, 0, window.width, window.height, self.fbo.textures[0].tex_coords)
 
