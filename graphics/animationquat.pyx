@@ -605,7 +605,7 @@ cdef PseudoIK pik_from_dict(int key, double angle, float direc, float frac):
     pik.index = key
     cdef double aangle = abs(angle)
     cdef double axis[3]
-    axis[:] = [-(1-abs(frac)), -copysign(frac, frac*direc), 0]
+    axis[:] = [-(1-abs(frac)), -frac, 0]
     normalize(axis)
     cdef Transform *p = &pik.t
     axis_to_trans(axis, angle, p)
