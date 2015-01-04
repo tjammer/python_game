@@ -218,7 +218,7 @@ class DrawablePlayer(object):
         pos = vec2(*state.pos) * fac
         self.rect.update(*pos)
         self.state = state
-        self.state.mpos = state.mpos - state.pos - vec2(16, 36)
+        self.state.mpos = state.mpos - state.pos - vec2(16, 54)
         self.state.pos = pos
 
     def remove(self):

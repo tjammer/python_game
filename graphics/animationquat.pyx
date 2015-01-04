@@ -2,10 +2,10 @@
 #cython: boundscheck=False, wraparound=False, initializedcheck=False, cdivison=True
 from libc.stdlib cimport malloc, free
 from cython.view cimport array
-from libc.math cimport sqrt, sin, cos, copysign
+from libc.math cimport sqrt, sin, cos, copysign, acos
 from numpy cimport ndarray, dtype
 from shader import vector
-from ctypes import c_float
+from ctypes import c_double
 
 
 cdef struct Joint:
@@ -48,7 +48,7 @@ transformtype = dtype([('q.w', 'd'), ('q.x', 'd'), ('q.y', 'd'),
                  ('vec.y', 'd'), ('vec.z', 'd'), ('active', 'i4')],
                  align=True)
 
-cdef float pih = 1.570796326794
+cdef double pih = 1.570796326794
 
 
 cdef class AnimatedModel:
@@ -67,6 +67,7 @@ cdef class AnimatedModel:
     cdef int[:] bone_weight_ids
     cdef int[:] weight_inds
     cdef Transform to_world
+    cdef Transform chest_local[2]
     cdef Transform[:] joint_worldData
     cdef Transform[:] joint_currData
     cdef Transform[:] inverse
@@ -219,16 +220,16 @@ cdef class AnimatedModel:
         return zip(*transout)
 
     #def set_keyframe(self, int direc, pos, double time):
-    def set_keyframe(self, float direc, pos, dict weights_, dict times_,
-                     dict pikdict, float frc):
+    def set_keyframe(self, double direc, pos, dict weights_, dict times_,
+                     dict pikdict, double frc, list attlst):
         cdef int i, j, k, ln2
-        cdef float weight
+        cdef double weight
         cdef double angle
         #set up anim data
         cdef int ln = len(weights_)
         cdef int *indices = <int *>malloc(ln * sizeof(int))
-        cdef float *weights = <float *>malloc(ln * sizeof(float))
-        cdef float *times = <float *>malloc(ln * sizeof(float))
+        cdef double *weights = <double *>malloc(ln * sizeof(double))
+        cdef double *times = <double *>malloc(ln * sizeof(double))
         for k, (j, weight) in enumerate(weights_.iteritems()):
             indices[k] = j
             weights[k] = weight
@@ -240,11 +241,18 @@ cdef class AnimatedModel:
         for k, (j, angle) in enumerate(pikdict.iteritems()):
             piks[k] = pik_from_dict(j, angle, direc, frc)
 
+        #set up attack animation
+        cdef Weap att
+        att.index = <int> attlst[0]
+        att.time = attlst[1]
+        att.weight = attlst[2]
+        att.t = aim_at(frc)
+
         self.pos[0] = <double>pos[0] / self.scale
         self.pos[1] = <double>pos[1] / self.scale
         self.angles[1] = -pih * direc
         self._set_world_matrix(
-            self.joints, 0, indices, weights, times, ln, piks, ln2)
+            self.joints, 0, indices, weights, times, ln, piks, ln2, att, 0)
         transout = [(vector((self.skin_matrix[i].q.x,
                             self.skin_matrix[i].q.y,
                             self.skin_matrix[i].q.z,
@@ -261,21 +269,16 @@ cdef class AnimatedModel:
         return zip(*transout)
 
     #C functions
-    cdef void _set_keyframe(self, int *inds, float *weights, float *times,
-                            int ln):
-        #self._set_world_matrix(self.joints, 0, time)
-        #self._skin_vertices()
-        pass
-
     cdef void _set_world_matrix(
-        self, Joint joint, int parent, int *inds, float *weights, float *times,
-        int ln, PseudoIK *piks, int ln2):
+        self, Joint joint, int parent, int *inds, double *weights,
+        double *times, int ln, PseudoIK *piks, int ln2, Weap att, int force):
         cdef int i, j, k, pikind
-        cdef float weight
+        cdef double weight
         cdef Timestep ipol
         cdef Transform blended
         cdef Transform *nlerped = <Transform *>malloc(ln * sizeof(Transform))
-        cdef Transform test
+        cdef Transform attack
+        cdef Transform arm
         #all bones except hip
         if not joint.ind == 0:
 
@@ -299,11 +302,49 @@ cdef class AnimatedModel:
                 weight = 1 - weight / (weight + weights[i+1])
                 nlerp(blended, nlerped[i+1], weight, self.point)
 
-            #test pseudo ik
+            if joint.ind == 1:
+                self.chest_local[0] = blended
+            elif joint.ind == 2:
+                self.chest_local[1] = blended
+
+            #pseudo ik
             pikind = ind_in_pikarr(joint.ind, ln2, piks)
             if pikind != -1:
                 self.point = &blended
                 trans_mult(blended, piks[pikind].t, self.point)
+
+            #attack animation
+            ##children
+            if (force or joint.ind == 14) and att.weight:
+                ipol = time_frac(
+                    att.time, self.times[att.index], self.animlen[att.index])
+                self.point = &attack
+                #blend between animation keyframes
+                nlerp(self.keyframes[att.index][joint.ind][ipol.i1],
+                      self.keyframes[att.index][joint.ind][ipol.i2],
+                      ipol.frac, self.point)
+                self.point = &blended
+                nlerp(blended, attack, att.weight, self.point)
+
+            #15 is right arm; can be made more general
+            if joint.ind == 15 and att.weight:
+                ipol = time_frac(
+                    att.time, self.times[att.index], self.animlen[att.index])
+                self.point = &attack
+                #blend between animation keyframes
+                nlerp(self.keyframes[att.index][joint.ind][ipol.i1],
+                      self.keyframes[att.index][joint.ind][ipol.i2],
+                      ipol.frac, self.point)
+                #bring attackanim to correct angle (pseudo ik)
+                self.point = &attack
+                arm = set_arm(self.chest_local, att.t)
+                trans_mult(attack, arm, self.point)
+                #finally interpolate between action and movement animation
+                self.point = &blended
+                nlerp(blended, attack, att.weight, self.point)
+                #force attack animation for rest of the arm
+                force = 1
+
 
             self.point = &self.joint_currData[joint.ind]
             trans_mult(self.joint_currData[parent],
@@ -343,8 +384,8 @@ cdef class AnimatedModel:
                    self.inverse[joint.ind], self.point)
 
         for i in range(joint.len):
-            self._set_world_matrix(
-                joint.nodes[i], joint.ind, inds, weights, times, ln, piks, ln2)
+            self._set_world_matrix(joint.nodes[i], joint.ind, inds, weights,
+                                   times, ln, piks, ln2, att, force)
 
         free(nlerped)
 
@@ -519,6 +560,11 @@ cdef axis_to_trans(double axis[3], double angle_, Transform *t):
     t.q.y = axis[1] * sinangle
     t.q.z = axis[2] * sinangle
 
+    t.vec.x = 0
+    t.vec.y = 0
+    t.vec.z = 0
+    t.vec.w = 0
+
 
 cdef void nlerp(Transform a, Transform b, double t, Transform *target):
     cdef double cosangle = a.q.w * b.q.w + a.q.x * b.q.x + a.q.y * b.q.y\
@@ -600,10 +646,9 @@ cdef normalize(double a[3]):
         a[i] /= sm
 
 
-cdef PseudoIK pik_from_dict(int key, double angle, float direc, float frac):
+cdef PseudoIK pik_from_dict(int key, double angle, double direc, double frac):
     cdef PseudoIK pik
     pik.index = key
-    cdef double aangle = abs(angle)
     cdef double axis[3]
     axis[:] = [-(1-abs(frac)), -frac, 0]
     normalize(axis)
@@ -618,3 +663,40 @@ cdef int ind_in_pikarr(int ind, int l, PseudoIK *arr):
         if ind == arr[i].index:
             return i
     return -1
+
+
+cdef Transform aim_at(double frac):
+    cdef Transform t
+    cdef double angle = frac * 1.5707963267948966
+    cdef double axis[3]
+    axis[:] = [(1-abs(frac)), 0, -frac]# + copysign(1-abs(frac), frac)]
+    normalize(axis)
+    cdef Transform *p = &t
+    axis_to_trans(axis, angle, p)
+    return t
+
+
+cdef Transform set_arm(Transform chest[2], Transform attack):
+    cdef int i
+    cdef Transform arm
+    cdef Transform *p = &arm
+    cdef double fac = 1 - acos(attack.q.w) / 1.5707963267948966 * 4
+    for i in range(2):
+        chest[i].q.x *= fac
+        chest[i].q.y *= fac
+        chest[i].q.z *= fac
+        chest[i].vec.x = 0
+        chest[i].vec.y = 0
+        chest[i].vec.z = 0
+    #its magic
+    chest[0].q.x += 0.084 * fac
+    trans_mult(chest[0], chest[1], p)
+    trans_mult(attack, arm, p)
+    return arm
+
+
+cdef struct Weap:
+    int index
+    double time
+    double weight
+    Transform t

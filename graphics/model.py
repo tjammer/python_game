@@ -119,8 +119,8 @@ animations = {'run': 0, 'stand': 1}
 conditions = {0: ('onGround',), 1: ('onGround',),
               2: ('ascending', 'onRightWall', 'onLeftWall'),
               3: ('descending',), 4: ('landing',)}
-timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 1.5, 6: 1.3}
-loops = {0: 1, 1: 1, 2: 0, 3: 0, 4: 0}
+timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 2.5, 6: 1.3}
+loops = {0: 1, 1: 1, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1}
 
 
 class AnimationUpdater(object):
@@ -130,17 +130,19 @@ class AnimationUpdater(object):
         self.animdata = animdata
         self.metas = []
         for i, ad in enumerate(animdata):
-            if i in conditions:
-                times, mats = ad[0]
-                self.metas.append(MetaAnimation(i, max(times)))
-        self.metas[3].fadeoutrate = 8.
-        self.metas[4].fadeinrate = 8.
+            times, mats = ad[0]
+            self.metas.append(MetaAnimation(i, max(times)))
         self.animator = animator
         self.weights = {}
         self.times = {}
+
         #for direction
         self.t = 0
         self.dir = 1.
+
+        #for the landing animation
+        self.metas[3].fadeoutrate = 8.
+        self.metas[4].fadeinrate = 8.
 
     def __iter__(self):
         return iter(self.weights)
@@ -149,7 +151,8 @@ class AnimationUpdater(object):
         #if state.conds.onGround:
         self.set_dir(dt, state)
         for meta in self.metas:
-            meta.update(dt, state.conds, self.weights, self.times)
+            if meta.index in conditions:
+                meta.update(dt, state.conds, self.weights, self.times)
 
         #specials
         avel = abs(state.vel.x)
@@ -157,6 +160,9 @@ class AnimationUpdater(object):
             self.weights[animations['run']] *= min(1., avel / 480.)
             if not 4 in self.weights:
                 self.weights[animations['stand']] *= max(0., 1 - avel / 480.)
+        #for attack animation
+        self.metas[5].activate(dt, self.weights, self.times, False)
+        attl = [5, self.metas[5].timer, 1]
 
         #normalize weights
         norm = sum(w for w in self.weights.values())
@@ -169,7 +175,7 @@ class AnimationUpdater(object):
         frc = angle / 3.1415926535897
         pikdict = {1: angle / 6, 2: angle / 3, 3: angle / 2}
         quats, verts = self.animator.set_keyframe(
-            self.dir, state.pos, self.weights, self.times, pikdict, frc)
+            self.dir, state.pos, self.weights, self.times, pikdict, frc, attl)
         return quats, verts
 
     def set_dir(self, dt, state):
@@ -203,31 +209,31 @@ class MetaAnimation(object):
     def update(self, dt, conds, weights, times, force=False):
         if (True in (conds.__getattribute__(c) for c in conditions[self.index])
            or force):
-            self.activate(dt)
-            self._step(dt)
+            self.activate(dt, weights, times)
             if force:
-                self._step(dt)
-
-            weights[self.index] = self.weight
-            times[self.index] = self.timer
-
+                self.activate(dt, weights, times)
         else:
             self.deactivate(dt, weights, times)
 
-    def activate(self, dt):
+    def activate(self, dt, weights, times, update=True):
         self.active = True
         if self.weight < 1.:
             self.weight += dt * self.fadeinrate
             if self.weight >= 1.:
                 self.weight = 1.
+        self._step(dt)
+        if update:
+            weights[self.index] = self.weight
+            times[self.index] = self.timer
 
-    def deactivate(self, dt, weights, times):
+    def deactivate(self, dt, weights, times, update=True):
         self.active = False
         if self.weight:
             self.weight -= dt * self.fadeoutrate
             self._step(dt)
-            weights[self.index] = self.weight
-            times[self.index] = self.timer
+            if update:
+                weights[self.index] = self.weight
+                times[self.index] = self.timer
 
             if self.weight <= 0.:
                 self.weight = 0
