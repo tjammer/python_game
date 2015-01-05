@@ -114,6 +114,9 @@ class Model(object):
         self.shader.set('quats', self.quats)
         self.shader.set('vecs', self.vecs)
 
+    def start_attack(self):
+        self.anim.start_attack()
+
     def draw(self, mvp):
         self.shader.set('mvp', mvp)
         with self.shader:
@@ -131,8 +134,8 @@ animations = {'run': 0, 'stand': 1}
 conditions = {0: ('onGround',), 1: ('onGround',),
               2: ('ascending', 'onRightWall', 'onLeftWall'),
               3: ('descending',), 4: ('landing',)}
-timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 2.5, 6: 1.3}
-loops = {0: 1, 1: 1, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1}
+timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 3, 6: 1.3}
+loops = {0: 1, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1}
 
 
 class AnimationUpdater(object):
@@ -143,7 +146,10 @@ class AnimationUpdater(object):
         self.metas = []
         for i, ad in enumerate(animdata):
             times, mats = ad[0]
-            self.metas.append(MetaAnimation(i, max(times)))
+            if i in conditions:
+                self.metas.append(MetaAnimation(i, max(times)))
+            else:
+                self.metas.append(AttackMeta(i, max(times)))
         self.animator = animator
         self.weights = {}
         self.times = {}
@@ -163,8 +169,7 @@ class AnimationUpdater(object):
         #if state.conds.onGround:
         self.set_dir(dt, state)
         for meta in self.metas:
-            if meta.index in conditions:
-                meta.update(dt, state.conds, self.weights, self.times)
+            meta.update(dt, state.conds, self.weights, self.times)
 
         #specials
         avel = abs(state.vel.x)
@@ -172,9 +177,10 @@ class AnimationUpdater(object):
             self.weights[animations['run']] *= min(1., avel / 480.)
             if not 4 in self.weights:
                 self.weights[animations['stand']] *= max(0., 1 - avel / 480.)
+
         #for attack animation
-        self.metas[5].activate(dt, self.weights, self.times, False)
-        attl = [5, self.metas[5].timer, 0]
+        #self.metas[5].activate(dt, self.weights, self.times, False)
+        attl = [5, self.metas[5].timer, self.metas[5].weight]
 
         #normalize weights
         norm = sum(w for w in self.weights.values())
@@ -189,6 +195,9 @@ class AnimationUpdater(object):
         quats, verts = self.animator.set_keyframe(
             self.dir, state.pos, self.weights, self.times, pikdict, frc, attl)
         return quats, verts
+
+    def start_attack(self):
+        self.metas[5].start_attack()
 
     def set_dir(self, dt, state):
         if state.vel.x != 0:
@@ -249,8 +258,9 @@ class MetaAnimation(object):
 
             if self.weight <= 0.:
                 self.weight = 0
-                del weights[self.index]
-                del times[self.index]
+                if update:
+                    del weights[self.index]
+                    del times[self.index]
                 self.timer = 0.
 
     def _step(self, dt, pos=True):
@@ -267,6 +277,27 @@ class MetaAnimation(object):
             if self.timer <= 0.:
                 while self.timer <= 0.:
                     self.timer += 0.
+
+
+class AttackMeta(MetaAnimation):
+    """docstring for AttackMeta"""
+    def __init__(self, *arg, **kwargs):
+        super(AttackMeta, self).__init__(*arg, **kwargs)
+        self.playing = False
+        self.fadeinrate = 10.
+        self.fadeoutrate = 2.
+
+    def update(self, dt, conds, weights, times):
+        if self.playing:
+            self.activate(dt, None, None, update=False)
+            if self.timer == self.maxtime - dt:
+                self.playing = False
+        else:
+            self.deactivate(dt, None, None, update=False)
+
+    def start_attack(self):
+        self.playing = True
+        self.timer = 0
 
 
 def easeout(t, b, c, d):

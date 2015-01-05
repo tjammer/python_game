@@ -26,8 +26,9 @@ class GameScreen(Events):
         sc_batch = self.render.scene_batch
         st_batch = self.render.static_batch
         self.player = player.Player(renderhook=self.render.playerhook)
-        self.proj_viewer = ProjectileViewer(self.send_center, batch=sc_batch,
-                                            scale=self.render.scale)
+        self.proj_viewer = ProjectileViewer(
+            self.send_center, batch=sc_batch, scale=self.render.scale,
+            rndhook=self.render.attack)
         self.controls = {}
         self.controls_old = {}
         self.map = Map('blank')

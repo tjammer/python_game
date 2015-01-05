@@ -8,8 +8,6 @@ from graphics.primitives import Rect, DrawaAbleLine, TexQuad
 from gameplay.weapons import spread, ProjContainer, weaponcolors
 from collision.caabb import Line
 from shader import OffscreenBuffer as FBO, Shader, vector
-from model import Model
-from os import path
 from matrix import Matrix
 
 
@@ -23,8 +21,9 @@ class Render(object):
         # scaling factors
         self.scale = vec2(window.width / 1360., window.height / 765.)
         self.players = {}
+
+        #for rendering
         self.fbo = FBO(window.width, window.height)
-        #self.model = Model(path.join('graphics', 'metatest.dae'), self.scale.x)
         self.lighting = Shader('lighting')
         self.lighting.set('mvp', Matrix.orthographic(
             0., window.width, 0., window.height, 0, 1))
@@ -39,7 +38,6 @@ class Render(object):
                 self.scene_batch.draw()
                 for player in self.players.itervalues():
                     player.draw(mvp)
-                #self.model.draw(mvp)
 
         #send texture data to shader
         for i in range(3):
@@ -84,12 +82,18 @@ class Render(object):
     def weapon_check(self, id, weaponinfo):
         self.players[id].update_weapon(weaponinfo[1])
 
+    def attack(self, id):
+        try:
+            self.players[id].attack()
+        except KeyError:
+            pass
+
 
 class ProjectileViewer(object):
 
     """docstring for ProjectileViewer"""
 
-    def __init__(self, get_cent, batch, scale):
+    def __init__(self, get_cent, batch, scale, rndhook=None):
         super(ProjectileViewer, self).__init__()
         self.projs = {}
         self.data = proto.Projectile()
@@ -97,6 +101,7 @@ class ProjectileViewer(object):
         self.get_center = get_cent
         self.scale = scale
         self.scalemag = self.scale.mag()
+        self.renderhook = rndhook
 
     def process_proj(self, datagram):
         self.data.CopyFrom(datagram)
@@ -108,6 +113,8 @@ class ProjectileViewer(object):
                 # self.projs[ind].update(*pos)
                 self.correct(pos * self.scale, vel * self.scale, ind)
             else:
+                if self.renderhook and self.data.type < 10:
+                    self.renderhook(self.data.playerId)
                 if self.data.type == proto.melee:
                     self.projs[ind] = Rect(pos.x * self.scale.x,
                                            pos.y * self.scale.y, width=70,
