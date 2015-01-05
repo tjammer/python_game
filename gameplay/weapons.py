@@ -594,6 +594,7 @@ class ProjectileManager(object):
         proj.projId = self.proj_num
         if isinstance(proj, Projectile):
             proj.damage_player = self.damage_player
+            proj.playerId = proj.id
             self.projs.append(proj)
         elif isinstance(proj, HitScanLine):
             self.process_hitscan(proj)
@@ -603,6 +604,7 @@ class ProjectileManager(object):
     def send(self, proj, toDelete=False):
         projectile = proto.Projectile()
         projectile.projId = proj.projId
+        projectile.playerId = proj.id
         projectile.type = proj.type
         projectile.posx, projectile.posy = proj.pos.x, proj.pos.y
         projectile.velx, projectile.vely = proj.vel.x, proj.vel.y
