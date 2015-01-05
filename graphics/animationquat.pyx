@@ -2,10 +2,11 @@
 #cython: boundscheck=False, wraparound=False, initializedcheck=False, cdivison=True
 from libc.stdlib cimport malloc, free
 from cython.view cimport array
-from libc.math cimport sqrt, sin, cos, copysign, acos
+from libc.math cimport sqrt, sin, cos, acos
 from numpy cimport ndarray, dtype
 from shader import vector
 from ctypes import c_double
+cimport cython
 
 
 cdef struct Joint:
@@ -269,6 +270,7 @@ cdef class AnimatedModel:
         return zip(*transout)
 
     #C functions
+    @cython.cdivision(True)
     cdef void _set_world_matrix(
         self, Joint joint, int parent, int *inds, double *weights,
         double *times, int ln, PseudoIK *piks, int ln2, Weap att, int force):
@@ -565,7 +567,7 @@ cdef axis_to_trans(double axis[3], double angle_, Transform *t):
     t.vec.z = 0
     t.vec.w = 0
 
-
+@cython.cdivision(True)
 cdef void nlerp(Transform a, Transform b, double t, Transform *target):
     cdef double cosangle = a.q.w * b.q.w + a.q.x * b.q.x + a.q.y * b.q.y\
                          + a.q.z * b.q.z
