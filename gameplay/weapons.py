@@ -288,14 +288,14 @@ class Projectile(Rectangle):
         try:
             xt = min(col[0][1] for col in collisions if col[0][0].x != 0)
             norm, id = [(col[0][0], col[1]) for col in collisions if
-                        col[0][1] == xt][0]
+                        col[0][1] == xt and col[0][0].x != 0][0]
         except (TypeError, ValueError):
             xt = dt
         try:
             yt = min(col[0][1] for col in collisions if col[0][0].y != 0)
             if yt < xt:
                 norm, id = [(col[0][0], col[1]) for col in collisions if
-                            col[0][1] == yt][0]
+                            col[0][1] == yt and col[0][0].y != 0][0]
         except (TypeError, ValueError):
             yt = dt
         dt_ = vec2(xt, yt)
@@ -305,12 +305,14 @@ class Projectile(Rectangle):
             collisions = [coldata for coldata in all_collisions if coldata]
             try:
                 xt = min(col[1] for col in collisions if col[0].x != 0)
-                norm = [col[0] for col in collisions if col[1] == xt][0]
+                norm = [col[0] for col in collisions
+                        if col[1] == xt and col[0].x != 0][0]
             except (TypeError, ValueError):
                 xt = dt
             try:
                 yt = min(col[1] for col in collisions if col[0].y != 0)
-                norm = [col[0] for col in collisions if col[1] == yt][0]
+                norm = [col[0] for col in collisions
+                        if col[1] == yt and col[0].y != 0][0]
             except (TypeError, ValueError):
                 yt = dt
             dt_ = vec2(xt, yt)
