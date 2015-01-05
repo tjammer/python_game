@@ -59,7 +59,7 @@ class Mesh(object):
         for i, vdata in enumerate(self.faces):
             v, n = vdata
             self.verts.extend(self.vertices[v])
-            self.norms.extend(self.normals[n])
+            self.norms.extend(self.normals[n] + [0.5])
             indices.append(i)
             assert vcount[v] < 5
             cts = vcount[v]
@@ -67,12 +67,12 @@ class Mesh(object):
             weights.extend(weights_[v] + [0] * (4 - cts))
             w_bone_ids.extend(w_bone_ids_[v] + [0] * (4 - cts))
 
-        length = len(self.verts) / 3
+        self.length = len(self.verts) / 3
         self.vertex_list = batch.add_indexed(
-            length, self.mode, group,
+            self.length, self.mode, group,
             indices, *[('0g3f/stream', self.verts),
-                       ('1g3f/stream', self.norms),
-                       ('2g4f/static', self.color * length),
+                       ('1g4f/stream', self.norms),
+                       ('2g4f/static', self.color * self.length),
                        ('3g4f/static', weights), ('4g1i/static', w_lens),
                        ('5g4i/static', w_bone_ids)])
 
@@ -105,6 +105,10 @@ class Model(object):
         for mesh in self.meshes:
             mesh.data_to_batch(batch)
 
+    def remove(self):
+        for mesh in self.meshes:
+            mesh.vertex_list.delete()
+
     def update(self, dt, state):
         self.quats, self.vecs = self.anim.update(dt, state)
         self.shader.set('quats', self.quats)
@@ -114,6 +118,14 @@ class Model(object):
         self.shader.set('mvp', mvp)
         with self.shader:
             self.batch.draw()
+
+    def change_color(self, color):
+        self.meshes[1].vertex_list._set_attribute_data(
+            2, color[:4] * self.meshes[1].length)
+
+    def update_weapon(self, color):
+        self.meshes[2].vertex_list._set_attribute_data(
+            2, color[:4] * self.meshes[2].length)
 
 animations = {'run': 0, 'stand': 1}
 conditions = {0: ('onGround',), 1: ('onGround',),
@@ -162,7 +174,7 @@ class AnimationUpdater(object):
                 self.weights[animations['stand']] *= max(0., 1 - avel / 480.)
         #for attack animation
         self.metas[5].activate(dt, self.weights, self.times, False)
-        attl = [5, self.metas[5].timer, 1]
+        attl = [5, self.metas[5].timer, 0]
 
         #normalize weights
         norm = sum(w for w in self.weights.values())

@@ -2,7 +2,7 @@ import pyglet
 from pyglet.gl import *
 from player.cvec2 import cvec2 as vec2
 from maps.map import DrawableMap
-from player.player import DrawablePlayer
+from views import DrawablePlayer
 from network_utils import protocol_pb2 as proto
 from graphics.primitives import Rect, DrawaAbleLine, TexQuad
 from gameplay.weapons import spread, ProjContainer, weaponcolors
@@ -24,7 +24,7 @@ class Render(object):
         self.scale = vec2(window.width / 1360., window.height / 765.)
         self.players = {}
         self.fbo = FBO(window.width, window.height)
-        self.model = Model(path.join('graphics', 'metatest.dae'), self.scale.x)
+        #self.model = Model(path.join('graphics', 'metatest.dae'), self.scale.x)
         self.lighting = Shader('lighting')
         self.lighting.set('mvp', Matrix.orthographic(
             0., window.width, 0., window.height, 0, 1))
@@ -37,7 +37,9 @@ class Render(object):
             self.fbo.clear()
             with self.camera as mvp:
                 self.scene_batch.draw()
-                self.model.draw(mvp)
+                for player in self.players.itervalues():
+                    player.draw(mvp)
+                #self.model.draw(mvp)
 
         #send texture data to shader
         for i in range(3):
@@ -75,7 +77,12 @@ class Render(object):
             del self.players[id]
 
     def update(self, dt):
-        self.model.update(dt, self.players[1].state)
+        #self.model.update(dt, self.players[1].state)
+        for player in self.players.itervalues():
+            player.animate(dt)
+
+    def weapon_check(self, id, weaponinfo):
+        self.players[id].update_weapon(weaponinfo[1])
 
 
 class ProjectileViewer(object):

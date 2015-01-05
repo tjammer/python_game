@@ -9,7 +9,6 @@ try:
     from graphics.primitives import Rect
 except:
     from collision.aabb import AABB as Rect
-from math import copysign
 
 pext = vec2(32, 72)
 phext = pext / 2
@@ -197,29 +196,3 @@ class Player(Events):
 
     def add_to_view(self):
         self.renderhook(self, add=True)
-
-
-class DrawablePlayer(object):
-    """docstring for DrawablePlayer"""
-    def __init__(self, player, batch, fac):
-        super(DrawablePlayer, self).__init__()
-        self.state = player.state
-        self.rect = player.rect.copy()
-        self.batch = batch
-        self.scale(fac)
-
-    def scale(self, fac):
-        self.rect.pos *= fac
-        self.rect.width *= fac.x
-        self.rect.height *= fac.y
-        #self.rect.add(self.batch)
-
-    def update(self, state, fac):
-        pos = vec2(*state.pos) * fac
-        self.rect.update(*pos)
-        self.state = state
-        self.state.mpos = state.mpos - state.pos - vec2(16, 54)
-        self.state.pos = pos
-
-    def remove(self):
-        self.rect.remove()

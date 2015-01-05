@@ -99,6 +99,7 @@ class GameScreen(Events):
                     self.players[ind].weapons.from_server(weaponinfo)
                 #except KeyError:
                 #    pass
+            self.render.weapon_check(ind, weaponinfo)
         elif typ == proto.projectile:
             self.proj_viewer.process_proj(data)
         elif typ == proto.newPlayer:
