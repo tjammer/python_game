@@ -50,6 +50,7 @@ void main(){
             quats[indices.w], vecs[indices.w], 0, norm) * weights.w;
     }
     new_pos.w = 1;
-    new_norm.w = 1;
+    if (norm.w == 0.5)
+        new_norm.w = 0;
     gl_Position = mvp * new_pos;
 }

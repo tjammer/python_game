@@ -12,10 +12,12 @@ void main(){
     intensity = dot(normalize(lightPos), normalize(norm.xyz));
 
     if (intensity > 0.95)
-        new_col = col * 2.;
+        new_col = col * 1.3;
     else if (intensity > 0.5)
-        new_col = col * 1.5;
+        new_col = col * 1.1;
+    else if (norm.w == 1)
+        new_col = col;
     else
-        new_col = col * 1.;
+        new_col = col * 0.8;
     gl_FragColor = new_col;
 }
