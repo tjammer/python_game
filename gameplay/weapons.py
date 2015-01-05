@@ -3,7 +3,7 @@ from player.cvec2 import cvec2 as vec2
 from network_utils import protocol_pb2 as proto
 import math
 
-phext = vec2(16, 36)
+phext = vec2(16, 54)
 
 
 def spread(dx, dy, angle, num):

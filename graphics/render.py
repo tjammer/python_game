@@ -159,7 +159,7 @@ class ProjectileViewer(object):
                     length = self.data.posx
                     playerhit = self.data.posy
                     center, mpos = self.get_center(id)
-                    center = vec2(*center) * self.scale
+                    center = vec2(*center + vec2(0, 18)) * self.scale
                     mpos = vec2(*mpos) * self.scale
                     dr = mpos - center
                     drunit = dr / dr.mag()
@@ -177,7 +177,7 @@ class ProjectileViewer(object):
                     id = self.data.playerId
                     playerhit = self.data.posy
                     center, mpos = self.get_center(id)
-                    center = vec2(*center) * self.scale
+                    center = vec2(*center + vec2(0, 18)) * self.scale
                     mpos = vec2(*mpos) * self.scale
                     dr = mpos - center
                     dys = spread(dr.x, dr.y, angle=0.1, num=6)
@@ -222,7 +222,7 @@ class ProjectileViewer(object):
                     proj.remove()
                     todelete.append(key)
                 center, mpos = self.get_center(proj.id)
-                center = vec2(*center) * self.scale
+                center = vec2(*center + vec2(0, 18)) * self.scale
                 mpos = vec2(*mpos) * self.scale
                 proj.update(center.x, center.y, mpos[0], mpos[1])
             elif isinstance(proj, ProjContainer):
