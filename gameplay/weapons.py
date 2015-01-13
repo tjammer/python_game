@@ -193,7 +193,7 @@ class ShotGun(Weapon):
         self.keystr = 'w1'
 
     def on_fire(self, pos, aim_pos):
-        dr = aim_pos - pos
+        dr = aim_pos - pos - phext
         pellets = ShotGunPellets(pos.x + phext.x, pos.y + phext.y, dr.x, dr.y,
                                  self.pelletdmg, self.pellets,
                                  self.pelletknockback, self.pelletlength,
@@ -507,7 +507,7 @@ class ShotGunPellets(object):
         self.pellets = [HitScanLine(x, y, dx, spread_dy[i], plength, pdmg, pkb,
                         id, 0) for i in range(pnum)]
         self.dir = vec2(dx, dy)
-        self.unit = self.dir / self.dir.mag()
+        self.unit = self.dir.normalize()
 
     def collide(self, quadtree, playergen, id):
         colls = [line.collide(quadtree, playergen(), id)
@@ -602,6 +602,10 @@ class ProjectileManager(object):
             self.process_hitscan(proj)
         elif isinstance(proj, ShotGunPellets):
             self.process_hitscan_mul(proj)
+            #knockback
+            cond = self.players[proj.id].state.conds
+            if cond.ascending or cond.descending:
+                self.players[proj.id].state.vel -= proj.unit * vec2(150, 300)
 
     def send(self, proj, toDelete=False):
         projectile = proto.Projectile()

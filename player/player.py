@@ -153,11 +153,11 @@ class Player(Events):
         state.vel.y *= normal.y == 0.
         if normal.y < 0:
             state.set_cond('onGround')
-        elif normal.x > 0:
-            state.set_cond('onRightWall')
-        elif normal.x < 0:
-            state.set_cond('onLeftWall')
-        elif normal.x == 0. and normal.y == 0.:
+            """elif normal.x > 0:
+                    state.set_cond('onRightWall')
+            elif normal.x < 0:
+                    state.set_cond('onLeftWall')"""
+        elif normal.y == 0.:# and normal.y == 0.:
             self.determine_state(state)
         return state
 

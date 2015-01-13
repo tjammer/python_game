@@ -7,11 +7,11 @@ class Movement(object):
         super(Movement, self).__init__()
         self.pos = vec2(x, y)
         self.vel = vec2(0, 0)
-        self.gravity = 2300.
+        self.gravity = 1900.
         self.normal_accel = 1000.
         self.boost_accel = 20.
         self.turn_multplier = 8.
-        self.jump_vel = 750.
+        self.jump_vel = 700.
         self.max_vel = 500.
         self.wall_boost = 650.
         self.angle = 0
@@ -60,11 +60,11 @@ class Movement(object):
         self.vel.x = self.vel.x + v * sign * dt
 
         #wallsliding
-        if (conds.onLeftWall or conds.onRightWall) and self.vel.y < 0:
+        """if (conds.onLeftWall or conds.onRightWall) and self.vel.y < 0:
             gravity = self.gravity * .5
         else:
-            gravity = self.gravity
-        self.vel.y = self.vel.y - gravity * dt
+            gravity = self.gravity"""
+        self.vel.y = self.vel.y - self.gravity * dt
 
         if not state.isDead:
             if (conds.landing or
