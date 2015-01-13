@@ -134,7 +134,7 @@ animations = {'run': 0, 'stand': 1}
 conditions = {0: ('onGround',), 1: ('onGround',),
               2: ('ascending', 'onRightWall', 'onLeftWall'),
               3: ('descending',), 4: ('landing',)}
-timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 3, 6: 1.3}
+timescales = {0: 3, 1: 1, 2: 2, 3: 2.5, 4: 1, 5: 2, 6: 1.3}
 loops = {0: 1, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 1}
 
 
@@ -285,7 +285,7 @@ class AttackMeta(MetaAnimation):
         super(AttackMeta, self).__init__(*arg, **kwargs)
         self.playing = False
         self.fadeinrate = 10.
-        self.fadeoutrate = 2.
+        self.fadeoutrate = 4.
 
     def update(self, dt, conds, weights, times):
         if self.playing:
