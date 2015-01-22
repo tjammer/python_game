@@ -38,6 +38,14 @@ enum GameState {
     overTime = 9;
 }
 
+enum Direction {
+    down = 0;
+    up = 1;
+    left = 2;
+    right = 3;
+}
+
+//main message
 message Message {
     required MessageType type = 1;
     optional Player player = 2;
@@ -46,7 +54,6 @@ message Message {
     optional GameState gameState = 7;
     optional int32 ack = 5;
     optional float gameTime = 6;
-    optional Stats stats = 8;
 }
 
 message Player {
@@ -62,6 +69,7 @@ message Player {
     optional string chat = 11;
     optional int32 ammo = 12;
     optional ProjectileType weapon = 13;
+    optional Direction Direction = 14;
 }
 
 message Input {
@@ -114,7 +122,7 @@ message WeaponStat {
 
 message ScoreStat {
     optional int32 playerId = 1;
-    optional in32 score = 2;
+    optional int32 score = 2;
 }
 
 message Stats {
