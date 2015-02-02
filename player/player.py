@@ -22,20 +22,21 @@ class Player(Events):
         self.state = state(vec2(100, 130), vec2(0, 0), 100)
         self.move = Movement(*self.state.pos)
         self.dispatch_proj = dispatch_proj
-     # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
+        # spawning player at 0,0, width 32 = 1280 / 40. and height 72 = 720/10.
         self.Rect = Rect
         if id:
             self.id = id
             self.weapons = WeaponsManager(self.dispatch_proj, self.id)
-        #self.color = Options()['color']  #(0, 204, 255)
+        # self.color = Options()['color']  #(0, 204, 255)
         self.set_color(Options()['color'])
         self.rect = self.Rect(0, 0, pext.x, pext.y, self.color, isplayer=True,
                               batch=batch)
-        #input will be assigned by windowmanager class
+        # input will be assigned by windowmanager class
         self.input = proto.Input()
         self.listeners = {}
         self.ready = False
         self.renderhook = renderhook
+        self.state.conds.direction = proto.down
 
     def update(self, dt, rectgen, state=False, input=False):
         if not state:
@@ -110,21 +111,21 @@ class Player(Events):
         cols = [coldata for coldata in all_cols if coldata]
         try:
             xt = min(col[1] for col in cols if col[0].x != 0)
-            xnorm, rct = [(col[0].x, rectgen[all_cols.index(col)])
-                          for col in cols if col[1] == xt and col[0].x != 0][0]
+            xnorm, yt_ent = [(col[0].x, col[2]) for col in cols
+                             if col[1] == xt and col[0].x != 0][0]
         except ValueError:
             xt = dt
             xnorm = 0.
         try:
             yt = min(col[1] for col in cols if col[0].y != 0)
-            ynorm = [col[0].y for col in cols
-                     if col[1] == yt and col[0].y != 0][0]
+            ynorm, xt_ent = [(col[0].y, col[2]) for col in cols
+                             if col[1] == yt and col[0].y != 0][0]
         except ValueError:
             yt = dt
             ynorm = 0.
 
-        if xnorm:
-            #check for stair
+        """if xnorm:
+            # check for stair
             stairoffset = 10
             testr = self.rect.copy()
             testr.update(testr.pos.x, testr.pos.y + stairoffset)
@@ -141,7 +142,14 @@ class Player(Events):
                     if not abs(t) == float('Inf'):
                         yt = t
                         xnorm = 0
-                        ynorm = -1
+                        ynorm = -1"""
+        if xnorm and ynorm:
+            if yt_ent == yt and xt > yt:
+                xnorm = 0
+                xt = dt
+            elif xt_ent == xt and yt > xt:
+                ynorm = 0
+                yt = dt
 
         dt = vec2(xt, yt)
         norm = vec2(xnorm, ynorm)
@@ -151,18 +159,24 @@ class Player(Events):
         state.pos, state.vel = self.move.step(dt, state.pos)
         state.vel.x *= normal.x == 0.
         state.vel.y *= normal.y == 0.
-        if normal.y < 0:
+        """if normal.y < 0:
             state.set_cond('onGround')
-            """elif normal.x > 0:
+            elif normal.x > 0:
                     state.set_cond('onRightWall')
             elif normal.x < 0:
-                    state.set_cond('onLeftWall')"""
+                    state.set_cond('onLeftWall')
         elif normal.y == 0.:# and normal.y == 0.:
-            self.determine_state(state)
+            self.determine_state(state)"""
+        self.determine_state(state, normal)
         return state
 
-    def determine_state(self, state):
-        if state.vel.y < 0:
+    def determine_state(self, state, normal):
+        dir = state.conds.direction
+        mult_sign = (-1 if dir % 2 else 1)
+        vert = dir < 2
+        if normal[vert] * mult_sign < 0:
+            state.set_cond('onGround')
+        elif state.vel[vert] * mult_sign < 0:
             state.set_cond('descending')
 
     def spawn(self, x, y, other=False):
