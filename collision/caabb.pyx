@@ -1,5 +1,6 @@
 from player.cvec2 cimport cvec2
 cimport cython
+from libc.math cimport copysign
 
 cdef class cAABB:
     cdef public cvec2 pos, vel, center
@@ -62,9 +63,9 @@ cdef class cAABB:
             x, y = ovrtest
             norm = cvec2(float(x > y), -float(y > x))
             if not obj.isplayer:
-                return norm, -dt
+                return norm, -dt, dt
             elif not self.isplayer:
-                return norm, dt
+                return norm, dt, dt
         else:
             #find distance for entry and exit
             if self.vel.x > 0:
@@ -109,13 +110,16 @@ cdef class cAABB:
                 elif xdist_ent <= 0 and self.vel.x < 0 and yt_ent != 0:
                     normal = cvec2(-1., 0.)
                 else:
-                    return False
+                    normal = cvec2(copysign(1., self.vel.x), 0.)
             else:
-                if ydist_ent <= 0:
+                if ydist_ent < 0:
                     normal = cvec2(0., -1.)
-                else:
+                elif ydist_ent > 0:
                     normal = cvec2(0., 1.)
-            return normal, enter, dt - enter
+                else:
+                    normal = cvec2(0., copysign(1., self.vel.y))
+            # return normal, enter, dt - enter
+            return normal, enter, min(xt_ent, yt_ent)
 
     def sign_of(self, vec):
         if not isinstance(vec, cvec2):

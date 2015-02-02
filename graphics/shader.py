@@ -223,9 +223,12 @@ def _uid():
     global _UID; _UID += 1; return _UID;
 
 
-def _texture(width, height):
+def _texture(width, height, use_float=True):
+    format = GL_RGBA16F
+    if not use_float:
+        format = GL_RGBA
     # Returns an empty texture of the given width and height.
-    return Texture.create(width, height, internalformat=GL_RGBA32F)
+    return Texture.create(width, height, internalformat=format)
 
 
 attachements = (GL_COLOR_ATTACHMENT0,
@@ -269,7 +272,7 @@ class OffscreenBuffer(object):
     def _init(self, width, height):
         glBindFramebuffer(GL_FRAMEBUFFER, self.id.value)
         for i in range(self.mult):
-            self.textures.append(_texture(int(width), int(height)))
+            self.textures.append(_texture(int(width), int(height), i))
             glBindTexture(self.textures[i].target, self.textures[i].id)
             glFramebufferTexture2D(
                 GL_FRAMEBUFFER, attachements[i], self.textures[i].target,

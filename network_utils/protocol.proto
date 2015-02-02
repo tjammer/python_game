@@ -69,7 +69,6 @@ message Player {
     optional string chat = 11;
     optional int32 ammo = 12;
     optional ProjectileType weapon = 13;
-    optional Direction Direction = 14;
 }
 
 message Input {
@@ -97,6 +96,7 @@ message MState {
     optional bool onLeftWall = 8;
     optional bool isDead = 9;
     optional bool hold = 10;
+    optional Direction direction = 11;
 }
 
 message Projectile {
