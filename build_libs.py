@@ -2,6 +2,7 @@ from distutils.core import setup
 from Cython.Build import cythonize
 from os import path
 
+"""usage: python build_libs.py build_ext --inplace"""
 
 # cvec2
 setup(
