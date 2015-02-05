@@ -1,4 +1,4 @@
-from lxml import etree
+from xml.etree import ElementTree as etree
 
 pre = '{http://www.collada.org/2005/11/COLLADASchema}'
 

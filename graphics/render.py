@@ -11,6 +11,9 @@ from shader import OffscreenBuffer as FBO, Shader, vector
 from matrix import Matrix
 
 
+arr = c_int * 3
+
+
 class Render(object):
     def __init__(self, camera, window):
         super(Render, self).__init__()
@@ -43,7 +46,6 @@ class Render(object):
         for i in range(3):
             glActiveTexture(GL_TEXTURE0 + i)
             glBindTexture(GL_TEXTURE_2D, self.fbo.textures[i].id)
-        arr = c_int * 3
         self.lighting.set('texs', arr(self.fbo.textures[0].id,
                                       self.fbo.textures[1].id,
                                       self.fbo.textures[2].id))

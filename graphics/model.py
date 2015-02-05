@@ -175,7 +175,7 @@ class AnimationUpdater(object):
         avel = abs(state.vel.x)
         if state.conds.onGround:
             self.weights[animations['run']] *= min(1., avel / 480.)
-            if not 4 in self.weights:
+            if 4 not in self.weights:
                 self.weights[animations['stand']] *= max(0., 1 - avel / 480.)
 
         #for attack animation
