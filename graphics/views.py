@@ -12,12 +12,12 @@ class DrawablePlayer(object):
     def __init__(self, player, batch, fac):
         super(DrawablePlayer, self).__init__()
         self.state = player.state
-        #self.rect = player.rect.copy()
-        #self.batch = batch
+        # self.rect = player.rect.copy()
+        # self.batch = batch
         self.model = Model(path.join('graphics', 'metatest.dae'), fac.x)
         self.model.change_color([c / 255. for c in player.rect.color] + [1.])
         self.weapon = None
-        #self.scale(fac)
+        # self.scale(fac)
 
     def scale(self, fac):
         self.rect.pos *= fac
@@ -27,7 +27,7 @@ class DrawablePlayer(object):
 
     def update(self, state, fac):
         pos = vec2(*state.pos) * fac
-        #self.rect.update(*pos)
+        # self.rect.update(*pos)
         self.state = state
         self.state.mpos = state.mpos - state.pos - vec2(16, 54)
         self.state.pos = pos
@@ -47,5 +47,5 @@ class DrawablePlayer(object):
         self.model.draw(mvp)
 
     def remove(self):
-        #self.rect.remove()
+        # self.rect.remove()
         self.model.remove()

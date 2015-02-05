@@ -326,6 +326,7 @@ class GameScreen(Events):
                                      state, self.player.input)
         else:
             self.spec_send(dt)
+        self.render.update(dt)
         self.gs_view.update(dt)
         self.proj_viewer.update(dt)
         self.hud.update(dt)
@@ -407,6 +408,7 @@ class GameScreen(Events):
         else:
             self.player.specupdate(dt)
             self.camera.update(dt, self.player.state)
+        self.render.update(dt)
         self.spec_send(dt)
         self.proj_viewer.update(dt)
         self.gs_view.update(dt)
