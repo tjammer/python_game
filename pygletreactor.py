@@ -52,8 +52,8 @@ from twisted.internet import _threadedselect
 
 try:
     # Pyglet 1.1.2
-    from pyglet.app.base import EventLoop
-    pyglet_event_loop = pyglet.app.base.EventLoop
+    #from pyglet.app.base import EventLoop
+    pyglet_event_loop = pyglet.app.EventLoop
 except ImportError:
     # Pyglet 1.1
     pyglet_event_loop = pyglet.app.EventLoop
@@ -64,24 +64,24 @@ class EventLoop(pyglet_event_loop):
         """Set up extra cruft to integrate Twisted calls."""
 
         pyglet_event_loop.__init__(self)
-        
+
         if not hasattr(self, "clock"):
             # This is not defined in Pyglet 1.1
             self.clock = pyglet.clock.get_default()
 
         if not twisted_queue is None:
-            self.register_twisted_queue(twisted_queue, call_interval)        
+            self.register_twisted_queue(twisted_queue, call_interval)
 
     def register_twisted_queue(self, twisted_queue, call_interval):
         # The queue containing Twisted function references to call
         self._twisted_call_queue = twisted_queue
-        
+
         # Schedule a method to deal with Twisted calls
         self.clock.schedule_interval_soft(self._make_twisted_calls, call_interval)
 
     def _make_twisted_calls(self, dt):
         """Check if we need to make function calls for Twisted."""
-        
+
         try:
             # Deal with the next function call in the queue
             f = self._twisted_call_queue.get(False)
@@ -102,12 +102,12 @@ class PygletReactor(_threadedselect.ThreadedSelectReactor):
         """Register the pygletreactor.EventLoop instance
         if necessary, i.e. if you need to subclass it.
         """
-        
+
         self.pygletEventLoop = eventloop
-    
+
     def stop(self):
         """Stop Twisted."""
-        
+
         if self._stopping:
             return
         self._stopping = True
@@ -115,7 +115,7 @@ class PygletReactor(_threadedselect.ThreadedSelectReactor):
 
     def _runInMainThread(self, f):
         """Schedule Twisted calls within the Pyglet event loop."""
-        
+
         if hasattr(self, "pygletEventLoop"):
             # Add the function to a queue which is called as part
             # of the Pyglet event loop (see EventLoop above)
@@ -127,7 +127,7 @@ class PygletReactor(_threadedselect.ThreadedSelectReactor):
 
     def _stopPyglet(self):
         """Stop the pyglet event loop."""
-        
+
         if hasattr(self, "pygletEventLoop"):
             self.pygletEventLoop.exit()
 
@@ -144,7 +144,7 @@ class PygletReactor(_threadedselect.ThreadedSelectReactor):
             self.registerPygletEventLoop(EventLoop(self._twistedQueue, call_interval))
         else:
             self.pygletEventLoop.register_twisted_queue(self._twistedQueue, call_interval)
-        
+
         # Start the Twisted thread.
         self.interleave(self._runInMainThread,
                         installSignalHandlers=installSignalHandlers)
@@ -153,14 +153,14 @@ class PygletReactor(_threadedselect.ThreadedSelectReactor):
         self.addSystemEventTrigger("after", "shutdown", self._stopPyglet)
         self.addSystemEventTrigger("after", "shutdown",
                                    lambda: self._postQueue.put(None))
-        
+
         self.pygletEventLoop.run()
 
         # Now that the event loop has finished, remove
         # it so that further Twisted events are added to
         # the shutdown queue, and are dealt with below.
         del self.pygletEventLoop
-        
+
         if not self._stopping:
             # The Pyglet event loop is no longer running, so we monitor the
             # queue containing Twisted events until all events are dealt with.
@@ -178,7 +178,7 @@ class PygletReactor(_threadedselect.ThreadedSelectReactor):
                         f()
                     except:
                         log.err()
-        
+
 def install():
     """
     Setup Twisted+Pyglet integration based on the Pyglet event loop.

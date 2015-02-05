@@ -63,7 +63,12 @@ cdef class cAABB:
             x, y = ovrtest
             norm = cvec2(float(x > y), -float(y > x))
             if not obj.isplayer:
-                return norm, -dt, dt
+                if norm.x and self.vel.x:
+                    return norm, x / self.vel.x, dt
+                elif norm.y and self.vel.y:
+                    return norm, -y / self.vel.y, dt
+                else:
+                    return norm, -dt, dt
             elif not self.isplayer:
                 return norm, dt, dt
         else:

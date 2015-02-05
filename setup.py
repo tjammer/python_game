@@ -2,13 +2,14 @@ import sys
 from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os"],
-                     "excludes": ["tkinter", "numpy", "email"],
+build_exe_options = {"packages": [],
+                     "excludes": ["tkinter", "email", "tcl", "bz2",
+                                  "_hashlib", "_ssl", "_imaging"],
                      "include_files":
-                     ["maps\phrantic.svg", "maps\phrantic.svg",
-                      "maps\\blank.svg", "maps\\blank.svg"],
+                     [],
                      "create_shared_zip": False,
-                     "optimize": 1}
+                     "optimize": 1,
+                     "includes": ["lxml._elementpath"]}
 
 # GUI applications require a different base on Windows (the default is for a
 # console application).
