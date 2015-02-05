@@ -3,7 +3,6 @@
 from libc.stdlib cimport malloc, free
 from cython.view cimport array
 from libc.math cimport sqrt, sin, cos, acos
-from numpy cimport ndarray, dtype
 from shader import vector
 from ctypes import c_double
 cimport cython
@@ -44,10 +43,7 @@ cdef struct Transform:
     Vec4 vec
     int active
 
-transformtype = dtype([('q.w', 'd'), ('q.x', 'd'), ('q.y', 'd'),
-                 ('q.z', 'd'), ('vec.w', 'd'), ('vec.x', 'd'),
-                 ('vec.y', 'd'), ('vec.z', 'd'), ('active', 'i4')],
-                 align=True)
+t_form = 'ddddddddi'
 
 cdef double pih = 1.570796326794
 
@@ -85,15 +81,16 @@ cdef class AnimatedModel:
         cdef int i, j, k
         self.scale = scale_
 
-        cdef ndarray nparr = ndarray((l,), dtype=transformtype)
-        self.joint_worldData = nparr
+        # cdef ndarray nparr = ndarray((l,), dtype=transformtype)
+        cyarr = array(shape=(l,), itemsize=sizeof(Transform), format=t_form)
+        self.joint_worldData = cyarr
         cdef Transform * tra
         for i in range(l):
             tra = &self.joint_worldData[i]
             mat4x4_to_transform(joint_data[i], tra)
 
-        nparr = ndarray((l,), dtype=transformtype)
-        self.joint_currData = nparr
+        cyarr = array(shape=(l,), itemsize=sizeof(Transform), format=t_form)
+        self.joint_currData = cyarr
 
         l = len(verts)
         self.lv = l
@@ -159,8 +156,8 @@ cdef class AnimatedModel:
             self.weight_inds[i] = w_inds[i]
 
         l = len(inverse_bsm)
-        nparr = ndarray((l,), dtype=transformtype)
-        self.inverse = nparr
+        cyarr = array(shape=(l,), itemsize=sizeof(Transform), format=t_form)
+        self.inverse = cyarr
         for i in range(l):
             tra = &self.inverse[i]
             mat4x4_to_transform(inverse_bsm[i], tra)
@@ -185,8 +182,10 @@ cdef class AnimatedModel:
         #transformation data for each animation
         lenanims = len(anims)
         l = len(anims[0])
-        nparr = ndarray((lenanims, l, tt), dtype=transformtype)
-        self.keyframes = nparr
+        cyarr = array(shape=(lenanims, l, tt), itemsize=sizeof(Transform),
+                      format=t_form)
+        # nparr = ndarray((lenanims, l, tt), dtype=transformtype)
+        self.keyframes = cyarr
         for i in range(lenanims):
             for j in range(l):
                 for k in range(len(anims[i][j][1])):
@@ -194,8 +193,9 @@ cdef class AnimatedModel:
                     mat4x4_to_transform(anims[i][j][1][k], tra)
 
         self.la = l
-        nparr = ndarray((l,), dtype=transformtype)
-        self.skin_matrix = nparr
+        cyarr = array(shape=(l,), itemsize=sizeof(Transform), format=t_form)
+        # nparr = ndarray((l,), dtype=transformtype)
+        self.skin_matrix = cyarr
         self.angles[0] = 0.
         self.angles[2] = -1.570796326794
 
