@@ -28,7 +28,7 @@ class DrawablePlayer(object):
     def update(self, state, fac):
         pos = vec2(*state.pos) * fac
         # self.rect.update(*pos)
-        self.state = state
+        self.state = state.copy()
         self.state.mpos = state.mpos - state.pos - vec2(16, 54)
         self.state.pos = pos
 

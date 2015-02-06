@@ -69,9 +69,9 @@ class Player(Events):
         if self.input.down:
             self.state.pos.y -= 1000 * dt
 
-    def client_update(self, s_state, scale):
+    def client_update(self, s_state):
         easing = .3
-        snapping_distance = 20 * scale.mag()
+        snapping_distance = 20
 
         diff = vec2(s_state.pos.x - self.state.pos[0],
                     s_state.pos.y - self.state.pos[1])
