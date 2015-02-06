@@ -1,9 +1,10 @@
 import json
 
 
-colors = {'blue': (102, 217, 239),
+colors = {'blue': (0, 204, 255),
           'red': (249, 38, 114),
-          'green': (166, 226, 46)}
+          #'green': (166, 226, 46)}
+          'green': (40, 40, 40)}
 
 standards = {'name': 'UnnamedPlayer',
              'color': 'blue',

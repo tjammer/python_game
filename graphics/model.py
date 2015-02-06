@@ -201,7 +201,7 @@ class AnimationUpdater(object):
 
     def set_dir(self, dt, state):
         if state.vel.x != 0:
-            self.t -= (self.t - copysign(1, state.vel.x)) * 11. * dt
+            self.t -= (self.t - copysign(1, state.vel.x)) * 7. * dt
             self.dir = easeout(self.t + 1, -1, 2, 2)
         else:
             if state.conds.onRightWall:
