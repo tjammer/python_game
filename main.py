@@ -1,12 +1,12 @@
 import pyglet
-#pyglet.options['debug_gl'] = False
-import pygletreactor
-pygletreactor.install()
-from twisted.internet import reactor
 from menu.window_manager import WindowManager
 from network_utils.clientclass import Client
 from graphics import get_window
 from player.options import Options
+import pygletreactor
+pygletreactor.install()
+from twisted.internet import reactor
+# pyglet.options'[debug_gl'] = False
 
 window = get_window(Options())
 window.set_exclusive_mouse(True)
@@ -28,13 +28,16 @@ pyglet.clock.schedule(update)
 
 
 @window.event
-#draw
+# draw
 def on_draw():
     window.clear()
     pyglet.gl.glClearColor(.9, .9, .9, 1)
     window_manager.draw()
-    fps.draw()
+    # fps.draw()
 
-reactor.listenUDP(59447, client)
+
+reactor.listenUDP(8960, client)
 client.register_ack()
+d = reactor.resolve('nils.cc')
+d.addCallback(client.get_ip)
 reactor.run(call_interval=1./fps_limit)

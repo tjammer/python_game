@@ -11,8 +11,8 @@ class Client(DatagramProtocol):
     def __init__(self):
         self.time = 0
         self.connected = False
-        #self.host = ('pipc73.pit.physik.uni-tuebingen.de', 59446)
-        self.host = ('127.0.0.1', 59446)
+        self.host = ('nils.cc', 8961)
+        # self.host = ('127.0.0.1', 59446)
         self.con_timer = 0
         self.message = proto.Message()
         self.input = proto.Input()
@@ -32,7 +32,7 @@ class Client(DatagramProtocol):
         pl = proto.Player()
         pl.chat = opts['name']
         self.message.player.CopyFrom(pl)
-        #self.transport.write(self.message.SerializeToString(), self.host)
+        # self.transport.write(self.message.SerializeToString(), self.host)
         self.ackman.send_rel(self.message, self.host)
 
     def disconnect(self):
@@ -171,6 +171,9 @@ class Client(DatagramProtocol):
 
     def update(self, dt):
         self.ackman.update(dt)
+
+    def get_ip(self, d):
+        self.host = (d, 8961)
 
 
 class move(object):
