@@ -38,6 +38,6 @@ def on_draw():
 
 reactor.listenUDP(8960, client)
 client.register_ack()
-d = reactor.resolve('nils.cc')
+d = reactor.resolve('localhost')
 d.addCallback(client.get_ip)
 reactor.run(call_interval=1./fps_limit)
