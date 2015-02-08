@@ -8,7 +8,7 @@ from options import colors, Options
 try:
     from graphics.primitives import Rect
 except:
-    from collision.aabb import AABB as Rect
+    from collision.caabb import cAABB as Rect
 
 pext = vec2(32, 72)
 phext = pext / 2
