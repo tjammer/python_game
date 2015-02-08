@@ -186,8 +186,6 @@ class Player(Events):
         self.state.armor = 0
         self.state.isDead = False
         self.state.frozen = False
-        if isinstance(self.rect, Rect):
-            self.rect.update_color(self.color)
         self.weapons.reset()
 
     def get_id(self, id, name):
