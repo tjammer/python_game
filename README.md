@@ -10,7 +10,7 @@ quake 2d platformer prototype
 
 ## Compiled Objects
 Some parts of the game (vectors, quaternions, collision detection) require compiled Cython module. They can be compiled with
-```python
+```
 python build_libs.py build_ext --inplace
 ```
 
